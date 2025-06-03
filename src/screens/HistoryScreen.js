@@ -1,10 +1,10 @@
 // src/screens/HistoryScreen.js
 import React, { useState, useEffect } from 'react';
 import Calendar from 'react-calendar';
-import 'react-calendar/dist/Calendar.css'; // Default styling, can be overridden
+import 'react-calendar/dist/Calendar.css';
 import WorkoutList from '../components/WorkoutList';
 import ProgressGraph from '../components/ProgressGraph';
-import '../assets/styles/HistoryScreen.css'; // For custom calendar and graph styling
+import '../assets/styles/HistoryScreen.css';
 
 const HistoryScreen = ({ allWorkouts, getWorkoutsForDate, deleteWorkout }) => {
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -12,18 +12,30 @@ const HistoryScreen = ({ allWorkouts, getWorkoutsForDate, deleteWorkout }) => {
   const [selectedExerciseForGraph, setSelectedExerciseForGraph] = useState('');
   const [uniqueExercises, setUniqueExercises] = useState([]);
 
-
+  // Ensure allWorkouts is an array before trying to map or set exercises
   useEffect(() => {
-    setWorkoutsForSelectedDate(getWorkoutsForDate(selectedDate));
-  }, [selectedDate, allWorkouts, getWorkoutsForDate]);
-
-  useEffect(() => {
-    const exercises = [...new Set(allWorkouts.map(w => w.name))];
-    setUniqueExercises(exercises);
-    if (exercises.length > 0 && !selectedExerciseForGraph) {
-      setSelectedExerciseForGraph(exercises[0]);
+    if (allWorkouts && Array.isArray(allWorkouts)) {
+      const exercises = [...new Set(allWorkouts.map(w => w.name).filter(name => name))]; // Filter out undefined/null names
+      setUniqueExercises(exercises);
+      if (exercises.length > 0 && (!selectedExerciseForGraph || !exercises.includes(selectedExerciseForGraph))) {
+        setSelectedExerciseForGraph(exercises[0]);
+      } else if (exercises.length === 0) {
+        setSelectedExerciseForGraph(''); // Clear if no exercises
+      }
+    } else {
+      setUniqueExercises([]); // Ensure it's an empty array if allWorkouts is not ready
+      setSelectedExerciseForGraph('');
     }
-  }, [allWorkouts, selectedExerciseForGraph]);
+  }, [allWorkouts, selectedExerciseForGraph]); // Removed selectedExerciseForGraph from dependency to avoid loop if it's being set here
+
+
+  useEffect(() => {
+    // Ensure getWorkoutsForDate is a function and selectedDate is valid
+    if (typeof getWorkoutsForDate === 'function' && selectedDate) {
+      const workouts = getWorkoutsForDate(selectedDate);
+      setWorkoutsForSelectedDate(Array.isArray(workouts) ? workouts : []); // Ensure it's an array
+    }
+  }, [selectedDate, allWorkouts, getWorkoutsForDate]);
 
 
   const handleDateChange = (date) => {
@@ -39,10 +51,11 @@ const HistoryScreen = ({ allWorkouts, getWorkoutsForDate, deleteWorkout }) => {
           onChange={handleDateChange}
           value={selectedDate}
           tileClassName={({ date, view }) => {
-            if (view === 'month') {
+            if (view === 'month' && typeof getWorkoutsForDate === 'function') { // Check if getWorkoutsForDate is a function
               const workoutsOnDate = getWorkoutsForDate(date);
-              if (workoutsOnDate.length > 0) {
-                return 'has-workouts'; // Class for dates with workouts
+              // Check if workoutsOnDate is truthy (not null/undefined) AND is an array before accessing .length
+              if (workoutsOnDate && Array.isArray(workoutsOnDate) && workoutsOnDate.length > 0) {
+                return 'has-workouts';
               }
             }
             return null;
@@ -67,7 +80,7 @@ const HistoryScreen = ({ allWorkouts, getWorkoutsForDate, deleteWorkout }) => {
               ))}
             </select>
             <ProgressGraph
-              workouts={allWorkouts}
+              workouts={allWorkouts || []} // Pass an empty array if allWorkouts is undefined
               exerciseName={selectedExerciseForGraph}
             />
           </>
@@ -77,6 +90,13 @@ const HistoryScreen = ({ allWorkouts, getWorkoutsForDate, deleteWorkout }) => {
       </div>
     </div>
   );
+};
+
+// Add defaultProps to HistoryScreen as well for robustness
+HistoryScreen.defaultProps = {
+  allWorkouts: [],
+  getWorkoutsForDate: () => [], // Default to a function that returns an empty array
+  deleteWorkout: () => {},
 };
 
 export default HistoryScreen;

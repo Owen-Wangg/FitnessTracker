@@ -1,4 +1,3 @@
-// src/components/WorkoutItem.js
 import React from 'react';
 import { FaTrash } from 'react-icons/fa';
 import '../assets/styles/WorkoutItem.css';

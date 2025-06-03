@@ -1,4 +1,3 @@
-// src/components/ProgressGraph.js
 import React from 'react';
 import { Line } from 'react-chartjs-2';
 import {
@@ -10,7 +9,9 @@ import {
   Title,
   Tooltip,
   Legend,
+  Filler, // <<< IMPORTANT: Import Filler for the gradient fill
 } from 'chart.js';
+import '../assets/styles/ProgressGraph.css'; // We'll add some styles here
 
 ChartJS.register(
   CategoryScale,
@@ -19,55 +20,102 @@ ChartJS.register(
   LineElement,
   Title,
   Tooltip,
-  Legend
+  Legend,
+  Filler // <<< Register Filler
 );
 
 const ProgressGraph = ({ workouts, exerciseName }) => {
+  if (!workouts || !Array.isArray(workouts) || workouts.length === 0) {
+    return <p className="graph-message">No workout data available to display progress.</p>;
+  }
   if (!exerciseName) {
-    return <p>Please select an exercise to see its progress.</p>;
+    return <p className="graph-message">Please select an exercise to see its progress.</p>;
   }
 
-  // Filter workouts for the selected exercise and sort by date
-  const exerciseWorkouts = workouts
-    .filter(w => w.name.toLowerCase() === exerciseName.toLowerCase())
-    .sort((a, b) => new Date(a.date) - new Date(b.date));
+  // 1. Filter workouts for the selected exercise
+  const exerciseWorkouts = workouts.filter(
+    (w) => w && w.name && w.name.toLowerCase() === exerciseName.toLowerCase()
+  );
 
   if (exerciseWorkouts.length === 0) {
-    return <p>No data for "{exerciseName}". Try another exercise or add some workouts.</p>;
+    return <p className="graph-message">No data for "{exerciseName}".</p>;
   }
 
-  // Group by date and find max weight * reps (or just max weight)
-  // For simplicity, let's track max weight lifted on a given day for that exercise.
-  const dailyMaxWeights = {};
-  exerciseWorkouts.forEach(w => {
-    const dateStr = new Date(w.date).toLocaleDateString();
-    const weight = parseFloat(w.weight);
-    if (!dailyMaxWeights[dateStr] || weight > dailyMaxWeights[dateStr]) {
-      dailyMaxWeights[dateStr] = weight;
-    }
+  // 2. Calculate total weight lifted per workout and group by date
+  const dailyTotals = exerciseWorkouts.reduce((acc, workout) => {
+    const dateStr = new Date(workout.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }); // Format like "May 27"
+    const weight = parseFloat(workout.weight) || 0;
+    const sets = parseInt(workout.sets, 10) || 0;
+    const reps = parseInt(workout.reps, 10) || 0;
+    const totalLiftedForThisWorkout = weight * sets * reps;
+
+    acc[dateStr] = (acc[dateStr] || 0) + totalLiftedForThisWorkout;
+    return acc;
+  }, {});
+
+  // 3. Sort dates for the chart labels (important for correct order)
+  const sortedDates = Object.keys(dailyTotals).sort((a, b) => {
+    // Convert "May 27" back to a comparable date. This is a bit tricky.
+    // A more robust way is to store the full date in dailyTotals and format only for display.
+    // For now, let's assume this simple sort works for demonstration if dates are within a reasonable span.
+    // A better approach:
+    // Store { 'YYYY-MM-DD': total, ... } then sort keys, then map to formatted labels.
+    // Let's refine this:
+    return new Date(a + ", " + new Date().getFullYear()) - new Date(b + ", " + new Date().getFullYear());
   });
 
-  const labels = Object.keys(dailyMaxWeights);
-  const dataPoints = Object.values(dailyMaxWeights);
 
-  if (labels.length < 2) {
-    return <p>Not enough data points for "{exerciseName}" to draw a graph. Need at least two different days.</p>;
+  // Refined data preparation for robust sorting and tooltips
+  const dailyDataForChart = workouts
+    .filter(w => w && w.name && w.name.toLowerCase() === exerciseName.toLowerCase())
+    .reduce((acc, workout) => {
+      // Use YYYY-MM-DD for keys to ensure correct sorting
+      const dateKey = new Date(workout.date).toISOString().split('T')[0];
+      const weight = parseFloat(workout.weight) || 0;
+      const sets = parseInt(workout.sets, 10) || 0;
+      const reps = parseInt(workout.reps, 10) || 0;
+      const totalLiftedForThisWorkout = weight * sets * reps;
+
+      if (!acc[dateKey]) {
+        acc[dateKey] = { totalWeight: 0, displayDate: new Date(workout.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) };
+      }
+      acc[dateKey].totalWeight += totalLiftedForThisWorkout;
+      return acc;
+    }, {});
+
+  const sortedDateKeys = Object.keys(dailyDataForChart).sort((a, b) => new Date(a) - new Date(b));
+
+  if (sortedDateKeys.length < 2 && sortedDateKeys.length > 0) {
+     return <p className="graph-message">Only one data point for "{exerciseName}". Need at least two different days to draw a progress line.</p>;
   }
+  if (sortedDateKeys.length === 0) { // Should be caught earlier but good to have
+    return <p className="graph-message">No data for "{exerciseName}".</p>;
+  }
+
+
+  const labels = sortedDateKeys.map(key => dailyDataForChart[key].displayDate);
+  const dataPoints = sortedDateKeys.map(key => dailyDataForChart[key].totalWeight);
 
 
   const data = {
     labels: labels,
     datasets: [
       {
-        label: `Max Weight for ${exerciseName} (kg)`,
+        label: `Total Weight Lifted for ${exerciseName}`, // This won't be visible by default with legend off
         data: dataPoints,
-        fill: false,
-        borderColor: 'var(--accent-color)',
-        tension: 0.1,
-        pointBackgroundColor: 'var(--accent-color)',
-        pointBorderColor: 'var(--primary-text)',
-        pointHoverBackgroundColor: 'var(--primary-text)',
-        pointHoverBorderColor: 'var(--accent-color)',
+        fill: { // <<< For gradient fill
+          target: 'origin',
+          above: 'rgba(54, 162, 235, 0.2)', // Light blue gradient
+        },
+        borderColor: 'rgb(54, 162, 235)', // Line color - matches your image (approx)
+        backgroundColor: 'rgba(54, 162, 235, 0.5)', // Point color, also affects fill slightly
+        tension: 0.4, // Makes the line smooth
+        pointRadius: 5,
+        pointBackgroundColor: 'rgb(54, 162, 235)',
+        pointBorderColor: '#fff', // White border for points
+        pointHoverRadius: 7,
+        pointHoverBackgroundColor: 'rgb(54, 162, 235)',
+        pointHoverBorderColor: '#fff',
       },
     ],
   };
@@ -77,37 +125,85 @@ const ProgressGraph = ({ workouts, exerciseName }) => {
     maintainAspectRatio: false,
     scales: {
       x: {
-        ticks: { color: 'var(--secondary-text)' },
-        grid: { color: 'rgba(238, 238, 238, 0.1)' }
+        grid: {
+          display: false, // Remove x-axis grid lines
+        },
+        ticks: {
+          color: '#888', // Light grey for ticks, adjust to match image
+          font: {
+            size: 10, // Smaller font for x-axis labels
+          }
+        },
       },
       y: {
-        ticks: { color: 'var(--secondary-text)' },
-        grid: { color: 'rgba(238, 238, 238, 0.1)' },
-        beginAtZero: false, // Or true, depending on preference
-        title: {
-            display: true,
-            text: 'Weight (kg)',
-            color: 'var(--secondary-text)'
-        }
+        beginAtZero: false, // Start y-axis near the lowest data point
+        grid: {
+          color: 'rgba(200, 200, 200, 0.1)', // Very faint grid lines
+          drawBorder: false, // Remove y-axis border line
+        },
+        ticks: {
+          color: '#888', // Light grey for ticks
+          // To format y-axis ticks like "10.000", "20.000"
+          callback: function(value) {
+            if (value >= 1000) {
+              return (value / 1000).toFixed(3).replace('.', ','); // Or just toFixed(0) for whole numbers
+            }
+            return value;
+          },
+          stepSize: 10000, // Adjust based on your data range
+        },
       },
     },
     plugins: {
       legend: {
-        labels: { color: 'var(--primary-text)' }
+        display: false, // Hide the legend (dataset label)
       },
       tooltip: {
-        titleColor: 'var(--primary-text)',
-        bodyColor: 'var(--secondary-text)',
-        backgroundColor: 'var(--surface-dark)',
-        borderColor: 'var(--accent-color)',
-        borderWidth: 1
-      }
+        enabled: true,
+        mode: 'index',
+        intersect: false,
+        backgroundColor: 'rgba(0, 0, 0, 0.7)', // Darker tooltip background
+        titleColor: '#fff',
+        bodyColor: '#fff',
+        borderColor: 'rgb(54, 162, 235)',
+        borderWidth: 1,
+        padding: 10,
+        cornerRadius: 5,
+        displayColors: false, // Hide the color box in tooltip
+        callbacks: {
+          title: function() {
+            return ''; // Remove the title (date) from tooltip, as it's on x-axis
+          },
+          label: function(context) {
+            let label = context.dataset.label || '';
+            if (label) {
+              label += ': ';
+            }
+            if (context.parsed.y !== null) {
+              // label += new Intl.NumberFormat('en-US', { style: 'decimal' }).format(context.parsed.y) + ' lbs';
+              // Use toLocaleString for formatting like "23.400 lbs"
+              label = `Total Weight: ${context.parsed.y.toLocaleString('de-DE', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} lbs`;
+
+            }
+            return label;
+          },
+        },
+      },
+    },
+    interaction: { // Makes tooltip appear on hover over nearest point
+        mode: 'nearest',
+        axis: 'x',
+        intersect: false
     }
   };
 
   return (
-    <div style={{ height: '300px', width: '100%' }}>
-      <Line data={data} options={options} />
+    <div className="progress-graph-wrapper">
+      <h4>Weight Progress</h4> {/* Title like in the image */}
+      {/* You can add the "Total Weight 23.400 lbs" as a separate element if it's a summary */}
+      <div className="chart-container"> {/* Control height via CSS */}
+        <Line data={data} options={options} />
+      </div>
     </div>
   );
 };

@@ -1,4 +1,3 @@
-// src/components/SummaryCard.js
 import React from 'react';
 import '../assets/styles/SummaryCard.css';
 

@@ -1,4 +1,3 @@
-// src/App.js
 import React, { useState, useEffect } from 'react';
 import { supabase } from './utils/supabaseClient';
 import HomeScreen from './screens/HomeScreen';
@@ -231,7 +230,12 @@ function App() {
 
   const getTodaysWorkouts = () => {
     if (!user) return [];
-    const todayStr = new Date().toISOString().split('T')[0]; // "YYYY-MM-DD"
+    const now = new Date();
+  // Create a new Date object adjusted for the local timezone offset, then get its ISO date part.
+  // This ensures that 'todayStr' reflects the actual current date in the user's local timezone.
+  const todayStr = new Date(now.getTime() - (now.getTimezoneOffset() * 60000 ))
+                    .toISOString()
+                    .split('T')[0]; // "YYYY-MM-DD" for the local date
 
     console.log("[GET TODAY'S WORKOUTS] Filtering for date:", todayStr);
     // console.log("[GET TODAY'S WORKOUTS] Full workouts state (first 3):", workouts.slice(0,3).map(w=>({id:w.id,date:w.date,name:w.name})));
@@ -255,6 +259,7 @@ function App() {
 
   const getWorkoutsForDate = (selectedDateObj) => { // selectedDateObj is a Date object from react-calendar
     if (!user || !selectedDateObj) return [];
+    
     const selectedDateStr = selectedDateObj.toISOString().split('T')[0]; // "YYYY-MM-DD"
 
     console.log("[GET WORKOUTS FOR DATE] Filtering for date:", selectedDateStr);

@@ -1,8 +1,17 @@
-// src/components/AddWorkoutModal.js
 import React, { useState } from 'react';
-import '../assets/styles/AddWorkoutModal.css';
+import '../assets/styles/AddWorkoutModal.css'; // Make sure this path is correct
 
 const AddWorkoutModal = ({ show, onClose, onAddWorkout }) => {
+  // --- START: Date state and initialization ---
+  const today = new Date();
+  // Correctly get local today in YYYY-MM-DD format
+  const todayLocalISO = new Date(today.getTime() - (today.getTimezoneOffset() * 60000 ))
+                        .toISOString()
+                        .split("T")[0];
+
+  const [date, setDate] = useState(todayLocalISO); // Initialize date state
+  // --- END: Date state and initialization ---
+
   const [name, setName] = useState('');
   const [weight, setWeight] = useState('');
   const [sets, setSets] = useState('');
@@ -14,16 +23,28 @@ const AddWorkoutModal = ({ show, onClose, onAddWorkout }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!name || !weight || !sets || !reps) {
-      alert("Please fill all fields!"); // Simple validation
+    // Updated validation to include date (if you make it required)
+    // The date input itself has 'required' attribute, so browser handles empty check for it mostly.
+    // But good to have a check here too if you want a custom alert.
+    if (!name || !weight || !sets || !reps || !date) { // Added !date to the check
+      alert("Please fill all fields, including the date!");
       return;
     }
-    onAddWorkout({ name, weight, sets, reps });
+    // Pass the date to onAddWorkout
+    onAddWorkout({
+      name,
+      date, // Add date here
+      weight,
+      sets,
+      reps
+    });
     // Reset form
     setName('');
+    setDate(todayLocalISO); // Reset date to today
     setWeight('');
     setSets('');
     setReps('');
+    // onClose(); // You might want to call onClose here if App.js doesn't always close it
   };
 
   return (
@@ -31,6 +52,19 @@ const AddWorkoutModal = ({ show, onClose, onAddWorkout }) => {
       <div className="modal-content" onClick={e => e.stopPropagation()}>
         <h2>Add New Workout</h2>
         <form onSubmit={handleSubmit}>
+          {/* --- START: Date Input Field --- */}
+          <div className="form-group">
+            <label htmlFor="workoutDate">Date</label>
+            <input
+              type="date"
+              id="workoutDate"
+              value={date}
+              onChange={e => setDate(e.target.value)}
+              required // Makes the browser require a value
+            />
+          </div>
+          {/* --- END: Date Input Field --- */}
+
           <div className="form-group">
             <label htmlFor="workoutName">Workout Name</label>
             <input
@@ -49,6 +83,7 @@ const AddWorkoutModal = ({ show, onClose, onAddWorkout }) => {
               value={weight}
               onChange={e => setWeight(e.target.value)}
               required
+              min="0" // Optional: prevent negative weight
             />
           </div>
           <div className="form-group">
@@ -59,6 +94,7 @@ const AddWorkoutModal = ({ show, onClose, onAddWorkout }) => {
               value={sets}
               onChange={e => setSets(e.target.value)}
               required
+              min="0" // Optional: prevent negative sets
             />
           </div>
           <div className="form-group">
@@ -69,6 +105,7 @@ const AddWorkoutModal = ({ show, onClose, onAddWorkout }) => {
               value={reps}
               onChange={e => setReps(e.target.value)}
               required
+              min="0" // Optional: prevent negative reps
             />
           </div>
           <div className="modal-actions">

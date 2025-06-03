@@ -1,4 +1,3 @@
-// src/components/Auth.js
 import React, { useState } from 'react';
 import { supabase } from '../utils/supabaseClient';
 import '../assets/styles/Auth.css'; // Create this CSS file for basic styling

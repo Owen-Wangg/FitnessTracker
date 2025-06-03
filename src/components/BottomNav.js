@@ -1,4 +1,3 @@
-// src/components/BottomNav.js
 import React from 'react';
 // Import FaHistory instead of FaCalendarAlt
 import { FaHome, FaHistory } from 'react-icons/fa';

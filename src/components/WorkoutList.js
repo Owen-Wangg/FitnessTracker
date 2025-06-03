@@ -1,4 +1,3 @@
-// src/components/WorkoutList.js
 import React from 'react';
 import WorkoutItem from './WorkoutItem';
 import { FaDumbbell } from 'react-icons/fa'; // Import dumbbell icon

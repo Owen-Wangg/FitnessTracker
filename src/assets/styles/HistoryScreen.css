@@ -1,4 +1,3 @@
-/* src/assets/styles/HistoryScreen.css */
 .history-screen h1, .history-screen h2 {
   color: var(--primary-text);
   margin-bottom: 15px;
@@ -10,84 +9,151 @@
 
 .calendar-container {
   margin-bottom: 20px;
-  /* .card styles from global.css apply */
+  /* Assuming .card styles from a global.css or similar apply for background/padding/border-radius */
 }
 
 /* react-calendar Customization */
 .react-calendar {
   width: 100%;
+  max-width: 450px;
+  margin-left: auto;
+  margin-right: auto;
   border: none;
   background-color: var(--surface-dark);
   color: var(--primary-text);
   border-radius: var(--border-radius);
+  padding: 15px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 
 .react-calendar__navigation button {
   color: var(--accent-color);
   background: none;
-  font-size: 1em;
+  font-size: 1.1em;
   min-width: 44px;
+  font-weight: bold;
 }
 .react-calendar__navigation button:hover,
 .react-calendar__navigation button:focus {
-  background-color: var(--background-dark); /* Slightly darker for interaction */
+  background-color: var(--background-dark);
 }
 .react-calendar__navigation button[disabled] {
   background-color: var(--surface-dark);
   color: var(--secondary-text);
 }
+.react-calendar__navigation__label {
+  font-weight: bold;
+  font-size: 1.1em;
+  color: var(--primary-text);
+}
 
 .react-calendar__month-view__weekdays__weekday {
-  color: var(--accent-color);
+  color: var(--secondary-text);
   text-transform: uppercase;
-  font-weight: bold;
-  font-size: 0.75em;
+  font-weight: 500;
+  font-size: 0.7em;
+  padding-bottom: 0.5em;
 }
 .react-calendar__month-view__weekdays__weekday abbr {
-  text-decoration: none; /* Remove underline */
+  text-decoration: none;
 }
 
+/* --- Base Tile Styling --- */
 .react-calendar__tile {
   color: var(--primary-text);
   background: none;
-  border-radius: 4px;
   padding: 10px 5px;
+  font-size: 0.9em;
+  position: relative; /* Still needed for the :now dot */
+  border: 1px solid transparent;
+  transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
 }
+
 .react-calendar__tile:enabled:hover,
 .react-calendar__tile:enabled:focus {
   background-color: var(--background-dark);
+  color: var(--accent-color);
 }
-.react-calendar__tile--now { /* Today's date */
-  background: #3d8588; /* Slightly different accent */
-  color: var(--primary-text);
+
+/* --- Current Date Styling (:now) --- */
+.react-calendar__tile--now {
+  font-weight: bold;
+  color: var(--accent-color); /* Blue text for current date */
+  background: none;
+  border-color: transparent; /* No border unless also selected */
 }
-.react-calendar__tile--active { /* Selected date */
-  background: var(--accent-color);
-  color: var(--primary-text);
+
+/* Dot ONLY for the CURRENT date (today) - WHITE dot */
+.react-calendar__tile--now::after {
+  content: '';
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background-color: var(--primary-text); /* WHITE dot for today */
 }
-.react-calendar__tile.has-workouts { /* Custom class for dates with workouts */
-    /* Could add a dot or different background */
-    position: relative;
+
+/* --- Styling for Dates with Workouts (.has-workouts) --- NO DOT */
+.react-calendar__tile.has-workouts {
+  color: var(--accent-color); /* BLUE text for dates with workouts */
+  font-weight: bold;
+  /* No ::after pseudo-element here, so no dot by default */
 }
-.react-calendar__tile.has-workouts::after {
-    content: '';
-    position: absolute;
-    bottom: 5px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 5px;
-    height: 5px;
-    border-radius: 50%;
-    background-color: var(--accent-color);
+
+/* If current date ALSO has workouts (and is not selected) */
+/* It should have blue text (from .has-workouts or .tile--now) */
+/* And its dot should be WHITE (from .tile--now::after) - This is already handled */
+
+
+/* --- Selected Date Styling (:active) --- HIGHLIGHTED COLOR BACKGROUND & SHAPE, NO DOT (unless also :now) */
+.react-calendar__tile--active {
+  background: var(--accent-color) !important;
+  color: var(--primary-text) !important;
+  font-weight: bold;
+  border-radius: 50%;
+  height: 36px;
+  width: 36px;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 !important;
+  border-color: var(--accent-color) !important;
+  /* The ::after dot from .tile--now::after will still apply if this tile is also .tile--now */
 }
-.react-calendar__tile--active.has-workouts::after {
-    background-color: var(--primary-text); /* Make dot visible on active tile */
+
+.react-calendar__tile--active:enabled:hover,
+.react-calendar__tile--active:enabled:focus {
+  background: var(--accent-color-dark) !important;
+}
+
+/* If a selected date (.tile--active) is NOT today (.tile--now), ensure NO dot appears from .has-workouts */
+.react-calendar__tile--active.has-workouts:not(.react-calendar__tile--now)::after {
+    display: none; /* Explicitly hide dot from .has-workouts if it's active but not today */
+}
+/* If a selected date IS today, the .tile--now::after (white dot) will take precedence if its specificity is higher or equal.
+   If .react-calendar__tile.has-workouts::after was still defined, we'd need to ensure .tile--now::after wins.
+   Since we removed the general .has-workouts::after, this is simpler. The white dot from .tile--now::after
+   should appear correctly even if the tile is active. */
+
+
+/* --- Dim days from other months --- */
+.react-calendar__month-view__days__day--neighboringMonth {
+  color: var(--secondary-text) !important;
+  background: none !important;
+  border-color: transparent !important;
+}
+/* Ensure no dot for neighboring month days */
+.react-calendar__month-view__days__day--neighboringMonth::after {
+  display: none !important;
 }
 
 
+/* --- Progress Graph and Exercise Select --- */
 .progress-graph-container {
   margin-top: 30px;
-  /* .card styles from global.css apply */
 }
 .progress-graph-container h2 {
   margin-top: 0;

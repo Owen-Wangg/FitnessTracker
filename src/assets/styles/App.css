@@ -1,0 +1,15 @@
+/* src/assets/styles/App.css */
+.app-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  max-width: 600px; /* Max width for mobile-first design */
+  margin: 0 auto;   /* Center on larger screens */
+  background-color: var(--background-dark);
+}
+
+.content-area {
+  flex-grow: 1;
+  overflow-y: auto; /* Allow content to scroll */
+  padding: 20px 15px 70px 15px; /* Add padding, space for bottom nav */
+}

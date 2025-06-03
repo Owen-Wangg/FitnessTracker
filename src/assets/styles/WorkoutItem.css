@@ -1,0 +1,33 @@
+/* src/components/WorkoutItem.css */
+.workout-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  /* .card styles from global.css will apply */
+}
+
+.workout-details h3 {
+  margin: 0 0 8px 0;
+  color: var(--primary-text);
+}
+
+.workout-details p {
+  margin: 4px 0;
+  font-size: 0.9em;
+  color: var(--secondary-text);
+}
+
+.delete-button {
+  background-color: transparent;
+  color: #ff6b6b; /* Reddish for delete */
+  border: none;
+  padding: 8px;
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: none;
+}
+
+.delete-button:hover {
+  background-color: rgba(255, 107, 107, 0.1);
+}

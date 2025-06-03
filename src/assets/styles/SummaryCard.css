@@ -1,0 +1,26 @@
+/* src/components/SummaryCard.css */
+.summary-card-display { /* Match the new class name */
+  text-align: left; /* Align text to the left as in image */
+  padding: 20px;
+  /* .card styles from global.css will apply for background, shadow, radius */
+}
+
+.summary-title {
+  font-size: 1.1em;
+  font-weight: bold;
+  color: var(--primary-text);
+  margin: 0 0 10px 0;
+}
+
+.summary-value {
+  font-size: 2.5em; /* Larger font size for the value */
+  font-weight: bold;
+  color: var(--accent-blue); /* Blue color for the value */
+  margin: 0 0 5px 0;
+}
+
+.summary-subtitle {
+  font-size: 0.9em;
+  color: var(--secondary-text);
+  margin: 0;
+}

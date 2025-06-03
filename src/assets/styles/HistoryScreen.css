@@ -1,0 +1,106 @@
+/* src/assets/styles/HistoryScreen.css */
+.history-screen h1, .history-screen h2 {
+  color: var(--primary-text);
+  margin-bottom: 15px;
+}
+.history-screen h2 {
+  font-size: 1.4em;
+  margin-top: 25px;
+}
+
+.calendar-container {
+  margin-bottom: 20px;
+  /* .card styles from global.css apply */
+}
+
+/* react-calendar Customization */
+.react-calendar {
+  width: 100%;
+  border: none;
+  background-color: var(--surface-dark);
+  color: var(--primary-text);
+  border-radius: var(--border-radius);
+}
+
+.react-calendar__navigation button {
+  color: var(--accent-color);
+  background: none;
+  font-size: 1em;
+  min-width: 44px;
+}
+.react-calendar__navigation button:hover,
+.react-calendar__navigation button:focus {
+  background-color: var(--background-dark); /* Slightly darker for interaction */
+}
+.react-calendar__navigation button[disabled] {
+  background-color: var(--surface-dark);
+  color: var(--secondary-text);
+}
+
+.react-calendar__month-view__weekdays__weekday {
+  color: var(--accent-color);
+  text-transform: uppercase;
+  font-weight: bold;
+  font-size: 0.75em;
+}
+.react-calendar__month-view__weekdays__weekday abbr {
+  text-decoration: none; /* Remove underline */
+}
+
+.react-calendar__tile {
+  color: var(--primary-text);
+  background: none;
+  border-radius: 4px;
+  padding: 10px 5px;
+}
+.react-calendar__tile:enabled:hover,
+.react-calendar__tile:enabled:focus {
+  background-color: var(--background-dark);
+}
+.react-calendar__tile--now { /* Today's date */
+  background: #3d8588; /* Slightly different accent */
+  color: var(--primary-text);
+}
+.react-calendar__tile--active { /* Selected date */
+  background: var(--accent-color);
+  color: var(--primary-text);
+}
+.react-calendar__tile.has-workouts { /* Custom class for dates with workouts */
+    /* Could add a dot or different background */
+    position: relative;
+}
+.react-calendar__tile.has-workouts::after {
+    content: '';
+    position: absolute;
+    bottom: 5px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background-color: var(--accent-color);
+}
+.react-calendar__tile--active.has-workouts::after {
+    background-color: var(--primary-text); /* Make dot visible on active tile */
+}
+
+
+.progress-graph-container {
+  margin-top: 30px;
+  /* .card styles from global.css apply */
+}
+.progress-graph-container h2 {
+  margin-top: 0;
+}
+
+.exercise-select {
+  display: block;
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 15px;
+  background-color: var(--background-dark);
+  color: var(--primary-text);
+  border: 1px solid #555;
+  border-radius: var(--border-radius);
+  font-size: 1em;
+}

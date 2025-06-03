@@ -1,0 +1,33 @@
+/* src/components/WorkoutList.css */
+.no-workouts-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 40px 20px; /* More padding for the placeholder card */
+  /* .card styles from global.css will apply */
+}
+
+.placeholder-icon {
+  color: var(--secondary-text); /* Grayed out icon */
+  margin-bottom: 20px;
+}
+
+.placeholder-text-main {
+  font-size: 1.1em;
+  color: var(--primary-text);
+  font-weight: bold;
+  margin: 0 0 8px 0;
+}
+
+.placeholder-text-sub {
+  font-size: 0.9em;
+  color: var(--secondary-text);
+  margin: 0;
+}
+
+/* Styles for the actual list if needed, otherwise WorkoutItem handles individual items */
+.workout-list {
+  /* ... */
+}

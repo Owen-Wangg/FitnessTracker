@@ -1,0 +1,52 @@
+/* src/assets/styles/global.css */
+:root {
+  --background-dark: #121212;   /* Very dark gray / Off-black */
+  --surface-dark: #1E1E1E;     /* Dark gray for cards */
+  --primary-text: #FFFFFF;     /* White */
+  --secondary-text: #A0A0A0;   /* Light gray for subtitles, placeholder icons */
+  --accent-blue: #3B82F6;      /* Prominent blue (e.g., Tailwind blue-500) */
+  --border-radius: 12px;       /* More rounded corners */
+  --box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3); /* Softer, slightly more pronounced */
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--background-dark);
+  color: var(--primary-text);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+button {
+  background-color: var(--accent-blue); /* Changed from accent-color to accent-blue */
+  color: var(--primary-text);
+  border: none;
+  padding: 10px 15px;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  font-weight: bold;
+  box-shadow: var(--box-shadow);
+  transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
+}
+
+button:hover {
+  background-color: #2563EB; /* Darker blue */
+}
+button:active {
+  transform: translateY(1px);
+}
+
+.card {
+  background-color: var(--surface-dark);
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  padding: 20px; /* Increased padding a bit */
+  margin-bottom: 20px; /* Increased margin */
+}

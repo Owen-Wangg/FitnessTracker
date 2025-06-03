@@ -7,34 +7,37 @@
   max-width: 600px; /* Match app container max-width */
   margin: 0 auto;   /* Center if app container is centered */
   background-color: var(--surface-dark);
-  border-top: 1px solid #4a4a4a;
+  border-top: 1px solid #4a4a4a; /* Or var(--border-light) */
   box-shadow: 0 -2px 5px rgba(0,0,0,0.2);
   z-index: 1000;
 }
 
-.bottom-nav button {
-  flex: 1;
+/* Styles for all buttons within .bottom-nav (or use .nav-button if you added that class) */
+.bottom-nav button { /* Or .bottom-nav .nav-button */
+  flex: 1; /* This is key for equal distribution */
   padding: 10px 0;
   background-color: transparent;
   color: var(--secondary-text);
   border: none;
-  border-radius: 0; /* Override global button style */
-  box-shadow: none;   /* Override global button style */
+  border-radius: 0;
+  box-shadow: none;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-size: 0.75rem;
-  transition: color 0.2s ease-in-out;
+  font-size: 0.75rem; /* Or your preferred size */
+  cursor: pointer; /* Good practice for buttons */
+  transition: color 0.2s ease-in-out, background-color 0.2s ease-in-out; /* Added background-color transition */
+  -webkit-tap-highlight-color: transparent; /* Remove tap highlight on mobile */
 }
 
 .bottom-nav button.active {
-  color: var(--accent-blue);
+  color: var(--accent-blue); /* Or var(--accent-color) */
 }
 
 .bottom-nav button:hover {
   color: var(--primary-text);
-  background-color: rgba(255,255,255,0.05); /* Slight hover effect */
+  background-color: rgba(255,255,255,0.05); /* Subtle hover effect */
 }
 
 .bottom-nav button span {

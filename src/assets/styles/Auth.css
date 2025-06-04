@@ -1,14 +1,59 @@
-.auth-container {
-  max-width: 400px;
-  margin: 50px auto;
-  padding: 25px;
-  /* .card styles from global.css will apply */
+/* src/assets/styles/Auth.css */
+
+/* ... (auth-page-wrapper, auth-container, auth-header, auth-main-title styles remain the same) ... */
+
+.auth-page-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh; 
+  padding: 20px; 
+  background-color: var(--bg-primary, #121212); 
 }
+
+.auth-container {
+  width: 100%; 
+  max-width: 400px;
+  padding: 25px; 
+  background-color: var(--card-bg, #1e1e1e); 
+  border: 1px solid var(--card-border, #303030); 
+  border-radius: var(--border-radius, 8px); 
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+html[data-theme='dark'] .auth-container {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+}
+
+.auth-header {
+  text-align: center;
+  margin-bottom: 25px; 
+}
+
+.auth-main-title {
+  font-size: 2rem; 
+  font-weight: 600;
+  color: var(--text-primary, #e0e0e0); 
+  margin: 0; 
+}
+
+/* Updated styles for the icon container */
+.auth-logo-icon-container {
+  font-size: 3.5rem; /* Controls the size of the react-icon */
+  color: var(--primary-accent, #3498db); /* Color of the icon */
+  margin-bottom: 10px;
+  line-height: 1; /* Ensures icon is centered vertically if it has intrinsic padding */
+  display: inline-block; /* Helps with alignment and spacing */
+}
+
+/* ... (h2, form-group, input, button, toggle-auth-mode, auth-feedback-message styles remain the same) ... */
 
 .auth-container h2 {
   text-align: center;
+  margin-top: 0; 
   margin-bottom: 20px;
-  color: var(--primary-text);
+  font-size: 1.5rem; 
+  color: var(--text-primary, #e0e0e0); 
 }
 
 .form-group {
@@ -17,37 +62,82 @@
 
 .form-group label {
   display: block;
-  margin-bottom: 5px;
-  color: var(--secondary-text);
+  margin-bottom: 8px; 
+  font-size: 0.9rem; 
+  color: var(--text-secondary, #b0b0b0); 
+  font-weight: 500;
 }
 
 .form-group input {
   width: 100%;
-  padding: 10px;
-  border-radius: var(--border-radius);
-  border: 1px solid #555;
-  background-color: var(--background-dark);
-  color: var(--primary-text);
+  padding: 12px 15px; 
+  border-radius: var(--border-radius, 6px); 
+  border: 1px solid var(--input-border, #4a4a4a); 
+  background-color: var(--input-bg, #2a2a2a); 
+  color: var(--text-primary, #e0e0e0); 
+  box-sizing: border-box; 
+  font-size: 1rem;
+}
+.form-group input:focus {
+  border-color: var(--primary-accent, #3498db);
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(var(--primary-accent-rgb, 52, 152, 219), 0.2);
 }
 
-.auth-container button[type="submit"] {
+.auth-submit-button {
   width: 100%;
   padding: 12px;
-  margin-top: 10px;
+  margin-top: 10px; 
+  margin-bottom: 15px; 
+  background-color: var(--primary-accent, #3498db);
+  color: var(--button-text-on-primary, #ffffff);
+  border: none;
+  border-radius: var(--border-radius, 6px);
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+.auth-submit-button:hover:not(:disabled) {
+  background-color: var(--primary-accent-hover, #2980b9);
+}
+.auth-submit-button:disabled {
+  background-color: var(--bg-tertiary, #555); 
+  color: var(--text-muted, #888);
+  cursor: not-allowed;
 }
 
 .toggle-auth-mode {
   background: none;
+  border: none; 
   box-shadow: none;
-  color: var(--accent-blue);
+  color: var(--primary-accent, #3498db); 
   text-decoration: underline;
   margin-top: 15px;
   display: block;
   width: 100%;
   text-align: center;
-  font-weight: normal;
+  font-weight: normal; 
+  padding: 5px 0; 
+  cursor: pointer;
+  font-size: 0.9rem;
 }
-.toggle-auth-mode:hover {
-  color: #2563EB;
-  background: none;
+.toggle-auth-mode:hover:not(:disabled) {
+  color: var(--primary-accent-hover, #2980b9); 
+  text-decoration: underline; 
+  background: none; 
+}
+.toggle-auth-mode:disabled {
+    color: var(--text-muted, #888);
+    cursor: not-allowed;
+    text-decoration: none;
+}
+
+.auth-feedback-message {
+  text-align: center;
+  padding: 10px;
+  margin-bottom: 15px;
+  border-radius: var(--border-radius, 4px);
+  font-size: 0.9rem;
+  color: var(--danger-accent, #3498db); 
 }

@@ -7,7 +7,7 @@ const WorkoutItem = ({ workout, onDelete }) => {
     <div className="workout-item card">
       <div className="workout-details">
         <h3>{workout.name}</h3>
-        <p>Weight: {workout.weight} kg</p> {/* Assume kg for now */}
+        <p>Weight: {workout.weight} Lbs</p> {/* Assume kg for now */}
         <p>Sets: {workout.sets}</p>
         <p>Reps: {workout.reps}</p>
       </div>

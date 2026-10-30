@@ -5,9 +5,15 @@ import { queryResult } from '../testUtils/queryMock';
 import { useWorkouts, UNDO_MS } from './useWorkouts';
 
 const mockFrom = jest.fn();
+const mockRpc = jest.fn();
 jest.mock('../utils/supabaseClient', () => ({
-  supabase: { from: (...args) => mockFrom(...args) },
+  supabase: { from: (...args) => mockFrom(...args), rpc: (...args) => mockRpc(...args) },
 }));
+
+// By default the database function is "not installed", which exercises the two-insert fallback.
+beforeEach(() => {
+  mockRpc.mockResolvedValue({ data: null, error: { code: 'PGRST202', message: 'Could not find the function' } });
+});
 
 const user = { id: 'user-1' };
 const wrapper = ({ children }) => <ToastProvider>{children}</ToastProvider>;
@@ -58,7 +64,7 @@ test('stays idle with no user', () => {
   expect(mockFrom).not.toHaveBeenCalled();
 });
 
-test('addWorkout saves the exercise and its sets and puts it in state', async () => {
+test('addWorkout (fallback) saves the exercise and its sets and puts it in state', async () => {
   const { result } = await loaded();
   queueResults(
     { data: { id: 'ex-2', date: '2025-06-08', name: 'Deadlift', exercise_id: 'Barbell_Deadlift' }, error: null },
@@ -79,7 +85,7 @@ test('addWorkout saves the exercise and its sets and puts it in state', async ()
   expect(result.current.workouts.map((w) => w.name)).toEqual(['Deadlift', 'Squat']); // newest first
 });
 
-test('addWorkout cleans up the exercise and shows an error when saving sets fails', async () => {
+test('addWorkout (fallback) cleans up the exercise and shows an error when saving sets fails', async () => {
   jest.spyOn(console, 'error').mockImplementation(() => {});
   const { result } = await loaded();
   queueResults(
@@ -145,4 +151,54 @@ test('a failed delete restores the entry and says so', async () => {
 
   expect(result.current.workouts.map((w) => w.id)).toEqual(['ex-1']);
   expect(screen.getByRole('alert')).toHaveTextContent(/denied/);
+});
+
+describe('with the add_workout_exercise function installed', () => {
+  const saved = {
+    id: 'ex-3',
+    date: '2025-06-08',
+    name: 'Deadlift',
+    exercise_id: 'Barbell_Deadlift',
+    workout_sets: [{ id: 's7', set_number: 1, weight: 225, reps: 5, set_type: 'normal' }],
+  };
+
+  test('saves in one call and uses its result', async () => {
+    const { result } = await loaded();
+    mockRpc.mockResolvedValue({ data: saved, error: null });
+
+    let ok;
+    await act(async () => {
+      ok = await result.current.addWorkout({
+        name: 'Deadlift',
+        exerciseId: 'Barbell_Deadlift',
+        date: '2025-06-08',
+        sets: [{ weight: 225, reps: 5 }],
+      });
+    });
+
+    expect(ok).toBe(true);
+    expect(mockRpc).toHaveBeenCalledWith('add_workout_exercise', {
+      p_date: '2025-06-08',
+      p_name: 'Deadlift',
+      p_exercise_id: 'Barbell_Deadlift',
+      p_sets: [{ weight: 225, reps: 5 }],
+    });
+    expect(mockFrom).toHaveBeenCalledTimes(1); // only the initial load: no separate inserts
+    expect(result.current.workouts.map((w) => w.name)).toEqual(['Deadlift', 'Squat']);
+  });
+
+  test('a real database error is reported and does not fall back', async () => {
+    jest.spyOn(console, 'error').mockImplementation(() => {});
+    const { result } = await loaded();
+    mockRpc.mockResolvedValue({ data: null, error: { code: '23514', message: 'weight must be positive' } });
+
+    let ok;
+    await act(async () => {
+      ok = await result.current.addWorkout({ name: 'Deadlift', date: '2025-06-08', sets: [{ weight: -1, reps: 5 }] });
+    });
+
+    expect(ok).toBe(false);
+    expect(mockFrom).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole('alert')).toHaveTextContent(/weight must be positive/);
+  });
 });

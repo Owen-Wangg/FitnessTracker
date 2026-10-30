@@ -6,6 +6,10 @@ import { SET_COLUMNS, normalizeWorkout, sortNewestFirst } from '../utils/workout
 
 export const UNDO_MS = 6000;
 
+// PostgREST reports an uninstalled function as PGRST202 (or says it could not find it).
+const isMissingFunction = (error) =>
+  error?.code === 'PGRST202' || /could not find the function/i.test(error?.message || '');
+
 // The signed-in user's workout entries (newest first) and the actions on them.
 //   status: 'idle' (no user) | 'loading' | 'ready' | 'error'
 export const useWorkouts = (user) => {
@@ -61,6 +65,20 @@ export const useWorkouts = (user) => {
       if (!name || sets.length === 0) return false;
 
       try {
+        // Preferred: one atomic database call (see supabase/add_workout_function.sql).
+        const { data: saved, error: rpcError } = await supabase.rpc('add_workout_exercise', {
+          p_date: date,
+          p_name: name,
+          p_exercise_id: workoutData.exerciseId || null,
+          p_sets: sets.map((s) => ({ weight: s.weight, reps: s.reps })),
+        });
+        if (!rpcError) {
+          setWorkouts((prev) => sortNewestFirst([normalizeWorkout(saved, saved.workout_sets), ...prev]));
+          return true;
+        }
+        if (!isMissingFunction(rpcError)) throw rpcError;
+
+        // Fallback while the function is not installed: two inserts, undoing the first if the second fails.
         const { data: exercise, error: exerciseError } = await supabase
           .from('workout_exercises')
           .insert({ user_id: user.id, date, name, exercise_id: workoutData.exerciseId || null })
@@ -82,7 +100,6 @@ export const useWorkouts = (user) => {
           .select(SET_COLUMNS);
 
         if (setsError) {
-          // Do not leave an exercise with no sets behind.
           await supabase.from('workout_exercises').delete().eq('id', exercise.id);
           throw setsError;
         }

@@ -31,6 +31,7 @@ function App() {
   const [workouts, setWorkouts] = useState([]);
   const [showAddModal, setShowAddModal] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [recovering, setRecovering] = useState(false); // arrived via password-reset email
 
   const lifetimeStats = useMemo(
     () => ({ totalWeightLifted: totalVolume(workouts) }),
@@ -58,7 +59,8 @@ function App() {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, newSession) => {
+    } = supabase.auth.onAuthStateChange((event, newSession) => {
+      if (event === 'PASSWORD_RECOVERY') setRecovering(true);
       setSession(newSession);
       setUser(newSession?.user ?? null);
       setLoading(false);
@@ -191,6 +193,10 @@ function App() {
 
   if (loading && !session && !user) {
     return <div className="loading-app">Loading Fitness Tracker...</div>;
+  }
+
+  if (recovering && session) {
+    return <Auth recoveryMode onPasswordUpdated={() => setRecovering(false)} />;
   }
 
   if (!session || !user) {

@@ -1,47 +1,28 @@
-import React, { useState, useEffect } from 'react';
+import React, { useMemo, useState } from 'react';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import WorkoutList from '../components/WorkoutList';
 import ProgressGraph from '../components/ProgressGraph';
+import { formatLocalDate } from '../utils/workoutMetrics';
+import { exerciseOptions } from '../utils/exerciseLibrary';
 import '../assets/styles/HistoryScreen.css';
 
-const HistoryScreen = ({ allWorkouts, getWorkoutsForDate, deleteWorkout }) => {
-  const getLocalMidnightToday = () => {
-    const now = new Date();
-    return new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
-  };
-  const [selectedDate, setSelectedDate] = useState(getLocalMidnightToday());
-  const [workoutsForSelectedDate, setWorkoutsForSelectedDate] = useState([]);
-  const [selectedExerciseForGraph, setSelectedExerciseForGraph] = useState('');
-  const [uniqueExercises, setUniqueExercises] = useState([]);
+const HistoryScreen = ({ allWorkouts = [], deleteWorkout = () => {} }) => {
+  const [selectedDate, setSelectedDate] = useState(() => new Date());
+  const [chosenExercise, setChosenExercise] = useState('');
 
-  useEffect(() => {
-    if (allWorkouts && Array.isArray(allWorkouts) && allWorkouts.length > 0) {
-      const exercises = [...new Set(allWorkouts.map(w => w.name).filter(name => name))];
-      setUniqueExercises(exercises);
-      if (exercises.length > 0 && (!selectedExerciseForGraph || !exercises.includes(selectedExerciseForGraph))) {
-        setSelectedExerciseForGraph(exercises[0]);
-      } else if (exercises.length === 0) {
-        setSelectedExerciseForGraph('');
-      }
-    } else {
-      setUniqueExercises([]);
-      setSelectedExerciseForGraph('');
-    }
-    // eslint-disable-next-line
-  }, [allWorkouts]);
+  // Days that have at least one workout, for the calendar dots.
+  const trainedDates = useMemo(() => new Set(allWorkouts.map((w) => w.date)), [allWorkouts]);
 
+  const workoutsForSelectedDate = useMemo(() => {
+    const day = formatLocalDate(selectedDate);
+    return allWorkouts.filter((w) => w.date === day);
+  }, [allWorkouts, selectedDate]);
 
-  useEffect(() => {
-    if (typeof getWorkoutsForDate === 'function' && selectedDate) {
-      const workouts = getWorkoutsForDate(selectedDate);
-      setWorkoutsForSelectedDate(Array.isArray(workouts) ? workouts : []);
-    }
-  }, [selectedDate, allWorkouts, getWorkoutsForDate]);
+  const options = useMemo(() => exerciseOptions(allWorkouts), [allWorkouts]);
 
-  const handleDateChange = (date) => {
-    setSelectedDate(date);
-  };
+  // Fall back to the most recent exercise when nothing valid is chosen (e.g. after a delete).
+  const selected = options.find((o) => o.key === chosenExercise) || options[0] || null;
 
   return (
     <div className="history-screen">
@@ -49,18 +30,11 @@ const HistoryScreen = ({ allWorkouts, getWorkoutsForDate, deleteWorkout }) => {
       <div className="calendar-container card">
         <h2 className="section-title">Select Date</h2>
         <Calendar
-          // ... props ...
-          onChange={handleDateChange}
+          onChange={setSelectedDate}
           value={selectedDate}
-          tileClassName={({ date, view }) => {
-            if (view === 'month' && typeof getWorkoutsForDate === 'function') {
-              const workoutsOnDate = getWorkoutsForDate(date);
-              if (workoutsOnDate && Array.isArray(workoutsOnDate) && workoutsOnDate.length > 0) {
-                return 'has-workouts';
-              }
-            }
-            return null;
-          }}
+          tileClassName={({ date, view }) =>
+            view === 'month' && trainedDates.has(formatLocalDate(date)) ? 'has-workouts' : null
+          }
         />
       </div>
 
@@ -70,31 +44,29 @@ const HistoryScreen = ({ allWorkouts, getWorkoutsForDate, deleteWorkout }) => {
       </div>
 
       <div className="progress-graph-container card">
-        {uniqueExercises.length > 0 ? (
+        {selected ? (
           <>
             <div className="exercise-selector-container">
-              <label htmlFor="exercise-graph-select" className="exercise-select-label">Select Exercise for Graph:</label>
+              <label htmlFor="exercise-graph-select" className="exercise-select-label">
+                Select Exercise for Graph:
+              </label>
               <select
                 id="exercise-graph-select"
-                value={selectedExerciseForGraph}
-                onChange={(e) => setSelectedExerciseForGraph(e.target.value)}
+                value={selected.key}
+                onChange={(e) => setChosenExercise(e.target.value)}
                 className="exercise-select"
               >
-                {uniqueExercises.map(ex => (
-                  <option key={ex} value={ex}>{ex}</option>
+                {options.map((o) => (
+                  <option key={o.key} value={o.key}>{o.label}</option>
                 ))}
               </select>
             </div>
 
-            {/* The wrapper below might not be needed if the summary box inside it is also gone,
-                unless ProgressGraph itself needs a relative parent for internal positioning. */}
-            <div className="chart-and-summary-wrapper">
-              <ProgressGraph
-                workouts={allWorkouts || []}
-                exerciseName={selectedExerciseForGraph}
-              />
-              {/* The other instance of chart-summary-box was removed previously or would also be removed now */}
-            </div>
+            <ProgressGraph
+              workouts={allWorkouts}
+              exerciseKey={selected.key}
+              exerciseLabel={selected.label}
+            />
           </>
         ) : (
           <p className="graph-message">No workout data available to display a progress graph.</p>
@@ -102,12 +74,6 @@ const HistoryScreen = ({ allWorkouts, getWorkoutsForDate, deleteWorkout }) => {
       </div>
     </div>
   );
-};
-
-HistoryScreen.defaultProps = {
-  allWorkouts: [],
-  getWorkoutsForDate: () => [],
-  deleteWorkout: () => {},
 };
 
 export default HistoryScreen;

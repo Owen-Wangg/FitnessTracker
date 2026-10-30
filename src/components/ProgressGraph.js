@@ -11,7 +11,8 @@ import {
   Legend,
   Filler,
 } from 'chart.js';
-import { topSet, bestEstimated1RM, workoutVolume, parseLocalDate } from '../utils/workoutMetrics';
+import { parseLocalDate } from '../utils/workoutMetrics';
+import { buildSeries, valueFor, personalRecordFlags } from '../utils/progress';
 import { CHART_COLORS } from '../utils/theme';
 import '../assets/styles/ProgressGraph.css';
 
@@ -28,56 +29,27 @@ const METRICS = {
 
 const formatNumber = (n) => n.toLocaleString(undefined, { maximumFractionDigits: 1 });
 
-// One point per calendar day for the chosen exercise, oldest first.
-const buildSeries = (workouts, exerciseName) => {
-  const byDate = {};
-  workouts
-    .filter((w) => w && w.date && w.name && w.name.toLowerCase() === exerciseName.toLowerCase())
-    .forEach((w) => {
-      const key = w.date.split('T')[0];
-      const day = (byDate[key] = byDate[key] || { date: key, top: null, e1rm: 0, volume: 0 });
-      const top = topSet(w);
-      if (top && (!day.top || top.weight > day.top.weight || (top.weight === day.top.weight && top.reps > day.top.reps))) {
-        day.top = top;
-      }
-      day.e1rm = Math.max(day.e1rm, bestEstimated1RM(w));
-      day.volume += workoutVolume(w);
-    });
-
-  return Object.values(byDate)
-    .filter((d) => d.top)
-    .sort((a, b) => a.date.localeCompare(b.date));
-};
-
-const valueFor = (day, metric) => (metric === 'top' ? day.top.weight : day[metric]);
-
-const ProgressGraph = ({ workouts, exerciseName }) => {
+const ProgressGraph = ({ workouts, exerciseKey, exerciseLabel }) => {
   const [metric, setMetric] = useState('top');
 
   const days = useMemo(
-    () => (workouts && exerciseName ? buildSeries(workouts, exerciseName) : []),
-    [workouts, exerciseName]
+    () => (workouts && exerciseKey ? buildSeries(workouts, exerciseKey) : []),
+    [workouts, exerciseKey]
   );
 
   if (!workouts || !Array.isArray(workouts) || workouts.length === 0) {
     return <p className="graph-message">No workout data available to display progress.</p>;
   }
-  if (!exerciseName) {
+  if (!exerciseKey) {
     return <p className="graph-message">Please select an exercise to see its progress.</p>;
   }
   if (days.length === 0) {
-    return <p className="graph-message">No data for "{exerciseName}".</p>;
+    return <p className="graph-message">No data for "{exerciseLabel}".</p>;
   }
 
   const values = days.map((d) => valueFor(d, metric));
 
-  // A point is a PR when it beats everything before it (the first session is just the baseline).
-  let runningMax = -Infinity;
-  const isPR = values.map((v, i) => {
-    const pr = i > 0 && v > runningMax;
-    runningMax = Math.max(runningMax, v);
-    return pr;
-  });
+  const isPR = personalRecordFlags(values);
 
   const first = values[0];
   const latest = values[values.length - 1];

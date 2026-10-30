@@ -272,7 +272,6 @@ function App() {
         {activeScreen === 'history' && (
           <HistoryScreen
             allWorkouts={workouts}
-            getWorkoutsForDate={getWorkoutsForDate}
             deleteWorkout={deleteWorkout}
           />
         )}

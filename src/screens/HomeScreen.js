@@ -9,6 +9,7 @@ import '../assets/styles/HomeScreen.css';
 const HomeScreen = ({
   todaysWorkouts,
   allWorkouts,
+  loading,
   onAddWorkoutClick,
   showAddModal,
   setShowAddModal,
@@ -29,7 +30,7 @@ const HomeScreen = ({
         <WeekStrip workouts={allWorkouts} />
       </div>
 
-      <WorkoutList workouts={todaysWorkouts} onDelete={deleteWorkout} />
+      <WorkoutList workouts={todaysWorkouts} onDelete={deleteWorkout} loading={loading} />
 
       <AddWorkoutModal
         show={showAddModal}

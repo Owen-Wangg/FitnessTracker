@@ -9,13 +9,15 @@ import HistoryScreen from './screens/HistoryScreen';
 import ProfileScreen from './screens/ProfileScreen';
 import BottomNav from './components/BottomNav';
 import Auth from './components/Auth';
+import LoadError from './components/LoadError';
 import './assets/styles/App.css';
 
 function App() {
   const { session, user, loading, recovering, clearRecovery, signOut } = useAuth();
-  const { workouts, addWorkout, deleteWorkout } = useWorkouts(user);
+  const { workouts, status, reload, addWorkout, deleteWorkout } = useWorkouts(user);
   const { bodyWeights, logBodyWeight, deleteBodyWeight } = useBodyWeights(user);
 
+  const loadingWorkouts = status === 'loading';
   const [activeScreen, setActiveScreen] = useState('home');
   const [showAddModal, setShowAddModal] = useState(false);
 
@@ -54,10 +56,12 @@ function App() {
   return (
     <div className="app-container">
       <main className="content-area">
+        {status === 'error' && <LoadError onRetry={reload} />}
         {activeScreen === 'home' && (
           <HomeScreen
             todaysWorkouts={todaysWorkouts}
             allWorkouts={workouts}
+            loading={loadingWorkouts}
             onAddWorkoutClick={() => setShowAddModal(true)}
             showAddModal={showAddModal}
             setShowAddModal={setShowAddModal}
@@ -66,7 +70,7 @@ function App() {
           />
         )}
         {activeScreen === 'history' && (
-          <HistoryScreen allWorkouts={workouts} deleteWorkout={deleteWorkout} />
+          <HistoryScreen allWorkouts={workouts} loading={loadingWorkouts} deleteWorkout={deleteWorkout} />
         )}
         {activeScreen === 'profile' && (
           <ProfileScreen

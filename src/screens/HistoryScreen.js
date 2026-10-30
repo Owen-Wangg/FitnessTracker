@@ -7,7 +7,7 @@ import { formatLocalDate } from '../utils/workoutMetrics';
 import { exerciseOptions } from '../utils/exerciseLibrary';
 import '../assets/styles/HistoryScreen.css';
 
-const HistoryScreen = ({ allWorkouts = [], deleteWorkout = () => {} }) => {
+const HistoryScreen = ({ allWorkouts = [], loading = false, deleteWorkout = () => {} }) => {
   const [selectedDate, setSelectedDate] = useState(() => new Date());
   const [chosenExercise, setChosenExercise] = useState('');
 
@@ -40,7 +40,7 @@ const HistoryScreen = ({ allWorkouts = [], deleteWorkout = () => {} }) => {
 
       <div className="selected-date-workouts card">
         <h2 className="section-title">Workouts on {selectedDate.toLocaleDateString()}</h2>
-        <WorkoutList workouts={workoutsForSelectedDate} onDelete={deleteWorkout} />
+        <WorkoutList workouts={workoutsForSelectedDate} onDelete={deleteWorkout} loading={loading} />
       </div>
 
       <div className="progress-graph-container card">

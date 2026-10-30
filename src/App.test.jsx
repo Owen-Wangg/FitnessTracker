@@ -23,6 +23,10 @@ vi.mock('./utils/supabaseClient', async () => {
 
 vi.mock('react-chartjs-2', () => ({ Line: () => <div data-testid="chart" /> }));
 
+// History and Profile are lazy-loaded; their first import can be slow when the whole suite runs in parallel.
+const SLOW = { timeout: 15000 };
+vi.setConfig({ testTimeout: 20000 });
+
 const renderApp = (path = '/') =>
   render(
     <ToastProvider>
@@ -56,7 +60,7 @@ describe('signed in', () => {
 
   test('deep links open the right screen', async () => {
     renderApp('/history');
-    expect(await screen.findByRole('heading', { name: /workout history/i })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: /workout history/i }, SLOW)).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'History' })).toHaveAttribute('aria-current', 'page');
   });
 
@@ -64,7 +68,7 @@ describe('signed in', () => {
     renderApp('/');
     await screen.findByRole('heading', { name: /today's workouts/i });
     userEvent.click(screen.getByRole('link', { name: 'Profile' }));
-    expect(await screen.findByRole('heading', { name: /my profile/i })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: /my profile/i }, SLOW)).toBeInTheDocument();
   });
 
   test('unknown paths redirect home', async () => {

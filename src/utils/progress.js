@@ -34,3 +34,21 @@ export const personalRecordFlags = (values) => {
     return isPR;
   });
 };
+
+// Round axis bounds and ticks to friendly numbers (170, 180, 190 rather than 171, 180.5, 189),
+// with a little headroom above and below the data.
+export const niceScale = (min, max, target = 4) => {
+  const span = max - min;
+  const headroom = span > 0 ? span * 0.1 : Math.abs(max) * 0.05 || 0.5;
+  const lowRaw = min - headroom;
+  const highRaw = max + headroom;
+  const rawStep = (highRaw - lowRaw) / target;
+  const magnitude = 10 ** Math.floor(Math.log10(rawStep));
+  const step = [1, 2, 5, 10].find((m) => m * magnitude >= rawStep) * magnitude;
+  const lo = Math.floor(lowRaw / step) * step;
+  const hi = Math.ceil(highRaw / step) * step;
+  const clean = (n) => Number(n.toFixed(6)); // drop floating-point noise like 0.30000000000000004
+  const ticks = [];
+  for (let v = lo; v <= hi + step / 2; v += step) ticks.push(clean(v));
+  return { domain: [clean(lo), clean(hi)], ticks };
+};

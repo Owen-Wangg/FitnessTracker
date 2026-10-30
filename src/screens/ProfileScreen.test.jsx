@@ -1,8 +1,8 @@
 import { render, screen } from '@testing-library/react';
 import ProfileScreen from './ProfileScreen';
 
-// jsdom has no canvas, so stand in for the chart.
-vi.mock('react-chartjs-2', () => ({ Line: () => <div data-testid="chart" /> }));
+// jsdom has no layout, so give the chart a fixed size.
+vi.mock('recharts', async (importOriginal) => (await import('../testUtils/rechartsMock')).withFixedSize(importOriginal));
 
 test('shows the Google name and photo when available', () => {
   const user = { email: 'ada@example.com', user_metadata: { full_name: 'Ada Lovelace', avatar_url: 'https://x.test/a.png' } };

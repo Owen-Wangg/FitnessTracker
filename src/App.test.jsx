@@ -21,7 +21,7 @@ vi.mock('./utils/supabaseClient', async () => {
   };
 });
 
-vi.mock('react-chartjs-2', () => ({ Line: () => <div data-testid="chart" /> }));
+vi.mock('recharts', async (importOriginal) => (await import('./testUtils/rechartsMock')).withFixedSize(importOriginal));
 
 // History and Profile are lazy-loaded; their first import can be slow when the whole suite runs in parallel.
 const SLOW = { timeout: 15000 };

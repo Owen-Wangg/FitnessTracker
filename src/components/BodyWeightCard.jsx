@@ -1,20 +1,8 @@
 import React, { useState } from 'react';
-import { Line } from 'react-chartjs-2';
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Tooltip,
-  Filler,
-} from 'chart.js';
 import { FaTrash } from 'react-icons/fa';
 import { formatLocalDate, parseLocalDate } from '../utils/workoutMetrics';
-import { CHART_COLORS } from '../utils/theme';
+import TrendChart from './TrendChart';
 import '../assets/styles/BodyWeightCard.css';
-
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Filler);
 
 const fmt = (n) => n.toLocaleString(undefined, { maximumFractionDigits: 1 });
 const shortDate = (d) => parseLocalDate(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
@@ -39,61 +27,17 @@ const BodyWeightCard = ({ entries = [], onLog, onDelete }) => {
     if (ok) setWeight('');
   };
 
-  const data = {
-    labels: entries.map((e) => shortDate(e.date)),
-    datasets: [
-      {
-        data: entries.map((e) => e.weight),
-        fill: { target: 'origin', above: `rgba(${CHART_COLORS.accentRgb}, 0.12)` },
-        borderColor: CHART_COLORS.accent,
-        borderWidth: 2,
-        tension: 0.3,
-        pointRadius: 4,
-        pointHoverRadius: 6,
-        pointBackgroundColor: CHART_COLORS.accent,
-        pointBorderColor: CHART_COLORS.surface,
-        pointBorderWidth: 2,
-      },
-    ],
-  };
+  const data = entries.map((e) => ({ key: e.date, label: shortDate(e.date), value: e.weight, entry: e }));
 
-  const options = {
-    responsive: true,
-    maintainAspectRatio: false,
-    interaction: { mode: 'nearest', axis: 'x', intersect: false },
-    scales: {
-      x: { grid: { display: false }, ticks: { color: CHART_COLORS.muted, font: { size: 11 }, maxRotation: 0, autoSkip: true } },
-      y: {
-        grace: '10%',
-        grid: { color: CHART_COLORS.grid },
-        border: { display: false },
-        ticks: { color: CHART_COLORS.muted, callback: (v) => fmt(v) },
-      },
-    },
-    plugins: {
-      legend: { display: false },
-      tooltip: {
-        backgroundColor: CHART_COLORS.raised,
-        titleColor: CHART_COLORS.text,
-        bodyColor: CHART_COLORS.text,
-        borderColor: CHART_COLORS.border,
-        borderWidth: 1,
-        padding: 10,
-        cornerRadius: 8,
-        displayColors: false,
-        callbacks: {
-          title: (items) =>
-            parseLocalDate(entries[items[0].dataIndex].date).toLocaleDateString('en-US', {
-              weekday: 'short',
-              month: 'short',
-              day: 'numeric',
-              year: 'numeric',
-            }),
-          label: (ctx) => `${fmt(ctx.parsed.y)} lbs`,
-        },
-      },
-    },
-  };
+  const describe = ({ entry }) => ({
+    title: parseLocalDate(entry.date).toLocaleDateString('en-US', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    }),
+    lines: [`${fmt(entry.weight)} lbs`],
+  });
 
   const recent = [...entries].reverse().slice(0, 7);
 
@@ -148,7 +92,7 @@ const BodyWeightCard = ({ entries = [], onLog, onDelete }) => {
 
       {entries.length > 1 && (
         <div className="bw-chart">
-          <Line data={data} options={options} />
+          <TrendChart data={data} describe={describe} formatValue={fmt} height={220} ariaLabel="Body weight over time" />
         </div>
       )}
       {entries.length === 1 && <p className="bw-empty">Log one more day to see your trend.</p>}

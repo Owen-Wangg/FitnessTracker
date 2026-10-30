@@ -3,8 +3,8 @@ import userEvent from '@testing-library/user-event';
 import HistoryScreen from './HistoryScreen';
 import { formatLocalDate } from '../utils/workoutMetrics';
 
-// jsdom has no canvas, so stand in for the chart.
-vi.mock('react-chartjs-2', () => ({ Line: () => <div data-testid="chart" /> }));
+// jsdom has no layout, so give the chart a fixed size.
+vi.mock('recharts', async (importOriginal) => (await import('../testUtils/rechartsMock')).withFixedSize(importOriginal));
 
 const today = formatLocalDate(new Date());
 const workout = (id, name, date = today) => ({

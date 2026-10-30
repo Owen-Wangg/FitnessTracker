@@ -1,4 +1,4 @@
-import { buildSeries, valueFor, personalRecordFlags } from './progress';
+import { buildSeries, valueFor, personalRecordFlags, niceScale } from './progress';
 
 const entry = (date, name, sets, extra = {}) => ({ id: `${date}-${name}`, date, name, sets, ...extra });
 
@@ -55,5 +55,40 @@ describe('personalRecordFlags', () => {
   test('the first point is a baseline, never a PR', () => {
     expect(personalRecordFlags([100])).toEqual([false]);
     expect(personalRecordFlags([])).toEqual([]);
+  });
+});
+
+describe('niceScale', () => {
+  const evenlySpaced = (ticks) => ticks.every((t, i) => i === 0 || Math.abs(t - ticks[i - 1] - (ticks[1] - ticks[0])) < 1e-9);
+
+  test('rounds the bounds and ticks to friendly numbers around the data', () => {
+    const { domain, ticks } = niceScale(175, 200);
+    expect(domain).toEqual([170, 210]);
+    expect(ticks).toEqual([170, 180, 190, 200, 210]);
+  });
+
+  test('always contains the data, spaces ticks evenly, and uses a handful of ticks', () => {
+    const cases = [[178.5, 182], [185, 185], [0, 0.4], [1200, 4800], [99, 101], [20000, 90000], [-5, 15]];
+    for (const [min, max] of cases) {
+      const { domain, ticks } = niceScale(min, max);
+      expect(domain[0]).toBeLessThanOrEqual(min);
+      expect(domain[1]).toBeGreaterThanOrEqual(max);
+      expect(ticks[0]).toBe(domain[0]);
+      expect(ticks[ticks.length - 1]).toBe(domain[1]);
+      expect(evenlySpaced(ticks)).toBe(true);
+      expect(ticks.length).toBeGreaterThanOrEqual(3);
+      expect(ticks.length).toBeLessThanOrEqual(9);
+    }
+  });
+
+  test('handles decimals without floating-point noise', () => {
+    const { ticks } = niceScale(0, 0.4);
+    expect(ticks.every((t) => Number.isInteger(t * 100) || Math.abs(t * 100 - Math.round(t * 100)) < 1e-9)).toBe(true);
+  });
+
+  test('a single value still gets a sensible range', () => {
+    const { domain } = niceScale(185, 185);
+    expect(domain[0]).toBeLessThan(185);
+    expect(domain[1]).toBeGreaterThan(185);
   });
 });

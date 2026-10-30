@@ -15,9 +15,9 @@
 
 /* Calendar (DayPicker): themed through its CSS variables, plus a few overrides for our global button style */
 .rdp-root {
-  --rdp-accent-color: var(--accent);
+  --rdp-accent-color: var(--accent-text);
   --rdp-accent-background-color: var(--accent-soft);
-  --rdp-today-color: var(--accent);
+  --rdp-today-color: var(--accent-text);
   --rdp-day-width: calc(100% / 7);
   --rdp-day-height: 46px;
   --rdp-day_button-width: 40px;

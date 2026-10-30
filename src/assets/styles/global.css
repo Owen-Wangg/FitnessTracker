@@ -5,20 +5,30 @@
   --surface-2: #1c212b;
   --border: rgba(255, 255, 255, 0.07);
   --border-strong: rgba(255, 255, 255, 0.14);
+  --overlay: rgba(5, 7, 10, 0.75);
+  --nav-bg: rgba(18, 21, 28, 0.92);
 
   /* Text */
   --text: #eef1f6;
   --text-muted: #8b93a3;
 
-  /* One hero accent, plus semantic colors */
+  /* One hero accent, plus semantic colors.
+     Fills use --accent (with --on-accent text). Text, icons and chart lines use the -text / --chart-line
+     variants, which are darker in the light theme because bright lime is unreadable on white. */
   --accent: #c6ff3d; /* volt */
   --accent-hover: #d6ff6b;
   --accent-soft: rgba(198, 255, 61, 0.12);
+  --accent-glow: rgba(198, 255, 61, 0.16);
+  --accent-edge: rgba(198, 255, 61, 0.22);
+  --accent-text: #c6ff3d;
+  --chart-line: #c6ff3d;
   --on-accent: #0a0c10; /* text on top of the accent */
   --pr: #ffc233; /* personal records */
+  --pr-text: #ffc233;
   --success: #3ddc84; /* gains */
   --danger: #ff6b6b;
   --danger-soft: rgba(255, 107, 107, 0.14);
+  --shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
 
   /* Shape + spacing */
   --radius-sm: 10px;
@@ -30,7 +40,6 @@
   --space-4: 16px;
   --space-5: 24px;
   --space-6: 32px;
-  --shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
 
   --font: 'Inter Variable', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   --font-display: 'Barlow Condensed', 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
@@ -38,6 +47,37 @@
   --sidebar-width: 248px;
 
   color-scheme: dark;
+}
+
+/* Light theme: only colors change. Set by useTheme (data-theme on the html element). */
+[data-theme='light'] {
+  --bg: #f4f5f7;
+  --surface: #ffffff;
+  --surface-2: #eef0f3;
+  --border: rgba(15, 20, 30, 0.09);
+  --border-strong: rgba(15, 20, 30, 0.18);
+  --overlay: rgba(15, 20, 30, 0.45);
+  --nav-bg: rgba(255, 255, 255, 0.92);
+
+  --text: #12151c;
+  --text-muted: #5d6678;
+
+  --accent: #c6ff3d;
+  --accent-hover: #b5ee24;
+  --accent-soft: rgba(101, 163, 13, 0.14);
+  --accent-glow: rgba(101, 163, 13, 0.14);
+  --accent-edge: rgba(101, 163, 13, 0.3);
+  --accent-text: #4d7c0f;
+  --chart-line: #65a30d;
+  --on-accent: #0a0c10;
+  --pr: #cc7a00;
+  --pr-text: #a85d00;
+  --success: #15803d;
+  --danger: #dc2626;
+  --danger-soft: rgba(220, 38, 38, 0.1);
+  --shadow: 0 10px 28px rgba(20, 30, 50, 0.12);
+
+  color-scheme: light;
 }
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -63,7 +103,7 @@ h3 { font-size: 1rem; font-weight: 600; }
 p { margin: 0; }
 
 :focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--accent-text);
   outline-offset: 2px;
 }
 
@@ -104,7 +144,7 @@ input, select {
 input::placeholder { color: var(--text-muted); opacity: 0.7; }
 input:focus, select:focus {
   outline: none;
-  border-color: var(--accent);
+  border-color: var(--accent-text);
   box-shadow: 0 0 0 3px var(--accent-soft);
 }
 

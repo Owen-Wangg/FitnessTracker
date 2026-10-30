@@ -7,7 +7,7 @@
   z-index: 1000;
   display: flex;
   padding-bottom: env(safe-area-inset-bottom);
-  background: rgba(18, 21, 28, 0.92);
+  background: var(--nav-bg);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border-top: 1px solid var(--border);
@@ -35,7 +35,7 @@
   font-weight: 500;
 }
 .bottom-nav .nav-button:hover { background: transparent; color: var(--text); }
-.bottom-nav .nav-button.active { color: var(--accent); }
+.bottom-nav .nav-button.active { color: var(--accent-text); }
 
 /* Desktop: sticky left sidebar */
 @media (min-width: 900px) {
@@ -65,7 +65,7 @@
     font-weight: 700;
     letter-spacing: -0.01em;
   }
-  .nav-brand svg { color: var(--accent); }
+  .nav-brand svg { color: var(--accent-text); }
 
   .nav-items { flex-direction: column; flex: none; gap: var(--space-1); }
 

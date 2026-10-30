@@ -27,5 +27,5 @@
   background: transparent;
   color: var(--text-muted);
 }
-.workout-actions .edit-button:hover:not(:disabled) { background: var(--accent-soft); color: var(--accent); }
+.workout-actions .edit-button:hover:not(:disabled) { background: var(--accent-soft); color: var(--accent-text); }
 .workout-actions .delete-button:hover:not(:disabled) { background: var(--danger-soft); color: var(--danger); }

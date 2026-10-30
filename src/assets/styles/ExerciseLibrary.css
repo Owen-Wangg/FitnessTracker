@@ -6,7 +6,7 @@
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  background: rgba(5, 7, 10, 0.75);
+  background: var(--overlay);
 }
 
 .library-sheet {
@@ -85,7 +85,7 @@
   justify-content: center;
   gap: var(--space-2);
   background: transparent;
-  color: var(--accent);
+  color: var(--accent-text);
   border-color: var(--border-strong);
 }
 .custom-btn:hover:not(:disabled) { background: var(--accent-soft); }

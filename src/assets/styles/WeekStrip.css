@@ -1,5 +1,5 @@
 .week-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--space-4); }
-.week-count { display: inline-flex; align-items: center; gap: 6px; color: var(--pr); font-size: 0.875rem; font-weight: 600; }
+.week-count { display: inline-flex; align-items: center; gap: 6px; color: var(--pr-text); font-size: 0.875rem; font-weight: 600; }
 
 .week-days { list-style: none; margin: 0 0 var(--space-4); padding: 0; display: grid; grid-template-columns: repeat(7, 1fr); gap: var(--space-2); }
 .week-day {

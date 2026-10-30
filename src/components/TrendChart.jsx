@@ -14,7 +14,7 @@ const Dot = ({ cx, cy, payload }) => {
       cx={cx}
       cy={cy}
       r={payload.highlight ? 7 : 4}
-      fill={payload.highlight ? 'var(--pr)' : 'var(--accent)'}
+      fill={payload.highlight ? 'var(--pr)' : 'var(--chart-line)'}
       stroke="var(--surface)"
       strokeWidth={2}
     />
@@ -47,8 +47,8 @@ const TrendChart = ({ data, describe, formatValue = String, height = 280, ariaLa
         <AreaChart data={data} margin={{ top: 8, right: 12, bottom: 0, left: 0 }}>
           <defs>
             <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="var(--accent)" stopOpacity={0.25} />
-              <stop offset="100%" stopColor="var(--accent)" stopOpacity={0} />
+              <stop offset="0%" stopColor="var(--chart-line)" stopOpacity={0.25} />
+              <stop offset="100%" stopColor="var(--chart-line)" stopOpacity={0} />
             </linearGradient>
           </defs>
           <CartesianGrid vertical={false} stroke="var(--border)" />
@@ -66,7 +66,7 @@ const TrendChart = ({ data, describe, formatValue = String, height = 280, ariaLa
           <Area
             type="monotone"
             dataKey="value"
-            stroke="var(--accent)"
+            stroke="var(--chart-line)"
             strokeWidth={2}
             fill={`url(#${gradientId})`}
             dot={<Dot />}

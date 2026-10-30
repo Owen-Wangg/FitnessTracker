@@ -35,7 +35,7 @@
   min-height: 36px;
   padding: 4px 12px;
   background: transparent;
-  color: var(--accent);
+  color: var(--accent-text);
   font-weight: 700;
 }
 .toast-action:hover:not(:disabled) { background: var(--accent-soft); }

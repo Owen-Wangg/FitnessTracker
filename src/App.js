@@ -1,5 +1,6 @@
 // src/App.js
 import React, { useMemo, useState } from 'react';
+import { Navigate, Route, Routes, useNavigate } from 'react-router-dom';
 import { useAuth } from './hooks/useAuth';
 import { useWorkouts } from './hooks/useWorkouts';
 import { useBodyWeights } from './hooks/useBodyWeights';
@@ -18,7 +19,6 @@ function App() {
   const { bodyWeights, logBodyWeight, deleteBodyWeight } = useBodyWeights(user);
 
   const loadingWorkouts = status === 'loading';
-  const [activeScreen, setActiveScreen] = useState('home');
   const [showAddModal, setShowAddModal] = useState(false);
 
   const lifetimeStats = useMemo(
@@ -37,8 +37,10 @@ function App() {
     return ok;
   };
 
+  const navigate = useNavigate();
+
   const handleSignOut = async () => {
-    if (await signOut()) setActiveScreen('home');
+    if (await signOut()) navigate('/');
   };
 
   if (loading && !session) {
@@ -57,33 +59,43 @@ function App() {
     <div className="app-container">
       <main className="content-area">
         {status === 'error' && <LoadError onRetry={reload} />}
-        {activeScreen === 'home' && (
-          <HomeScreen
-            todaysWorkouts={todaysWorkouts}
-            allWorkouts={workouts}
-            loading={loadingWorkouts}
-            onAddWorkoutClick={() => setShowAddModal(true)}
-            showAddModal={showAddModal}
-            setShowAddModal={setShowAddModal}
-            addWorkout={handleAddWorkout}
-            deleteWorkout={deleteWorkout}
+        <Routes>
+          <Route
+            path="/"
+            element={
+              <HomeScreen
+                todaysWorkouts={todaysWorkouts}
+                allWorkouts={workouts}
+                loading={loadingWorkouts}
+                onAddWorkoutClick={() => setShowAddModal(true)}
+                showAddModal={showAddModal}
+                setShowAddModal={setShowAddModal}
+                addWorkout={handleAddWorkout}
+                deleteWorkout={deleteWorkout}
+              />
+            }
           />
-        )}
-        {activeScreen === 'history' && (
-          <HistoryScreen allWorkouts={workouts} loading={loadingWorkouts} deleteWorkout={deleteWorkout} />
-        )}
-        {activeScreen === 'profile' && (
-          <ProfileScreen
-            user={user}
-            handleSignOut={handleSignOut}
-            lifetimeStats={lifetimeStats}
-            bodyWeights={bodyWeights}
-            onLogBodyWeight={logBodyWeight}
-            onDeleteBodyWeight={deleteBodyWeight}
+          <Route
+            path="/history"
+            element={<HistoryScreen allWorkouts={workouts} loading={loadingWorkouts} deleteWorkout={deleteWorkout} />}
           />
-        )}
+          <Route
+            path="/profile"
+            element={
+              <ProfileScreen
+                user={user}
+                handleSignOut={handleSignOut}
+                lifetimeStats={lifetimeStats}
+                bodyWeights={bodyWeights}
+                onLogBodyWeight={logBodyWeight}
+                onDeleteBodyWeight={deleteBodyWeight}
+              />
+            }
+          />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
       </main>
-      <BottomNav activeScreen={activeScreen} onNavigate={setActiveScreen} />
+      <BottomNav />
     </div>
   );
 }

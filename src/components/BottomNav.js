@@ -1,15 +1,16 @@
 import React from 'react';
+import { NavLink } from 'react-router-dom';
 import { FaHome, FaHistory, FaUser, FaDumbbell } from 'react-icons/fa';
 import '../assets/styles/BottomNav.css';
 
 const NAV_ITEMS = [
-  { id: 'home', label: 'Home', Icon: FaHome },
-  { id: 'history', label: 'History', Icon: FaHistory },
-  { id: 'profile', label: 'Profile', Icon: FaUser },
+  { to: '/', label: 'Home', Icon: FaHome },
+  { to: '/history', label: 'History', Icon: FaHistory },
+  { to: '/profile', label: 'Profile', Icon: FaUser },
 ];
 
 // Bottom tab bar on mobile; becomes a left sidebar on desktop (see BottomNav.css)
-const BottomNav = ({ activeScreen, onNavigate }) => {
+const BottomNav = () => {
   return (
     <nav className="bottom-nav" aria-label="Main">
       <div className="nav-brand">
@@ -17,16 +18,16 @@ const BottomNav = ({ activeScreen, onNavigate }) => {
         <span>Fitness Tracker</span>
       </div>
       <div className="nav-items">
-        {NAV_ITEMS.map(({ id, label, Icon }) => (
-          <button
-            key={id}
-            className={`nav-button ${activeScreen === id ? 'active' : ''}`}
-            onClick={() => onNavigate(id)}
-            aria-current={activeScreen === id ? 'page' : undefined}
+        {NAV_ITEMS.map(({ to, label, Icon }) => (
+          <NavLink
+            key={to}
+            to={to}
+            end={to === '/'}
+            className={({ isActive }) => `nav-button ${isActive ? 'active' : ''}`}
           >
             <Icon size={22} aria-hidden="true" />
             <span>{label}</span>
-          </button>
+          </NavLink>
         ))}
       </div>
     </nav>

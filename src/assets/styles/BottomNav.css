@@ -18,6 +18,8 @@
 
 .bottom-nav .nav-button {
   flex: 1;
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
   height: var(--nav-height);
   padding: 8px 0;
   border: none;
@@ -32,7 +34,7 @@
   font-size: 0.75rem;
   font-weight: 500;
 }
-.bottom-nav .nav-button:hover:not(:disabled) { background: transparent; color: var(--text); }
+.bottom-nav .nav-button:hover { background: transparent; color: var(--text); }
 .bottom-nav .nav-button.active { color: var(--accent); }
 
 /* Desktop: sticky left sidebar */
@@ -77,6 +79,6 @@
     border-radius: var(--radius-sm);
     font-size: 0.9375rem;
   }
-  .bottom-nav .nav-button:hover:not(:disabled) { background: var(--surface-2); }
+  .bottom-nav .nav-button:hover { background: var(--surface-2); }
   .bottom-nav .nav-button.active { background: var(--accent-soft); }
 }

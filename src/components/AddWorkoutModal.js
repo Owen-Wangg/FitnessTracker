@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { FaPlus, FaTimes, FaChevronRight } from 'react-icons/fa';
 import { formatLocalDate } from '../utils/workoutMetrics';
 import { findExercise } from '../utils/exerciseLibrary';
+import { validateWorkoutForm } from '../utils/workoutForm';
 import ExercisePicker from './ExercisePicker';
 import ExerciseThumb from './ExerciseThumb';
 import '../assets/styles/AddWorkoutModal.css';
@@ -14,6 +15,7 @@ const AddWorkoutModal = ({ show, onClose, onAddWorkout }) => {
   const [showPicker, setShowPicker] = useState(false);
   const [sets, setSets] = useState([emptySet()]);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
 
   if (!show) {
     return null;
@@ -31,26 +33,19 @@ const AddWorkoutModal = ({ show, onClose, onAddWorkout }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const parsedSets = sets.map((s) => ({
-      weight: s.weight === '' ? NaN : parseFloat(s.weight),
-      reps: parseInt(s.reps, 10),
-    }));
-
-    if (!exercise) {
-      alert('Please choose an exercise.');
+    const result = validateWorkoutForm({ exercise, date, sets });
+    if (result.error) {
+      setError(result.error);
       return;
     }
-    if (!date || parsedSets.some((s) => isNaN(s.weight) || !(s.reps > 0))) {
-      alert('Please fill in the date and the weight and reps for every set.');
-      return;
-    }
+    setError('');
 
     setSaving(true);
     const ok = await onAddWorkout({
       name: exercise.name,
       exerciseId: exercise.id,
       date,
-      sets: parsedSets,
+      sets: result.sets,
     });
     setSaving(false);
 
@@ -65,7 +60,7 @@ const AddWorkoutModal = ({ show, onClose, onAddWorkout }) => {
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <h2>Add Exercise</h2>
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} noValidate>
           <div className="form-group">
             <label htmlFor="workoutDate">Date</label>
             <input
@@ -146,6 +141,8 @@ const AddWorkoutModal = ({ show, onClose, onAddWorkout }) => {
             </button>
           </div>
 
+          {error && <p className="form-error" role="alert">{error}</p>}
+
           <div className="modal-actions">
             <button type="button" className="cancel-btn" onClick={onClose}>Cancel</button>
             <button type="submit" disabled={saving}>{saving ? 'Saving...' : 'Save'}</button>
@@ -157,6 +154,7 @@ const AddWorkoutModal = ({ show, onClose, onAddWorkout }) => {
           onClose={() => setShowPicker(false)}
           onSelect={(picked) => {
             setExercise(picked);
+            setError('');
             setShowPicker(false);
           }}
         />

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import { Line } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -11,129 +11,97 @@ import {
   Legend,
   Filler,
 } from 'chart.js';
+import { topSet, bestEstimated1RM, workoutVolume, parseLocalDate } from '../utils/workoutMetrics';
 import '../assets/styles/ProgressGraph.css';
 
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
-  Filler
-);
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler);
+
+const ACCENT = '91, 141, 239';
+const PR_COLOR = '#4cc38a';
+
+const METRICS = {
+  top: { label: 'Top weight', title: 'Heaviest set per day' },
+  e1rm: { label: 'Est. 1RM', title: 'Estimated one-rep max (Epley) per day' },
+  volume: { label: 'Volume', title: 'Total weight x reps per day' },
+};
+
+const formatNumber = (n) => n.toLocaleString(undefined, { maximumFractionDigits: 1 });
+
+// One point per calendar day for the chosen exercise, oldest first.
+const buildSeries = (workouts, exerciseName) => {
+  const byDate = {};
+  workouts
+    .filter((w) => w && w.date && w.name && w.name.toLowerCase() === exerciseName.toLowerCase())
+    .forEach((w) => {
+      const key = w.date.split('T')[0];
+      const day = (byDate[key] = byDate[key] || { date: key, top: null, e1rm: 0, volume: 0 });
+      const top = topSet(w);
+      if (top && (!day.top || top.weight > day.top.weight || (top.weight === day.top.weight && top.reps > day.top.reps))) {
+        day.top = top;
+      }
+      day.e1rm = Math.max(day.e1rm, bestEstimated1RM(w));
+      day.volume += workoutVolume(w);
+    });
+
+  return Object.values(byDate)
+    .filter((d) => d.top)
+    .sort((a, b) => a.date.localeCompare(b.date));
+};
+
+const valueFor = (day, metric) => (metric === 'top' ? day.top.weight : day[metric]);
 
 const ProgressGraph = ({ workouts, exerciseName }) => {
+  const [metric, setMetric] = useState('top');
+
+  const days = useMemo(
+    () => (workouts && exerciseName ? buildSeries(workouts, exerciseName) : []),
+    [workouts, exerciseName]
+  );
+
   if (!workouts || !Array.isArray(workouts) || workouts.length === 0) {
     return <p className="graph-message">No workout data available to display progress.</p>;
   }
   if (!exerciseName) {
     return <p className="graph-message">Please select an exercise to see its progress.</p>;
   }
-
-  // 1. Filter workouts for the selected exercise
-  const exerciseWorkouts = workouts.filter(
-    (w) => w && w.name && w.name.toLowerCase() === exerciseName.toLowerCase()
-  );
-
-  if (exerciseWorkouts.length === 0) {
+  if (days.length === 0) {
     return <p className="graph-message">No data for "{exerciseName}".</p>;
   }
 
-  // 2. Calculate total weight lifted per workout and group by local calendar date
-  const dailyDataForChart = exerciseWorkouts.reduce((acc, workout) => {
-    // CRITICAL ASSUMPTION: workout.date is a string like "YYYY-MM-DD" (e.g., "2024-05-31")
-    // AND this string represents the LOCAL CALENDAR DATE of the workout.
+  const values = days.map((d) => valueFor(d, metric));
 
-    if (!workout || !workout.date || typeof workout.date !== 'string') {
-      console.warn('Skipping workout with missing or invalid date:', workout);
-      return acc;
-    }
+  // A point is a PR when it beats everything before it (the first session is just the baseline).
+  let runningMax = -Infinity;
+  const isPR = values.map((v, i) => {
+    const pr = i > 0 && v > runningMax;
+    runningMax = Math.max(runningMax, v);
+    return pr;
+  });
 
-    const dateStringOnly = workout.date.split('T')[0]; // Ensure we only have the YYYY-MM-DD part
-    const parts = dateStringOnly.split('-');
-
-    if (parts.length !== 3) {
-      console.warn(`Skipping workout with invalid date format: ${workout.date}. Expected YYYY-MM-DD.`);
-      return acc;
-    }
-
-    const year = parseInt(parts[0], 10);
-    const month = parseInt(parts[1], 10); // Month from string is 1-12
-    const dayInMonth = parseInt(parts[2], 10);
-
-    if (isNaN(year) || isNaN(month) || isNaN(dayInMonth) || month < 1 || month > 12 || dayInMonth < 1 || dayInMonth > 31) {
-      console.warn(`Skipping workout with unparsable date components: ${dateStringOnly} from ${workout.date}`);
-      return acc;
-    }
-
-    // Construct Date object by specifying components.
-    // new Date(year, monthIndex, day) treats components as LOCAL time.
-    // monthIndex for JavaScript Date is 0-11, so subtract 1 from parsed month.
-    const localCalendarDateObject = new Date(year, month - 1, dayInMonth);
-
-    // Use the "YYYY-MM-DD" string as the key for grouping.
-    // This ensures all workouts from the same local calendar day are grouped.
-    const dateKey = dateStringOnly; // e.g., "2024-05-31"
-
-    const weight = parseFloat(workout.weight) || 0;
-    const sets = parseInt(workout.sets, 10) || 0;
-    const reps = parseInt(workout.reps, 10) || 0;
-    const totalLiftedForThisWorkout = weight * sets * reps;
-
-    if (!acc[dateKey]) {
-      acc[dateKey] = {
-        totalWeight: 0,
-        // Format the displayDate for the X-axis label from our localCalendarDateObject.
-        displayDate: localCalendarDateObject.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-      };
-    }
-    acc[dateKey].totalWeight += totalLiftedForThisWorkout;
-    return acc;
-  }, {});
-
-  // 3. Sort date keys (which are "YYYY-MM-DD" strings) for the chart
-  // Lexicographical sort is correct for "YYYY-MM-DD" format.
-  const sortedDateKeys = Object.keys(dailyDataForChart).sort((a, b) => a.localeCompare(b));
-
-  if (sortedDateKeys.length === 0 && exerciseWorkouts.length > 0) {
-      // This case might happen if all dates were invalid
-      return <p className="graph-message">No valid date data found for "{exerciseName}" to plot.</p>;
-  }
-  if (sortedDateKeys.length < 2 && sortedDateKeys.length > 0) {
-     return <p className="graph-message">Only one data point for "{exerciseName}". Need at least two different days to draw a progress line.</p>;
-  }
-  // This check is slightly redundant given the one at the top, but exerciseWorkouts could be non-empty
-  // while sortedDateKeys is empty if all dates were invalid.
-  if (sortedDateKeys.length === 0) {
-    return <p className="graph-message">No data processed for "{exerciseName}".</p>;
-  }
-
-
-  const labels = sortedDateKeys.map(key => dailyDataForChart[key].displayDate);
-  const dataPoints = sortedDateKeys.map(key => dailyDataForChart[key].totalWeight);
-
+  const first = values[0];
+  const latest = values[values.length - 1];
+  const best = Math.max(...values);
+  const change = latest - first;
+  const changePct = first > 0 ? (change / first) * 100 : 0;
+  const unit = 'lbs';
 
   const data = {
-    labels: labels,
+    labels: days.map((d) =>
+      parseLocalDate(d.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+    ),
     datasets: [
       {
-        label: `Total Weight Lifted for ${exerciseName}`,
-        data: dataPoints,
-        fill: {
-          target: 'origin',
-          above: 'rgba(54, 162, 235, 0.2)',
-        },
-        borderColor: 'rgb(54, 162, 235)',
-        backgroundColor: 'rgba(54, 162, 235, 0.5)',
-        tension: 0.4,
-        pointRadius: 5,
-        pointBackgroundColor: 'rgb(54, 162, 235)',
-        pointBorderColor: '#fff',
-        pointHoverRadius: 7,
-        pointHoverBackgroundColor: 'rgb(54, 162, 235)',
-        pointHoverBorderColor: '#fff',
+        label: METRICS[metric].label,
+        data: values,
+        fill: { target: 'origin', above: `rgba(${ACCENT}, 0.12)` },
+        borderColor: `rgb(${ACCENT})`,
+        borderWidth: 2,
+        tension: 0.3,
+        pointRadius: isPR.map((pr) => (pr ? 7 : 4)),
+        pointHoverRadius: isPR.map((pr) => (pr ? 9 : 6)),
+        pointBackgroundColor: isPR.map((pr) => (pr ? PR_COLOR : `rgb(${ACCENT})`)),
+        pointBorderColor: '#12151c',
+        pointBorderWidth: 2,
       },
     ],
   };
@@ -141,76 +109,93 @@ const ProgressGraph = ({ workouts, exerciseName }) => {
   const options = {
     responsive: true,
     maintainAspectRatio: false,
+    interaction: { mode: 'nearest', axis: 'x', intersect: false },
     scales: {
       x: {
-        grid: {
-          display: false,
-        },
-        ticks: {
-          color: '#888',
-          font: {
-            size: 10,
-          }
-        },
+        grid: { display: false },
+        ticks: { color: '#8b93a7', font: { size: 11 }, maxRotation: 0, autoSkip: true },
       },
       y: {
         beginAtZero: false,
-        grid: {
-          color: 'rgba(200, 200, 200, 0.1)',
-          drawBorder: false,
-        },
-        ticks: {
-          color: '#888',
-          callback: function(value) {
-            if (value >= 1000) {
-              return (value / 1000).toFixed(3).replace('.', ',');
-            }
-            return value;
-          },
-          stepSize: 10000,
-        },
+        grace: '10%',
+        grid: { color: 'rgba(139, 147, 167, 0.12)' },
+        border: { display: false },
+        ticks: { color: '#8b93a7', callback: (v) => formatNumber(v) },
       },
     },
     plugins: {
-      legend: {
-        display: false,
-      },
+      legend: { display: false },
       tooltip: {
-        enabled: true,
-        mode: 'index',
-        intersect: false,
-        backgroundColor: 'rgba(0, 0, 0, 0.7)',
-        titleColor: '#fff',
-        bodyColor: '#fff',
-        borderColor: 'rgb(54, 162, 235)',
+        backgroundColor: '#181c26',
+        titleColor: '#e8eaf0',
+        bodyColor: '#e8eaf0',
+        borderColor: '#323a4d',
         borderWidth: 1,
         padding: 10,
-        cornerRadius: 5,
+        cornerRadius: 8,
         displayColors: false,
         callbacks: {
-          title: function() {
-            return '';
-          },
-          label: function(context) {
-            let label = `Total Weight: ${context.parsed.y.toLocaleString('de-DE', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} lbs`;
-            return label;
+          title: (items) =>
+            parseLocalDate(days[items[0].dataIndex].date).toLocaleDateString('en-US', {
+              weekday: 'short',
+              month: 'short',
+              day: 'numeric',
+              year: 'numeric',
+            }),
+          label: (ctx) => `${METRICS[metric].label}: ${formatNumber(ctx.parsed.y)} ${unit}`,
+          afterLabel: (ctx) => {
+            const day = days[ctx.dataIndex];
+            const lines = [];
+            if (metric !== 'volume') lines.push(`Best set: ${formatNumber(day.top.weight)} lbs x ${day.top.reps}`);
+            if (isPR[ctx.dataIndex]) lines.push('New personal record!');
+            return lines;
           },
         },
       },
     },
-    interaction: {
-        mode: 'nearest',
-        axis: 'x',
-        intersect: false
-    }
   };
 
   return (
     <div className="progress-graph-wrapper">
-      <h4>Weight Progress</h4>
+      <div className="graph-header">
+        <h4>{METRICS[metric].title}</h4>
+        <div className="metric-toggle" role="group" aria-label="Chart metric">
+          {Object.entries(METRICS).map(([key, { label }]) => (
+            <button
+              key={key}
+              type="button"
+              className={`metric-btn ${metric === key ? 'active' : ''}`}
+              aria-pressed={metric === key}
+              onClick={() => setMetric(key)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="graph-stats">
+        <div className="graph-stat">
+          <span className="graph-stat-label">Latest</span>
+          <span className="graph-stat-value">{formatNumber(latest)} {unit}</span>
+        </div>
+        <div className="graph-stat">
+          <span className="graph-stat-label">Best</span>
+          <span className="graph-stat-value">{formatNumber(best)} {unit}</span>
+        </div>
+        <div className="graph-stat">
+          <span className="graph-stat-label">Change</span>
+          <span className={`graph-stat-value ${change > 0 ? 'up' : change < 0 ? 'down' : ''}`}>
+            {change > 0 ? '+' : ''}{formatNumber(change)} {unit}
+            {days.length > 1 && first > 0 && ` (${change > 0 ? '+' : ''}${changePct.toFixed(0)}%)`}
+          </span>
+        </div>
+      </div>
+
       <div className="chart-container">
         <Line data={data} options={options} />
       </div>
+      <p className="graph-legend"><span className="pr-dot" /> Personal record</p>
     </div>
   );
 };

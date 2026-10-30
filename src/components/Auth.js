@@ -1,7 +1,7 @@
 // src/components/Auth.js
 import React, { useState } from 'react';
 import { supabase } from '../utils/supabaseClient';
-import { FaDumbbell, FaEye, FaEyeSlash, FaEnvelopeOpenText } from 'react-icons/fa';
+import { FaDumbbell, FaEye, FaEyeSlash, FaEnvelopeOpenText, FaGoogle } from 'react-icons/fa';
 import '../assets/styles/Auth.css';
 
 const MIN_PASSWORD_LENGTH = 8;
@@ -111,6 +111,16 @@ const Auth = ({ recoveryMode = false, onPasswordUpdated }) => {
     });
   };
 
+  // Redirects to Google, then back to this origin with a session.
+  const handleGoogle = () =>
+    run(async () => {
+      const { error: authError } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo: window.location.origin },
+      });
+      if (authError) throw authError;
+    });
+
   const handleForgot = (e) => {
     e.preventDefault();
     run(async () => {
@@ -183,9 +193,14 @@ const Auth = ({ recoveryMode = false, onPasswordUpdated }) => {
               </button>
             </div>
 
-            <form onSubmit={isLogin ? handleLogin : handleSignUp}>
-              <h2 className="auth-form-title">{isLogin ? 'Welcome back' : 'Create your account'}</h2>
+            <h2 className="auth-form-title">{isLogin ? 'Welcome back' : 'Create your account'}</h2>
 
+            <button type="button" className="google-button" onClick={handleGoogle} disabled={loading}>
+              <FaGoogle aria-hidden="true" /> Continue with Google
+            </button>
+            <div className="auth-divider"><span>or use email</span></div>
+
+            <form onSubmit={isLogin ? handleLogin : handleSignUp}>
               {error && <p className="auth-error" role="alert">{error}</p>}
               {info && <p className="auth-feedback-message" role="status">{info}</p>}
 

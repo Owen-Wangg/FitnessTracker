@@ -132,3 +132,14 @@
   font-size: 1.5rem;
 }
 .auth-sent .auth-center-link { margin-bottom: var(--space-4); }
+
+.config-snippet {
+  margin: 0 0 var(--space-4);
+  padding: var(--space-3);
+  overflow-x: auto;
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  color: var(--text);
+  font-size: 0.8125rem;
+}
+.auth-subtext code { padding: 1px 6px; border-radius: 4px; background: var(--surface-2); font-size: 0.875em; }

@@ -1,11 +1,11 @@
 import React from 'react';
-import { FaTrash } from 'react-icons/fa';
+import { FaPen, FaTrash } from 'react-icons/fa';
 import { workoutVolume } from '../utils/workoutMetrics';
 import { findExercise } from '../utils/exerciseLibrary';
 import ExerciseThumb from './ExerciseThumb';
 import '../assets/styles/WorkoutItem.css';
 
-const WorkoutItem = ({ workout, onDelete }) => {
+const WorkoutItem = ({ workout, onDelete, onEdit }) => {
   const sets = workout.sets || [];
   const exercise = findExercise(workout.exerciseId, workout.name);
 
@@ -26,14 +26,27 @@ const WorkoutItem = ({ workout, onDelete }) => {
         <p className="workout-volume">{workoutVolume(workout).toLocaleString()} lbs total</p>
       </div>
 
-      {onDelete && (
-        <button
-          className="delete-button"
-          onClick={() => onDelete(workout.id)}
-          aria-label={`Delete ${workout.name}`}
-        >
-          <FaTrash />
-        </button>
+      {(onEdit || onDelete) && (
+        <div className="workout-actions">
+          {onEdit && (
+            <button
+              className="edit-button"
+              onClick={() => onEdit(workout)}
+              aria-label={`Edit ${workout.name}`}
+            >
+              <FaPen />
+            </button>
+          )}
+          {onDelete && (
+            <button
+              className="delete-button"
+              onClick={() => onDelete(workout.id)}
+              aria-label={`Delete ${workout.name}`}
+            >
+              <FaTrash />
+            </button>
+          )}
+        </div>
       )}
     </div>
   );

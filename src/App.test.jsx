@@ -9,6 +9,10 @@ import { ToastProvider } from './components/ToastProvider';
 let mockSession = null;
 vi.mock('./utils/supabaseClient', async () => {
   const { queryResult } = await import('./testUtils/queryMock');
+  const { formatLocalDate } = await import('./utils/workoutMetrics');
+  const today = formatLocalDate(new Date());
+  const sets = (weight) => [{ id: 's1', set_number: 1, weight, reps: 5, set_type: 'normal' }];
+  const squat = (weight) => ({ id: 'ex-1', date: today, name: 'Squat', exercise_id: 'Barbell_Squat', workout_sets: sets(weight) });
   return {
     supabase: {
       auth: {
@@ -16,7 +20,10 @@ vi.mock('./utils/supabaseClient', async () => {
         onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
         signOut: () => Promise.resolve({ error: null }),
       },
-      from: () => queryResult({ data: [], error: null }),
+      // one saved workout today; everything else is empty
+      from: (table) => queryResult({ data: table === 'workout_exercises' ? [squat(135)] : [], error: null }),
+      // editing saves through the database function, which returns the updated entry
+      rpc: () => Promise.resolve({ data: squat(205), error: null }),
     },
   };
 });
@@ -74,5 +81,47 @@ describe('signed in', () => {
   test('unknown paths redirect home', async () => {
     renderApp('/nope');
     expect(await screen.findByRole('heading', { name: /today's workouts/i })).toBeInTheDocument();
+  });
+});
+
+describe('editing a saved exercise', () => {
+  beforeEach(() => {
+    mockSession = { user: { id: 'u1', email: 'ada@example.com' } };
+  });
+
+  test('Edit opens the form with the saved values, and saving updates the list', async () => {
+    renderApp('/');
+    expect(await screen.findByRole('heading', { name: 'Squat' })).toBeInTheDocument();
+    expect(screen.getByText('135 lbs')).toBeInTheDocument();
+
+    userEvent.click(screen.getByRole('button', { name: 'Edit Squat' }));
+    expect(screen.getByRole('heading', { name: 'Edit Exercise' })).toBeInTheDocument();
+    expect(screen.getByLabelText(/set 1 weight/i)).toHaveValue(135);
+
+    userEvent.clear(screen.getByLabelText(/set 1 weight/i));
+    userEvent.type(screen.getByLabelText(/set 1 weight/i), '205');
+    userEvent.click(screen.getByRole('button', { name: 'Save changes' }));
+
+    // the list shows the new weight and the form closes
+    expect(await screen.findByText('205 lbs')).toBeInTheDocument();
+    expect(screen.queryByText('135 lbs')).not.toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Edit Exercise' })).not.toBeInTheDocument();
+  });
+
+  test('Cancel closes the form without changing anything', async () => {
+    renderApp('/');
+    await screen.findByRole('heading', { name: 'Squat' });
+    userEvent.click(screen.getByRole('button', { name: 'Edit Squat' }));
+    userEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+    expect(screen.queryByRole('heading', { name: 'Edit Exercise' })).not.toBeInTheDocument();
+    expect(screen.getByText('135 lbs')).toBeInTheDocument();
+  });
+
+  test('Add opens an empty form', async () => {
+    renderApp('/');
+    await screen.findByRole('heading', { name: 'Squat' });
+    userEvent.click(screen.getByRole('button', { name: /add/i }));
+    expect(screen.getByRole('heading', { name: 'Add Exercise' })).toBeInTheDocument();
+    expect(screen.getByLabelText(/set 1 weight/i)).toHaveValue(null);
   });
 });

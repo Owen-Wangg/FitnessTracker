@@ -17,8 +17,8 @@
 .set-list-weight { font-family: var(--font-display); font-size: 1.125rem; font-weight: 700; }
 .set-list-reps { color: var(--text-muted); }
 
-.workout-item .delete-button {
-  flex-shrink: 0;
+.workout-actions { flex-shrink: 0; display: flex; flex-direction: column; gap: var(--space-1); }
+.workout-actions button {
   width: 44px;
   padding: 0;
   display: inline-flex;
@@ -27,4 +27,5 @@
   background: transparent;
   color: var(--text-muted);
 }
-.workout-item .delete-button:hover:not(:disabled) { background: var(--danger-soft); color: var(--danger); }
+.workout-actions .edit-button:hover:not(:disabled) { background: var(--accent-soft); color: var(--accent); }
+.workout-actions .delete-button:hover:not(:disabled) { background: var(--danger-soft); color: var(--danger); }

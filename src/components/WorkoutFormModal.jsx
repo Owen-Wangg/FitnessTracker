@@ -5,29 +5,45 @@ import { findExercise } from '../utils/exerciseLibrary';
 import { validateWorkoutForm } from '../utils/workoutForm';
 import ExercisePicker from './ExercisePicker';
 import ExerciseThumb from './ExerciseThumb';
-import '../assets/styles/AddWorkoutModal.css';
+import '../assets/styles/WorkoutFormModal.css';
 
 const emptySet = () => ({ weight: '', reps: '' });
 
-const AddWorkoutModal = ({ show, onClose, onAddWorkout }) => {
-  const [date, setDate] = useState(() => formatLocalDate(new Date()));
-  const [exercise, setExercise] = useState(null); // { id, name }; id is null for custom exercises
+// Form rows hold the raw input strings. set_type is carried along (not shown) so editing keeps tags.
+const rowsFrom = (workout) =>
+  workout && workout.sets.length > 0
+    ? workout.sets.map((s) => ({
+        weight: String(s.weight),
+        reps: String(s.reps),
+        ...(s.set_type && s.set_type !== 'normal' ? { set_type: s.set_type } : {}),
+      }))
+    : [emptySet()];
+
+// Add or edit one exercise. Mount it to open it and unmount it to close it.
+//   initial:  the workout being edited, or null/undefined to add a new one
+//   onSubmit: ({ name, exerciseId, date, sets }) => Promise<boolean>; true closes the form (the caller does that)
+const WorkoutFormModal = ({ initial = null, onClose, onSubmit }) => {
+  const editing = Boolean(initial);
+  const [date, setDate] = useState(() => initial?.date ?? formatLocalDate(new Date()));
+  const [exercise, setExercise] = useState(() =>
+    initial ? { id: initial.exerciseId ?? null, name: initial.name } : null
+  ); // { id, name }; id is null for custom exercises
   const [showPicker, setShowPicker] = useState(false);
-  const [sets, setSets] = useState([emptySet()]);
+  const [sets, setSets] = useState(() => rowsFrom(initial));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
-
-  if (!show) {
-    return null;
-  }
 
   const libraryEntry = exercise ? findExercise(exercise.id, exercise.name) : null;
 
   const updateSet = (index, field, value) =>
     setSets((prev) => prev.map((s, i) => (i === index ? { ...s, [field]: value } : s)));
 
-  // New sets start as a copy of the previous one, since most sets repeat.
-  const addSet = () => setSets((prev) => [...prev, { ...prev[prev.length - 1] }]);
+  // New sets start as a copy of the previous one's numbers, since most sets repeat.
+  const addSet = () =>
+    setSets((prev) => {
+      const last = prev[prev.length - 1];
+      return [...prev, { weight: last.weight, reps: last.reps }];
+    });
 
   const removeSet = (index) => setSets((prev) => prev.filter((_, i) => i !== index));
 
@@ -41,25 +57,25 @@ const AddWorkoutModal = ({ show, onClose, onAddWorkout }) => {
     setError('');
 
     setSaving(true);
-    const ok = await onAddWorkout({
+    await onSubmit({
       name: exercise.name,
       exerciseId: exercise.id,
       date,
       sets: result.sets,
     });
     setSaving(false);
-
-    if (ok) {
-      setExercise(null);
-      setDate(formatLocalDate(new Date()));
-      setSets([emptySet()]);
-    }
   };
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <h2>Add Exercise</h2>
+      <div
+        className="modal-content"
+        role="dialog"
+        aria-modal="true"
+        aria-label={editing ? 'Edit exercise' : 'Add exercise'}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h2>{editing ? 'Edit Exercise' : 'Add Exercise'}</h2>
         <form onSubmit={handleSubmit} noValidate>
           <div className="form-group">
             <label htmlFor="workoutDate">Date</label>
@@ -145,7 +161,9 @@ const AddWorkoutModal = ({ show, onClose, onAddWorkout }) => {
 
           <div className="modal-actions">
             <button type="button" className="cancel-btn" onClick={onClose}>Cancel</button>
-            <button type="submit" disabled={saving}>{saving ? 'Saving...' : 'Save'}</button>
+            <button type="submit" disabled={saving}>
+              {saving ? 'Saving...' : editing ? 'Save changes' : 'Save'}
+            </button>
           </div>
         </form>
 
@@ -163,4 +181,4 @@ const AddWorkoutModal = ({ show, onClose, onAddWorkout }) => {
   );
 };
 
-export default AddWorkoutModal;
+export default WorkoutFormModal;

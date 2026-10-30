@@ -2,7 +2,6 @@ import React from 'react';
 import SummaryCard from '../components/SummaryCard';
 import WeekStrip from '../components/WeekStrip';
 import WorkoutList from '../components/WorkoutList';
-import AddWorkoutModal from '../components/AddWorkoutModal';
 import { FaPlus } from 'react-icons/fa';
 import '../assets/styles/HomeScreen.css';
 
@@ -11,9 +10,7 @@ const HomeScreen = ({
   allWorkouts,
   loading,
   onAddWorkoutClick,
-  showAddModal,
-  setShowAddModal,
-  addWorkout,
+  onEditWorkout,
   deleteWorkout
 }) => {
   return (
@@ -30,13 +27,8 @@ const HomeScreen = ({
         <WeekStrip workouts={allWorkouts} />
       </div>
 
-      <WorkoutList workouts={todaysWorkouts} onDelete={deleteWorkout} loading={loading} />
+      <WorkoutList workouts={todaysWorkouts} onDelete={deleteWorkout} onEdit={onEditWorkout} loading={loading} />
 
-      <AddWorkoutModal
-        show={showAddModal}
-        onClose={() => setShowAddModal(false)}
-        onAddWorkout={addWorkout}
-      />
     </div>
   );
 };

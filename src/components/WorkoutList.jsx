@@ -3,7 +3,7 @@ import WorkoutItem from './WorkoutItem';
 import { FaDumbbell } from 'react-icons/fa';
 import '../assets/styles/WorkoutList.css';
 
-const WorkoutList = ({ workouts, onDelete, loading = false }) => {
+const WorkoutList = ({ workouts, onDelete, onEdit, loading = false }) => {
   if (loading) {
     return (
       <div className="no-workouts-placeholder card" aria-busy="true">
@@ -25,7 +25,7 @@ const WorkoutList = ({ workouts, onDelete, loading = false }) => {
   return (
     <div className="workout-list">
       {workouts.map(workout => (
-        <WorkoutItem key={workout.id} workout={workout} onDelete={onDelete} />
+        <WorkoutItem key={workout.id} workout={workout} onDelete={onDelete} onEdit={onEdit} />
       ))}
     </div>
   );

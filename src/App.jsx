@@ -6,6 +6,7 @@ import { useWorkouts } from './hooks/useWorkouts';
 import { useBodyWeights } from './hooks/useBodyWeights';
 import { totalVolume, formatLocalDate } from './utils/workoutMetrics';
 import HomeScreen from './screens/HomeScreen';
+import WorkoutFormModal from './components/WorkoutFormModal';
 import BottomNav from './components/BottomNav';
 import Auth from './components/Auth';
 import LoadError from './components/LoadError';
@@ -17,11 +18,12 @@ const ProfileScreen = lazy(() => import('./screens/ProfileScreen'));
 
 function App() {
   const { session, user, loading, recovering, clearRecovery, signOut } = useAuth();
-  const { workouts, status, reload, addWorkout, deleteWorkout } = useWorkouts(user);
+  const { workouts, status, reload, addWorkout, updateWorkout, deleteWorkout } = useWorkouts(user);
   const { bodyWeights, logBodyWeight, deleteBodyWeight } = useBodyWeights(user);
 
   const loadingWorkouts = status === 'loading';
-  const [showAddModal, setShowAddModal] = useState(false);
+  // null = closed; { workout: null } = adding; { workout } = editing that entry
+  const [form, setForm] = useState(null);
 
   const lifetimeStats = useMemo(
     () => ({ totalWeightLifted: totalVolume(workouts) }),
@@ -33,9 +35,9 @@ function App() {
     return workouts.filter((w) => w.date === today);
   }, [workouts]);
 
-  const handleAddWorkout = async (workoutData) => {
-    const ok = await addWorkout(workoutData);
-    if (ok) setShowAddModal(false);
+  const handleSubmitForm = async (workoutData) => {
+    const ok = form.workout ? await updateWorkout(form.workout.id, workoutData) : await addWorkout(workoutData);
+    if (ok) setForm(null);
     return ok;
   };
 
@@ -70,17 +72,22 @@ function App() {
                 todaysWorkouts={todaysWorkouts}
                 allWorkouts={workouts}
                 loading={loadingWorkouts}
-                onAddWorkoutClick={() => setShowAddModal(true)}
-                showAddModal={showAddModal}
-                setShowAddModal={setShowAddModal}
-                addWorkout={handleAddWorkout}
+                onAddWorkoutClick={() => setForm({ workout: null })}
+                onEditWorkout={(workout) => setForm({ workout })}
                 deleteWorkout={deleteWorkout}
               />
             }
           />
           <Route
             path="/history"
-            element={<HistoryScreen allWorkouts={workouts} loading={loadingWorkouts} deleteWorkout={deleteWorkout} />}
+            element={
+              <HistoryScreen
+                allWorkouts={workouts}
+                loading={loadingWorkouts}
+                deleteWorkout={deleteWorkout}
+                onEditWorkout={(workout) => setForm({ workout })}
+              />
+            }
           />
           <Route
             path="/profile"
@@ -100,6 +107,14 @@ function App() {
         </Suspense>
       </main>
       <BottomNav />
+      {form && (
+        <WorkoutFormModal
+          key={form.workout?.id ?? 'new'}
+          initial={form.workout}
+          onClose={() => setForm(null)}
+          onSubmit={handleSubmitForm}
+        />
+      )}
     </div>
   );
 }

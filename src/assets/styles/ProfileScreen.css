@@ -32,3 +32,6 @@
 .profile-actions { margin-top: var(--space-5); }
 .sign-out-btn { width: 100%; background: var(--danger-soft); color: var(--danger); }
 .sign-out-btn:hover:not(:disabled) { background: var(--danger); color: #fff; }
+
+.profile-picture-placeholder { overflow: hidden; }
+.profile-picture-placeholder img { width: 100%; height: 100%; object-fit: cover; }

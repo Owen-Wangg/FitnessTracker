@@ -24,3 +24,14 @@ test('rejects zero reps and negative weight', () => {
   expect(validateWorkoutForm({ ...base, sets: [{ weight: '-5', reps: '5' }] }).error).toMatch(/set 1/);
   expect(validateWorkoutForm({ ...base, sets: [{ weight: '100', reps: '' }] }).error).toMatch(/set 1/);
 });
+
+test('keeps a set_type so editing does not erase warm-up or drop tags', () => {
+  const result = validateWorkoutForm({
+    ...base,
+    sets: [{ weight: '45', reps: '10', set_type: 'warmup' }, { weight: '135', reps: '8' }],
+  });
+  expect(result.sets).toEqual([
+    { weight: 45, reps: 10, set_type: 'warmup' },
+    { weight: 135, reps: 8 },
+  ]);
+});

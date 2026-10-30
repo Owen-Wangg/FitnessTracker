@@ -58,5 +58,6 @@ Google sign-in, to the OAuth client's authorized JavaScript origins.
 
 Deleting a workout or weight entry shows an Undo toast; the delete is only sent once the toast expires.
 
-Exercise photos come from the public-domain [Free Exercise DB](https://github.com/yuhonas/free-exercise-db),
-served directly from GitHub.
+Exercise photos come from the public-domain [Free Exercise DB](https://github.com/yuhonas/free-exercise-db).
+They are shrunk once into `public/exercises/` and served by the app itself; after adding an exercise to
+`src/data/fundamentals.js`, run `node scripts/fetch-exercise-photos.mjs` to fetch its photo.

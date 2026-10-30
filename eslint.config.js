@@ -36,7 +36,7 @@ export default [
     languageOptions: { globals: { ...globals.browser, ...testGlobals } },
   },
   {
-    files: ['*.config.js'],
+    files: ['*.config.js', 'scripts/**'],
     languageOptions: { globals: globals.node },
   },
 ];

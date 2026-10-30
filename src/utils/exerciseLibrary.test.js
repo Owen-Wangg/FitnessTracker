@@ -54,10 +54,15 @@ describe('searchExercises', () => {
 });
 
 describe('exerciseImageUrl', () => {
-  test('points at the exercise folder on GitHub, and is null for custom exercises', () => {
-    expect(exerciseImageUrl({ id: 'Barbell_Squat' })).toBe(
-      'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Squat/0.jpg'
-    );
+  test('points at the bundled thumbnail, and is null for custom exercises', () => {
+    expect(exerciseImageUrl({ id: 'Barbell_Squat' })).toBe('/exercises/Barbell_Squat.webp');
     expect(exerciseImageUrl(null)).toBeNull();
+  });
+
+  test('every exercise in the list has a thumbnail file', async () => {
+    const fs = await import('node:fs');
+    for (const { id } of FUNDAMENTALS) {
+      expect(fs.existsSync(`public/exercises/${id}.webp`), id).toBe(true);
+    }
   });
 });

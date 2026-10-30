@@ -2,11 +2,10 @@ import { FUNDAMENTALS, GROUPS } from '../data/fundamentals';
 
 export { FUNDAMENTALS, GROUPS };
 
-// Photos come from the public-domain Free Exercise DB, served straight from GitHub (free, no hosting
-// needed). jsDelivr is not an option: it refuses repos over 50 MB, which this one is.
-const IMAGE_BASE = 'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises';
-
-export const exerciseImageUrl = (exercise) => (exercise ? `${IMAGE_BASE}/${exercise.id}/0.jpg` : null);
+// Thumbnails live in public/exercises (made by scripts/fetch-exercise-photos.mjs from the public-domain
+// Free Exercise DB), so they are served by the app itself: fast, cacheable, and no third-party host.
+export const exerciseImageUrl = (exercise) =>
+  exercise ? `${import.meta.env.BASE_URL}exercises/${exercise.id}.webp` : null;
 
 const byId = new Map(FUNDAMENTALS.map((e) => [e.id, e]));
 const byName = new Map(FUNDAMENTALS.map((e) => [e.name.toLowerCase(), e]));

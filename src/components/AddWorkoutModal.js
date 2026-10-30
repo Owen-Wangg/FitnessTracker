@@ -1,19 +1,26 @@
 import React, { useState } from 'react';
-import { FaPlus, FaTimes } from 'react-icons/fa';
+import { FaPlus, FaTimes, FaChevronRight } from 'react-icons/fa';
 import { formatLocalDate } from '../utils/workoutMetrics';
+import { findExercise, titleCase } from '../utils/exerciseLibrary';
+import ExercisePicker from './ExercisePicker';
+import ExerciseThumb from './ExerciseThumb';
 import '../assets/styles/AddWorkoutModal.css';
 
 const emptySet = () => ({ weight: '', reps: '' });
 
-const AddWorkoutModal = ({ show, onClose, onAddWorkout, exerciseNames = [] }) => {
+// recentExercises: [{ exerciseId, name }] offered first in the picker.
+const AddWorkoutModal = ({ show, onClose, onAddWorkout, recentExercises = [] }) => {
   const [date, setDate] = useState(() => formatLocalDate(new Date()));
-  const [name, setName] = useState('');
+  const [exercise, setExercise] = useState(null); // { id, name }; id is null for custom exercises
+  const [showPicker, setShowPicker] = useState(false);
   const [sets, setSets] = useState([emptySet()]);
   const [saving, setSaving] = useState(false);
 
   if (!show) {
     return null;
   }
+
+  const libraryEntry = exercise ? findExercise(exercise.id, exercise.name) : null;
 
   const updateSet = (index, field, value) =>
     setSets((prev) => prev.map((s, i) => (i === index ? { ...s, [field]: value } : s)));
@@ -25,23 +32,31 @@ const AddWorkoutModal = ({ show, onClose, onAddWorkout, exerciseNames = [] }) =>
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const trimmedName = name.trim();
     const parsedSets = sets.map((s) => ({
       weight: s.weight === '' ? NaN : parseFloat(s.weight),
       reps: parseInt(s.reps, 10),
     }));
 
-    if (!trimmedName || !date || parsedSets.some((s) => isNaN(s.weight) || !(s.reps > 0))) {
-      alert('Please fill in the date, exercise name, and weight and reps for every set.');
+    if (!exercise) {
+      alert('Please choose an exercise.');
+      return;
+    }
+    if (!date || parsedSets.some((s) => isNaN(s.weight) || !(s.reps > 0))) {
+      alert('Please fill in the date and the weight and reps for every set.');
       return;
     }
 
     setSaving(true);
-    const ok = await onAddWorkout({ name: trimmedName, date, sets: parsedSets });
+    const ok = await onAddWorkout({
+      name: exercise.name,
+      exerciseId: exercise.id,
+      date,
+      sets: parsedSets,
+    });
     setSaving(false);
 
     if (ok) {
-      setName('');
+      setExercise(null);
       setDate(formatLocalDate(new Date()));
       setSets([emptySet()]);
     }
@@ -64,22 +79,31 @@ const AddWorkoutModal = ({ show, onClose, onAddWorkout, exerciseNames = [] }) =>
           </div>
 
           <div className="form-group">
-            <label htmlFor="workoutName">Exercise</label>
-            <input
-              type="text"
-              id="workoutName"
-              list="exercise-suggestions"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="e.g. Bench Press"
-              autoComplete="off"
-              required
-            />
-            <datalist id="exercise-suggestions">
-              {exerciseNames.map((n) => (
-                <option key={n} value={n} />
-              ))}
-            </datalist>
+            <span className="field-label">Exercise</span>
+            <button type="button" className="exercise-select-btn" onClick={() => setShowPicker(true)}>
+              {exercise ? (
+                <>
+                  <ExerciseThumb exercise={libraryEntry} size={48} />
+                  <span className="exercise-select-text">
+                    <span className="exercise-select-name">{exercise.name}</span>
+                    <span className="exercise-select-meta">
+                      {libraryEntry
+                        ? libraryEntry.primary.map(titleCase).join(', ') || 'Full body'
+                        : 'Custom exercise'}
+                    </span>
+                  </span>
+                  <span className="exercise-select-action">Change</span>
+                </>
+              ) : (
+                <>
+                  <span className="exercise-select-text">
+                    <span className="exercise-select-name">Choose an exercise</span>
+                    <span className="exercise-select-meta">Search 800+ with photos</span>
+                  </span>
+                  <FaChevronRight aria-hidden="true" />
+                </>
+              )}
+            </button>
           </div>
 
           <div className="sets-editor">
@@ -133,6 +157,16 @@ const AddWorkoutModal = ({ show, onClose, onAddWorkout, exerciseNames = [] }) =>
             <button type="submit" disabled={saving}>{saving ? 'Saving...' : 'Save'}</button>
           </div>
         </form>
+
+        <ExercisePicker
+          show={showPicker}
+          recent={recentExercises}
+          onClose={() => setShowPicker(false)}
+          onSelect={(picked) => {
+            setExercise(picked);
+            setShowPicker(false);
+          }}
+        />
       </div>
     </div>
   );

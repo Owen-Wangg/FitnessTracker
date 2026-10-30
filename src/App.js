@@ -17,6 +17,7 @@ const normalizeWorkout = (row, sets) => ({
   id: row.id,
   date: row.date,
   name: row.name,
+  exerciseId: row.exercise_id || null, // library id; null for custom or older entries
   sets: [...(sets || [])]
     .sort((a, b) => a.set_number - b.set_number)
     .map((s) => ({ ...s, weight: Number(s.weight) })),
@@ -39,13 +40,18 @@ function App() {
     [workouts]
   );
 
-  const exerciseNames = useMemo(() => {
-    const byLower = new Map();
-    workouts.forEach((w) => {
-      const key = w.name.trim().toLowerCase();
-      if (key && !byLower.has(key)) byLower.set(key, w.name.trim());
-    });
-    return [...byLower.values()].sort((a, b) => a.localeCompare(b));
+  // Most recently logged distinct exercises (workouts are newest first).
+  const recentExercises = useMemo(() => {
+    const seen = new Set();
+    const recent = [];
+    for (const w of workouts) {
+      const key = w.exerciseId || w.name.trim().toLowerCase();
+      if (!key || seen.has(key)) continue;
+      seen.add(key);
+      recent.push({ exerciseId: w.exerciseId, name: w.name });
+      if (recent.length === 10) break;
+    }
+    return recent;
   }, [workouts]);
 
   useEffect(() => {
@@ -80,7 +86,7 @@ function App() {
     const fetchWorkouts = async () => {
       const { data, error } = await supabase
         .from('workout_exercises')
-        .select(`id, date, name, workout_sets (${SET_COLUMNS})`)
+        .select(`id, date, name, exercise_id, workout_sets (${SET_COLUMNS})`)
         .eq('user_id', user.id)
         .order('date', { ascending: false })
         .order('created_at', { ascending: true });
@@ -159,7 +165,7 @@ function App() {
     setBodyWeights((prev) => prev.filter((b) => b.id !== id));
   };
 
-  // workoutData: { name, date, sets: [{ weight, reps }] }. Resolves true on success.
+  // workoutData: { name, exerciseId, date, sets: [{ weight, reps }] }. Resolves true on success.
   const addWorkout = async (workoutData) => {
     if (!user) {
       alert('You must be logged in to add a workout.');
@@ -177,8 +183,8 @@ function App() {
     try {
       const { data: exercise, error: exerciseError } = await supabase
         .from('workout_exercises')
-        .insert({ user_id: user.id, date, name })
-        .select('id, date, name')
+        .insert({ user_id: user.id, date, name, exercise_id: workoutData.exerciseId || null })
+        .select('id, date, name, exercise_id')
         .single();
       if (exerciseError) throw exerciseError;
 
@@ -269,7 +275,7 @@ function App() {
         {activeScreen === 'home' && (
           <HomeScreen
             todaysWorkouts={todaysWorkouts}
-            exerciseNames={exerciseNames}
+            recentExercises={recentExercises}
             onAddWorkoutClick={() => setShowAddModal(true)}
             showAddModal={showAddModal}
             setShowAddModal={setShowAddModal}

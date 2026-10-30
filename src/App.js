@@ -29,6 +29,7 @@ function App() {
   const [session, setSession] = useState(null);
   const [user, setUser] = useState(null);
   const [workouts, setWorkouts] = useState([]);
+  const [bodyWeights, setBodyWeights] = useState([]); // oldest first
   const [showAddModal, setShowAddModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [recovering, setRecovering] = useState(false); // arrived via password-reset email
@@ -98,6 +99,65 @@ function App() {
       cancelled = true;
     };
   }, [user]);
+
+  useEffect(() => {
+    if (!user) {
+      setBodyWeights([]);
+      return;
+    }
+
+    let cancelled = false;
+    supabase
+      .from('body_weights')
+      .select('id, date, weight')
+      .eq('user_id', user.id)
+      .order('date', { ascending: true })
+      .then(({ data, error }) => {
+        if (cancelled) return;
+        if (error) {
+          console.error('Error fetching body weights:', error);
+          setBodyWeights([]);
+          return;
+        }
+        setBodyWeights((data || []).map((b) => ({ ...b, weight: Number(b.weight) })));
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
+
+  // Logging the same date again replaces that day's entry. Resolves true on success.
+  const logBodyWeight = async ({ date, weight }) => {
+    if (!user) return false;
+    const { data, error } = await supabase
+      .from('body_weights')
+      .upsert({ user_id: user.id, date, weight }, { onConflict: 'user_id,date' })
+      .select('id, date, weight')
+      .single();
+
+    if (error) {
+      console.error('Error logging body weight:', error);
+      alert(`Error saving weight: ${error.message}`);
+      return false;
+    }
+    const entry = { ...data, weight: Number(data.weight) };
+    setBodyWeights((prev) =>
+      [...prev.filter((b) => b.date !== entry.date), entry].sort((a, b) => a.date.localeCompare(b.date))
+    );
+    return true;
+  };
+
+  const deleteBodyWeight = async (id) => {
+    if (!window.confirm('Delete this weight entry?')) return;
+    const { error } = await supabase.from('body_weights').delete().eq('id', id);
+    if (error) {
+      console.error('Error deleting body weight:', error);
+      alert(`Error deleting entry: ${error.message}`);
+      return;
+    }
+    setBodyWeights((prev) => prev.filter((b) => b.id !== id));
+  };
 
   // workoutData: { name, date, sets: [{ weight, reps }] }. Resolves true on success.
   const addWorkout = async (workoutData) => {
@@ -229,6 +289,9 @@ function App() {
             user={user}
             handleSignOut={handleSignOut}
             lifetimeStats={lifetimeStats}
+            bodyWeights={bodyWeights}
+            onLogBodyWeight={logBodyWeight}
+            onDeleteBodyWeight={deleteBodyWeight}
           />
         )}
       </main>

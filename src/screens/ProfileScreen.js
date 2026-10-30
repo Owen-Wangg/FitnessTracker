@@ -1,13 +1,22 @@
 import React from 'react';
+import BodyWeightCard from '../components/BodyWeightCard';
 import '../assets/styles/ProfileScreen.css'; // We'll create this CSS file
 
 // Accept handleSignOut and potentially user data as props later
-const ProfileScreen = ({ user, handleSignOut, lifetimeStats }) => {
+const ProfileScreen = ({
+  user,
+  handleSignOut,
+  lifetimeStats,
+  bodyWeights = [],
+  onLogBodyWeight,
+  onDeleteBodyWeight,
+}) => {
 
   // Placeholder data - you'll replace this with actual data from state/props
   const displayName = user?.email?.split('@')[0] || 'Fitness Enthusiast'; // Example
   const height = 'N/A'; // e.g., "5'10\"" or "178 cm"
-  const weight = 'N/A'; // e.g., "160 lbs" or "72 kg"
+  const latestBodyWeight = bodyWeights[bodyWeights.length - 1];
+  const weight = latestBodyWeight ? `${latestBodyWeight.weight} lbs` : 'N/A';
   const lifetimeWeightLifted = lifetimeStats?.totalWeightLifted || 0; // Example structure
 
   return (
@@ -56,6 +65,12 @@ const ProfileScreen = ({ user, handleSignOut, lifetimeStats }) => {
           )}
         </div>
       </div>
+
+      <BodyWeightCard
+        entries={bodyWeights}
+        onLog={onLogBodyWeight}
+        onDelete={onDeleteBodyWeight}
+      />
     </div>
   );
 };

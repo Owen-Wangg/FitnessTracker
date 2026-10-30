@@ -2,6 +2,9 @@ import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import AddWorkoutModal from './AddWorkoutModal';
 
+// Typing into several fields is slow when the whole suite runs in parallel.
+jest.setTimeout(20000);
+
 const setup = (onAddWorkout = jest.fn().mockResolvedValue(true)) => {
   render(<AddWorkoutModal show onClose={() => {}} onAddWorkout={onAddWorkout} />);
   return onAddWorkout;

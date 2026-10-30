@@ -1,116 +1,136 @@
 import React, { useState } from 'react';
-import '../assets/styles/AddWorkoutModal.css'; // Make sure this path is correct
+import { FaPlus, FaTimes } from 'react-icons/fa';
+import { formatLocalDate } from '../utils/workoutMetrics';
+import '../assets/styles/AddWorkoutModal.css';
 
-const AddWorkoutModal = ({ show, onClose, onAddWorkout }) => {
-  // --- START: Date state and initialization ---
-  const today = new Date();
-  // Correctly get local today in YYYY-MM-DD format
-  const todayLocalISO = new Date(today.getTime() - (today.getTimezoneOffset() * 60000 ))
-                        .toISOString()
-                        .split("T")[0];
+const emptySet = () => ({ weight: '', reps: '' });
 
-  const [date, setDate] = useState(todayLocalISO); // Initialize date state
-  // --- END: Date state and initialization ---
-
+const AddWorkoutModal = ({ show, onClose, onAddWorkout, exerciseNames = [] }) => {
+  const [date, setDate] = useState(() => formatLocalDate(new Date()));
   const [name, setName] = useState('');
-  const [weight, setWeight] = useState('');
-  const [sets, setSets] = useState('');
-  const [reps, setReps] = useState('');
+  const [sets, setSets] = useState([emptySet()]);
+  const [saving, setSaving] = useState(false);
 
   if (!show) {
     return null;
   }
 
-  const handleSubmit = (e) => {
+  const updateSet = (index, field, value) =>
+    setSets((prev) => prev.map((s, i) => (i === index ? { ...s, [field]: value } : s)));
+
+  // New sets start as a copy of the previous one, since most sets repeat.
+  const addSet = () => setSets((prev) => [...prev, { ...prev[prev.length - 1] }]);
+
+  const removeSet = (index) => setSets((prev) => prev.filter((_, i) => i !== index));
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Updated validation to include date (if you make it required)
-    // The date input itself has 'required' attribute, so browser handles empty check for it mostly.
-    // But good to have a check here too if you want a custom alert.
-    if (!name || !weight || !sets || !reps || !date) { // Added !date to the check
-      alert("Please fill all fields, including the date!");
+    const trimmedName = name.trim();
+    const parsedSets = sets.map((s) => ({
+      weight: s.weight === '' ? NaN : parseFloat(s.weight),
+      reps: parseInt(s.reps, 10),
+    }));
+
+    if (!trimmedName || !date || parsedSets.some((s) => isNaN(s.weight) || !(s.reps > 0))) {
+      alert('Please fill in the date, exercise name, and weight and reps for every set.');
       return;
     }
-    // Pass the date to onAddWorkout
-    onAddWorkout({
-      name,
-      date, // Add date here
-      weight,
-      sets,
-      reps
-    });
-    // Reset form
-    setName('');
-    setDate(todayLocalISO); // Reset date to today
-    setWeight('');
-    setSets('');
-    setReps('');
-    // onClose(); // You might want to call onClose here if App.js doesn't always close it
+
+    setSaving(true);
+    const ok = await onAddWorkout({ name: trimmedName, date, sets: parsedSets });
+    setSaving(false);
+
+    if (ok) {
+      setName('');
+      setDate(formatLocalDate(new Date()));
+      setSets([emptySet()]);
+    }
   };
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={e => e.stopPropagation()}>
-        <h2>Add New Workout</h2>
+      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        <h2>Add Exercise</h2>
         <form onSubmit={handleSubmit}>
-          {/* --- START: Date Input Field --- */}
           <div className="form-group">
             <label htmlFor="workoutDate">Date</label>
             <input
               type="date"
               id="workoutDate"
               value={date}
-              onChange={e => setDate(e.target.value)}
-              required // Makes the browser require a value
+              onChange={(e) => setDate(e.target.value)}
+              required
             />
           </div>
-          {/* --- END: Date Input Field --- */}
 
           <div className="form-group">
-            <label htmlFor="workoutName">Workout Name</label>
+            <label htmlFor="workoutName">Exercise</label>
             <input
               type="text"
               id="workoutName"
+              list="exercise-suggestions"
               value={name}
-              onChange={e => setName(e.target.value)}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="e.g. Bench Press"
+              autoComplete="off"
               required
             />
+            <datalist id="exercise-suggestions">
+              {exerciseNames.map((n) => (
+                <option key={n} value={n} />
+              ))}
+            </datalist>
           </div>
-          <div className="form-group">
-            <label htmlFor="weight">Weight (Lbs)</label>
-            <input
-              type="number"
-              id="weight"
-              value={weight}
-              onChange={e => setWeight(e.target.value)}
-              required
-              min="0" // Optional: prevent negative weight
-            />
+
+          <div className="sets-editor">
+            <div className="sets-row sets-row-header" aria-hidden="true">
+              <span>Set</span>
+              <span>Weight (lbs)</span>
+              <span>Reps</span>
+              <span />
+            </div>
+            {sets.map((s, i) => (
+              <div className="sets-row" key={i}>
+                <span className="set-number">{i + 1}</span>
+                <input
+                  type="number"
+                  inputMode="decimal"
+                  aria-label={`Set ${i + 1} weight in pounds`}
+                  value={s.weight}
+                  onChange={(e) => updateSet(i, 'weight', e.target.value)}
+                  min="0"
+                  step="0.5"
+                  required
+                />
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  aria-label={`Set ${i + 1} reps`}
+                  value={s.reps}
+                  onChange={(e) => updateSet(i, 'reps', e.target.value)}
+                  min="1"
+                  step="1"
+                  required
+                />
+                <button
+                  type="button"
+                  className="remove-set-btn"
+                  onClick={() => removeSet(i)}
+                  disabled={sets.length === 1}
+                  aria-label={`Remove set ${i + 1}`}
+                >
+                  <FaTimes />
+                </button>
+              </div>
+            ))}
+            <button type="button" className="add-set-btn" onClick={addSet}>
+              <FaPlus /> Add set
+            </button>
           </div>
-          <div className="form-group">
-            <label htmlFor="sets">Sets</label>
-            <input
-              type="number"
-              id="sets"
-              value={sets}
-              onChange={e => setSets(e.target.value)}
-              required
-              min="0" // Optional: prevent negative sets
-            />
-          </div>
-          <div className="form-group">
-            <label htmlFor="reps">Reps</label>
-            <input
-              type="number"
-              id="reps"
-              value={reps}
-              onChange={e => setReps(e.target.value)}
-              required
-              min="0" // Optional: prevent negative reps
-            />
-          </div>
+
           <div className="modal-actions">
             <button type="button" className="cancel-btn" onClick={onClose}>Cancel</button>
-            <button type="submit">Add Workout</button>
+            <button type="submit" disabled={saving}>{saving ? 'Saving...' : 'Save'}</button>
           </div>
         </form>
       </div>

@@ -10,6 +10,11 @@
 .workout-details h3 { margin-bottom: var(--space-2); }
 .workout-details p { color: var(--text-muted); font-size: 0.875rem; font-variant-numeric: tabular-nums; }
 
+.set-list { list-style: none; margin: 0 0 var(--space-2); padding: 0; display: flex; flex-direction: column; gap: var(--space-1); }
+.set-list li { display: flex; gap: var(--space-2); font-size: 0.9375rem; font-variant-numeric: tabular-nums; }
+.set-list-weight { font-weight: 600; }
+.set-list-reps { color: var(--text-muted); }
+
 .workout-item .delete-button {
   flex-shrink: 0;
   width: 44px;

@@ -7,6 +7,7 @@ import '../assets/styles/HomeScreen.css';
 
 const HomeScreen = ({
   todaysWorkouts,
+  exerciseNames,
   onAddWorkoutClick,
   showAddModal,
   setShowAddModal,
@@ -25,15 +26,11 @@ const HomeScreen = ({
       <SummaryCard workouts={todaysWorkouts} />
       <WorkoutList workouts={todaysWorkouts} onDelete={deleteWorkout} />
 
-      {/* Floating Action Button (alternative or additional) */}
-      {/* <button className="fab" onClick={onAddWorkoutClick}>
-        <FaPlus size={24} />
-      </button> */}
-
       <AddWorkoutModal
         show={showAddModal}
         onClose={() => setShowAddModal(false)}
         onAddWorkout={addWorkout}
+        exerciseNames={exerciseNames}
       />
     </div>
   );

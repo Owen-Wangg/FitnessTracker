@@ -33,6 +33,39 @@
 }
 .cancel-btn:hover:not(:disabled) { background: var(--surface-2); }
 
+/* Per-set rows */
+.sets-editor { display: flex; flex-direction: column; gap: var(--space-2); }
+.sets-row {
+  display: grid;
+  grid-template-columns: 28px 1fr 1fr 44px;
+  align-items: center;
+  gap: var(--space-2);
+}
+.sets-row-header { font-size: 0.75rem; font-weight: 500; color: var(--text-muted); }
+.set-number { text-align: center; font-weight: 600; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+
+.remove-set-btn {
+  width: 44px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  color: var(--text-muted);
+}
+.remove-set-btn:hover:not(:disabled) { background: var(--danger-soft); color: var(--danger); }
+
+.add-set-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  margin-top: var(--space-1);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.add-set-btn:hover:not(:disabled) { background: var(--accent); color: #fff; }
+
 @media (min-width: 600px) {
   .modal-overlay { align-items: center; }
   .modal-content {

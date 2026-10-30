@@ -1,18 +1,31 @@
 import React from 'react';
 import { FaTrash } from 'react-icons/fa';
+import { workoutVolume } from '../utils/workoutMetrics';
 import '../assets/styles/WorkoutItem.css';
 
 const WorkoutItem = ({ workout, onDelete }) => {
+  const sets = workout.sets || [];
+
   return (
     <div className="workout-item card">
       <div className="workout-details">
         <h3>{workout.name}</h3>
-        <p>Weight: {workout.weight} Lbs</p> {/* Assume kg for now */}
-        <p>Sets: {workout.sets}</p>
-        <p>Reps: {workout.reps}</p>
+        <ol className="set-list">
+          {sets.map((s) => (
+            <li key={s.id || s.set_number}>
+              <span className="set-list-weight">{s.weight} lbs</span>
+              <span className="set-list-reps">&times; {s.reps}</span>
+            </li>
+          ))}
+        </ol>
+        <p className="workout-volume">{workoutVolume(workout).toLocaleString()} lbs total</p>
       </div>
       {onDelete && (
-        <button className="delete-button" onClick={() => onDelete(workout.id)}>
+        <button
+          className="delete-button"
+          onClick={() => onDelete(workout.id)}
+          aria-label={`Delete ${workout.name}`}
+        >
           <FaTrash />
         </button>
       )}

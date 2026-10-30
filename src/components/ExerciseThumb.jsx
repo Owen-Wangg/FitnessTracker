@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { FaDumbbell } from 'react-icons/fa';
 import { exerciseImageUrl } from '../utils/exerciseLibrary';
+import '../assets/styles/ExerciseThumb.css';
 
 // Exercise photo, with a dumbbell placeholder for custom exercises or failed loads.
 const ExerciseThumb = ({ exercise, size = 56 }) => {

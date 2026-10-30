@@ -139,3 +139,5 @@ input:focus, select:focus {
   color: var(--danger);
   font-size: 0.875rem;
 }
+
+.field-hint { color: var(--text-muted); font-size: 0.8125rem; }

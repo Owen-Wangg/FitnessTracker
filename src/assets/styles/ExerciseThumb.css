@@ -1,0 +1,13 @@
+.exercise-thumb {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+  background: #fff; /* source photos have white backgrounds */
+  color: var(--text-muted);
+}
+.exercise-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.exercise-thumb.placeholder { background: var(--surface-2); border: 1px solid var(--border); }
+.exercise-thumb.placeholder svg { opacity: 0.6; }

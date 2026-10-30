@@ -13,46 +13,50 @@
 
 .exercise-selector-container { display: flex; flex-direction: column; gap: var(--space-2); margin-bottom: var(--space-4); max-width: 360px; }
 
-/* react-calendar theme */
-.react-calendar {
+/* Calendar (DayPicker): themed through its CSS variables, plus a few overrides for our global button style */
+.rdp-root {
+  --rdp-accent-color: var(--accent);
+  --rdp-accent-background-color: var(--accent-soft);
+  --rdp-today-color: var(--accent);
+  --rdp-day-width: calc(100% / 7);
+  --rdp-day-height: 46px;
+  --rdp-day_button-width: 40px;
+  --rdp-day_button-height: 40px;
+  --rdp-selected-border: 2px solid transparent;
+  --rdp-outside-opacity: 0.35;
   width: 100%;
-  background: transparent;
-  border: none;
-  font-family: inherit;
   color: var(--text);
 }
-.react-calendar button {
-  min-height: 0;
-  color: var(--text);
-  background: transparent;
-  border-radius: var(--radius-sm);
-}
-.react-calendar button:disabled { background: transparent; opacity: 0.4; }
-.react-calendar__navigation { display: flex; margin-bottom: var(--space-3); }
-.react-calendar__navigation button { min-width: 44px; min-height: 44px; font-weight: 600; }
-.react-calendar__navigation button:enabled:hover,
-.react-calendar__navigation button:enabled:focus,
-.react-calendar__tile:enabled:hover,
-.react-calendar__tile:enabled:focus { background: var(--surface-2); }
-.react-calendar__month-view__weekdays { text-align: center; font-size: 0.75rem; font-weight: 500; color: var(--text-muted); text-transform: uppercase; }
-.react-calendar__month-view__weekdays abbr { text-decoration: none; }
-.react-calendar__month-view__days__day--neighboringMonth { color: var(--text-muted); opacity: 0.45; }
-.react-calendar__tile { padding: 10px 4px; position: relative; font-variant-numeric: tabular-nums; }
-.react-calendar__tile--now { background: var(--surface-2); box-shadow: inset 0 0 0 1px var(--border-strong); }
-.react-calendar__tile--active,
-.react-calendar__tile--active:enabled:hover,
-.react-calendar__tile--active:enabled:focus { background: var(--accent); color: var(--on-accent); }
+.rdp-months { max-width: none; width: 100%; }
+.rdp-month { width: 100%; }
+.rdp-month_grid { width: 100%; table-layout: fixed; }
+.rdp-month_caption { font-family: var(--font-display); font-size: 1.25rem; text-transform: uppercase; letter-spacing: 0.02em; }
+.rdp-weekday { font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); opacity: 1; }
+.rdp-day_button { margin: 0 auto; position: relative; }
+
+/* our global button rules (accent fill, 44px min height, hover fill) must not leak into the calendar */
+.rdp-root button { min-height: 0; font-weight: inherit; }
+.rdp-root .rdp-day_button:hover:not(:disabled),
+.rdp-root .rdp-button_next:hover:not(:disabled),
+.rdp-root .rdp-button_previous:hover:not(:disabled) { background: var(--surface-2); }
+.rdp-root .rdp-button_next,
+.rdp-root .rdp-button_previous { border-radius: var(--radius-sm); }
+
+.rdp-today:not(.rdp-outside) .rdp-day_button { box-shadow: inset 0 0 0 1px var(--border-strong); }
+.rdp-selected { font-size: inherit; }
+.rdp-root .rdp-selected .rdp-day_button,
+.rdp-root .rdp-selected .rdp-day_button:hover:not(:disabled) { background: var(--accent); color: var(--on-accent); font-weight: 700; box-shadow: none; }
 
 /* Dot under days that have workouts */
-.react-calendar__tile.has-workouts::after {
+.rdp-day.has-workouts .rdp-day_button::after {
   content: '';
   position: absolute;
   left: 50%;
-  bottom: 4px;
+  bottom: 3px;
   width: 5px;
   height: 5px;
   transform: translateX(-50%);
   border-radius: 50%;
   background: var(--success);
 }
-.react-calendar__tile--active.has-workouts::after { background: var(--on-accent); }
+.rdp-selected.has-workouts .rdp-day_button::after { background: var(--on-accent); }

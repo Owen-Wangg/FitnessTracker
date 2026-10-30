@@ -1,9 +1,9 @@
 import React, { useMemo, useState } from 'react';
-import Calendar from 'react-calendar';
-import 'react-calendar/dist/Calendar.css';
+import { DayPicker } from '@daypicker/react';
+import '@daypicker/react/style.css';
 import WorkoutList from '../components/WorkoutList';
 import ProgressGraph from '../components/ProgressGraph';
-import { formatLocalDate } from '../utils/workoutMetrics';
+import { formatLocalDate, parseLocalDate } from '../utils/workoutMetrics';
 import { exerciseOptions } from '../utils/exerciseLibrary';
 import '../assets/styles/HistoryScreen.css';
 
@@ -12,7 +12,10 @@ const HistoryScreen = ({ allWorkouts = [], loading = false, deleteWorkout = () =
   const [chosenExercise, setChosenExercise] = useState('');
 
   // Days that have at least one workout, for the calendar dots.
-  const trainedDates = useMemo(() => new Set(allWorkouts.map((w) => w.date)), [allWorkouts]);
+  const trainedDays = useMemo(
+    () => [...new Set(allWorkouts.map((w) => w.date))].map(parseLocalDate),
+    [allWorkouts]
+  );
 
   const workoutsForSelectedDate = useMemo(() => {
     const day = formatLocalDate(selectedDate);
@@ -29,12 +32,15 @@ const HistoryScreen = ({ allWorkouts = [], loading = false, deleteWorkout = () =
       <h1>Workout History</h1>
       <div className="calendar-container card">
         <h2 className="section-title">Select Date</h2>
-        <Calendar
-          onChange={setSelectedDate}
-          value={selectedDate}
-          tileClassName={({ date, view }) =>
-            view === 'month' && trainedDates.has(formatLocalDate(date)) ? 'has-workouts' : null
-          }
+        <DayPicker
+          mode="single"
+          required
+          selected={selectedDate}
+          onSelect={setSelectedDate}
+          defaultMonth={selectedDate}
+          showOutsideDays
+          modifiers={{ trained: trainedDays }}
+          modifiersClassNames={{ trained: 'has-workouts' }}
         />
       </div>
 

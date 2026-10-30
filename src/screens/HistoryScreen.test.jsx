@@ -1,4 +1,5 @@
 import { render, screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import HistoryScreen from './HistoryScreen';
 import { formatLocalDate } from '../utils/workoutMetrics';
 
@@ -35,4 +36,40 @@ test('lists each exercise once in the graph dropdown, ignoring name casing', () 
 test('shows an empty state with no workouts', () => {
   render(<HistoryScreen allWorkouts={[]} />);
   expect(screen.getByText(/no workout data available/i)).toBeInTheDocument();
+});
+
+describe('calendar', () => {
+  // A day in the current month other than today, as 'YYYY-MM-DD' plus its day number.
+  const otherDay = () => {
+    const now = new Date();
+    const day = now.getDate() === 1 ? 2 : 1;
+    return { day, date: formatLocalDate(new Date(now.getFullYear(), now.getMonth(), day)) };
+  };
+  const dayButton = (container, n) =>
+    [...container.querySelectorAll('.rdp-day:not(.rdp-outside) .rdp-day_button')].find((b) => b.textContent === String(n));
+
+  test('picking a day shows the workouts for that day', () => {
+    const { day, date } = otherDay();
+    const { container } = render(
+      <HistoryScreen allWorkouts={[workout('a', 'Sled Push'), workout('b', 'Farmer Walk', date)]} />
+    );
+    expect(screen.getByRole('heading', { name: 'Sled Push' })).toBeInTheDocument();
+
+    userEvent.click(dayButton(container, day));
+    expect(screen.getByRole('heading', { name: 'Farmer Walk' })).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Sled Push' })).not.toBeInTheDocument();
+  });
+
+  test('clicking the selected day does not deselect it', () => {
+    const { container } = render(<HistoryScreen allWorkouts={[workout('a', 'Sled Push')]} />);
+    userEvent.click(dayButton(container, new Date().getDate()));
+    expect(screen.getByRole('heading', { name: 'Sled Push' })).toBeInTheDocument();
+  });
+
+  test('marks only the days that have workouts', () => {
+    const { day, date } = otherDay();
+    const { container } = render(<HistoryScreen allWorkouts={[workout('a', 'Sled Push', date)]} />);
+    const marked = [...container.querySelectorAll('.rdp-day.has-workouts .rdp-day_button')].map((b) => b.textContent);
+    expect(marked).toEqual([String(day)]);
+  });
 });

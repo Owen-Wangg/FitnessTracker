@@ -1,4 +1,4 @@
-import { findExercise, exerciseKey, exerciseOptions, searchExercises, FUNDAMENTALS, GROUPS } from './exerciseLibrary';
+import { exerciseImageUrl, findExercise, exerciseKey, exerciseOptions, searchExercises, FUNDAMENTALS, GROUPS } from './exerciseLibrary';
 
 describe('library data', () => {
   test('every exercise has a unique id and a known group', () => {
@@ -50,5 +50,14 @@ describe('searchExercises', () => {
   test('empty query returns everything; nonsense returns nothing', () => {
     expect(searchExercises('')).toHaveLength(FUNDAMENTALS.length);
     expect(searchExercises('zzzz')).toEqual([]);
+  });
+});
+
+describe('exerciseImageUrl', () => {
+  test('points at the exercise folder on GitHub, and is null for custom exercises', () => {
+    expect(exerciseImageUrl({ id: 'Barbell_Squat' })).toBe(
+      'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Squat/0.jpg'
+    );
+    expect(exerciseImageUrl(null)).toBeNull();
   });
 });

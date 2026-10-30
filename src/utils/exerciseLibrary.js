@@ -2,8 +2,9 @@ import { FUNDAMENTALS, GROUPS } from '../data/fundamentals';
 
 export { FUNDAMENTALS, GROUPS };
 
-// Photos come from the public-domain Free Exercise DB via the jsDelivr CDN (free, no hosting needed).
-const IMAGE_BASE = 'https://cdn.jsdelivr.net/gh/yuhonas/free-exercise-db@main/exercises';
+// Photos come from the public-domain Free Exercise DB, served straight from GitHub (free, no hosting
+// needed). jsDelivr is not an option: it refuses repos over 50 MB, which this one is.
+const IMAGE_BASE = 'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises';
 
 export const exerciseImageUrl = (exercise) => (exercise ? `${IMAGE_BASE}/${exercise.id}/0.jpg` : null);
 

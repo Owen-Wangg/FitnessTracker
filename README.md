@@ -59,4 +59,4 @@ Google sign-in, to the OAuth client's authorized JavaScript origins.
 Deleting a workout or weight entry shows an Undo toast; the delete is only sent once the toast expires.
 
 Exercise photos come from the public-domain [Free Exercise DB](https://github.com/yuhonas/free-exercise-db),
-served through the jsDelivr CDN.
+served directly from GitHub.

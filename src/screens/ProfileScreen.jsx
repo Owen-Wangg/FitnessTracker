@@ -1,5 +1,6 @@
 import React from 'react';
 import BodyWeightCard from '../components/BodyWeightCard';
+import ThemeSelector from '../components/ThemeSelector';
 import { displayNameFor, avatarUrlFor } from '../utils/userProfile';
 import '../assets/styles/ProfileScreen.css';
 
@@ -10,6 +11,8 @@ const ProfileScreen = ({
   bodyWeights = [],
   onLogBodyWeight,
   onDeleteBodyWeight,
+  themePreference = 'system',
+  onThemeChange,
 }) => {
   const displayName = displayNameFor(user);
   const avatarUrl = avatarUrlFor(user);
@@ -56,6 +59,13 @@ const ProfileScreen = ({
           </div>
         )}
       </div>
+
+      {onThemeChange && (
+        <div className="appearance-card card">
+          <h3 className="appearance-title">Appearance</h3>
+          <ThemeSelector value={themePreference} onChange={onThemeChange} />
+        </div>
+      )}
 
       <BodyWeightCard
         entries={bodyWeights}

@@ -1,0 +1,23 @@
+.theme-selector {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+  padding: 3px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.theme-option {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+.theme-option:hover:not(:disabled) { background: transparent; color: var(--text); }
+.theme-option.active,
+.theme-option.active:hover:not(:disabled) { background: var(--accent); color: var(--on-accent); }

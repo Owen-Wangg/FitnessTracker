@@ -4,6 +4,7 @@ import { Navigate, Route, Routes, useNavigate } from 'react-router-dom';
 import { useAuth } from './hooks/useAuth';
 import { useWorkouts } from './hooks/useWorkouts';
 import { useBodyWeights } from './hooks/useBodyWeights';
+import { useTheme } from './hooks/useTheme';
 import { totalVolume, formatLocalDate } from './utils/workoutMetrics';
 import HomeScreen from './screens/HomeScreen';
 import WorkoutFormModal from './components/WorkoutFormModal';
@@ -20,6 +21,7 @@ function App() {
   const { session, user, loading, recovering, clearRecovery, signOut } = useAuth();
   const { workouts, status, reload, addWorkout, updateWorkout, deleteWorkout } = useWorkouts(user);
   const { bodyWeights, logBodyWeight, deleteBodyWeight } = useBodyWeights(user);
+  const { preference: themePreference, setPreference: setThemePreference } = useTheme();
 
   const loadingWorkouts = status === 'loading';
   // null = closed; { workout: null } = adding; { workout } = editing that entry
@@ -99,6 +101,8 @@ function App() {
                 bodyWeights={bodyWeights}
                 onLogBodyWeight={logBodyWeight}
                 onDeleteBodyWeight={deleteBodyWeight}
+                themePreference={themePreference}
+                onThemeChange={setThemePreference}
               />
             }
           />

@@ -1,17 +1,19 @@
 // src/App.js
-import React, { useMemo, useState } from 'react';
+import React, { Suspense, lazy, useMemo, useState } from 'react';
 import { Navigate, Route, Routes, useNavigate } from 'react-router-dom';
 import { useAuth } from './hooks/useAuth';
 import { useWorkouts } from './hooks/useWorkouts';
 import { useBodyWeights } from './hooks/useBodyWeights';
 import { totalVolume, formatLocalDate } from './utils/workoutMetrics';
 import HomeScreen from './screens/HomeScreen';
-import HistoryScreen from './screens/HistoryScreen';
-import ProfileScreen from './screens/ProfileScreen';
 import BottomNav from './components/BottomNav';
 import Auth from './components/Auth';
 import LoadError from './components/LoadError';
 import './assets/styles/App.css';
+
+// The chart screens load on demand so Home opens without downloading Chart.js.
+const HistoryScreen = lazy(() => import('./screens/HistoryScreen'));
+const ProfileScreen = lazy(() => import('./screens/ProfileScreen'));
 
 function App() {
   const { session, user, loading, recovering, clearRecovery, signOut } = useAuth();
@@ -59,6 +61,7 @@ function App() {
     <div className="app-container">
       <main className="content-area">
         {status === 'error' && <LoadError onRetry={reload} />}
+        <Suspense fallback={<div className="loading-app">Loading...</div>}>
         <Routes>
           <Route
             path="/"
@@ -94,6 +97,7 @@ function App() {
           />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
+        </Suspense>
       </main>
       <BottomNav />
     </div>

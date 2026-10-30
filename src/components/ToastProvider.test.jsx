@@ -9,8 +9,8 @@ const Capture = () => {
 };
 const setup = () => render(<ToastProvider><Capture /></ToastProvider>);
 
-beforeEach(() => jest.useFakeTimers());
-afterEach(() => jest.useRealTimers());
+beforeEach(() => vi.useFakeTimers());
+afterEach(() => vi.useRealTimers());
 
 test('shows a message and removes it after its duration', () => {
   setup();
@@ -18,7 +18,7 @@ test('shows a message and removes it after its duration', () => {
     api.show('Saved', { duration: 3000 });
   });
   expect(screen.getByText('Saved')).toBeInTheDocument();
-  act(() => jest.advanceTimersByTime(3001));
+  act(() => vi.advanceTimersByTime(3001));
   expect(screen.queryByText('Saved')).not.toBeInTheDocument();
 });
 
@@ -32,7 +32,7 @@ test('errors are announced as alerts', () => {
 
 test('an action button runs its handler and dismisses the toast', () => {
   setup();
-  const onUndo = jest.fn();
+  const onUndo = vi.fn();
   act(() => {
     api.show('Deleted', { duration: 0, action: { label: 'Undo', onClick: onUndo } });
   });
@@ -48,7 +48,7 @@ test('duration 0 keeps the toast until dismissed', () => {
   act(() => {
     id = api.show('Sticky', { duration: 0 });
   });
-  act(() => jest.advanceTimersByTime(60000));
+  act(() => vi.advanceTimersByTime(60000));
   expect(screen.getByText('Sticky')).toBeInTheDocument();
   act(() => api.dismiss(id));
   expect(screen.queryByText('Sticky')).not.toBeInTheDocument();

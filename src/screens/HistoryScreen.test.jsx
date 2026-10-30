@@ -3,7 +3,7 @@ import HistoryScreen from './HistoryScreen';
 import { formatLocalDate } from '../utils/workoutMetrics';
 
 // jsdom has no canvas, so stand in for the chart.
-jest.mock('react-chartjs-2', () => ({ Line: () => <div data-testid="chart" /> }));
+vi.mock('react-chartjs-2', () => ({ Line: () => <div data-testid="chart" /> }));
 
 const today = formatLocalDate(new Date());
 const workout = (id, name, date = today) => ({

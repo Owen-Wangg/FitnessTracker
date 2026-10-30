@@ -4,9 +4,9 @@ import { ToastProvider } from '../components/ToastProvider';
 import { queryResult } from '../testUtils/queryMock';
 import { useWorkouts, UNDO_MS } from './useWorkouts';
 
-const mockFrom = jest.fn();
-const mockRpc = jest.fn();
-jest.mock('../utils/supabaseClient', () => ({
+const mockFrom = vi.fn();
+const mockRpc = vi.fn();
+vi.mock('../utils/supabaseClient', () => ({
   supabase: { from: (...args) => mockFrom(...args), rpc: (...args) => mockRpc(...args) },
 }));
 
@@ -41,7 +41,7 @@ const loaded = async () => {
   return hook;
 };
 
-afterEach(() => jest.useRealTimers());
+afterEach(() => vi.useRealTimers());
 
 test('loads and normalizes the user\'s workouts', async () => {
   const { result } = await loaded();
@@ -51,7 +51,7 @@ test('loads and normalizes the user\'s workouts', async () => {
 });
 
 test('reports an error status when loading fails', async () => {
-  jest.spyOn(console, 'error').mockImplementation(() => {});
+  vi.spyOn(console, 'error').mockImplementation(() => {});
   queueResults({ data: null, error: { message: 'boom' } });
   const { result } = renderHook(() => useWorkouts(user), { wrapper });
   await waitFor(() => expect(result.current.status).toBe('error'));
@@ -86,7 +86,7 @@ test('addWorkout (fallback) saves the exercise and its sets and puts it in state
 });
 
 test('addWorkout (fallback) cleans up the exercise and shows an error when saving sets fails', async () => {
-  jest.spyOn(console, 'error').mockImplementation(() => {});
+  vi.spyOn(console, 'error').mockImplementation(() => {});
   const { result } = await loaded();
   queueResults(
     { data: { id: 'ex-2', date: '2025-06-08', name: 'Deadlift', exercise_id: null }, error: null },
@@ -107,7 +107,7 @@ test('addWorkout (fallback) cleans up the exercise and shows an error when savin
 
 test('deleteWorkout removes the entry now and deletes for real after the undo window', async () => {
   const { result } = await loaded();
-  jest.useFakeTimers();
+  vi.useFakeTimers();
   queueResults({ data: null, error: null });
 
   act(() => result.current.deleteWorkout('ex-1'));
@@ -116,7 +116,7 @@ test('deleteWorkout removes the entry now and deletes for real after the undo wi
   expect(mockFrom).toHaveBeenCalledTimes(1); // only the initial load so far
 
   await act(async () => {
-    jest.advanceTimersByTime(UNDO_MS + 1);
+    vi.advanceTimersByTime(UNDO_MS + 1);
   });
   expect(mockFrom).toHaveBeenCalledTimes(2);
   expect(mockFrom).toHaveBeenLastCalledWith('workout_exercises');
@@ -124,7 +124,7 @@ test('deleteWorkout removes the entry now and deletes for real after the undo wi
 
 test('Undo brings the entry back and nothing is deleted', async () => {
   const { result } = await loaded();
-  jest.useFakeTimers();
+  vi.useFakeTimers();
 
   act(() => result.current.deleteWorkout('ex-1'));
   expect(result.current.workouts).toEqual([]);
@@ -133,20 +133,20 @@ test('Undo brings the entry back and nothing is deleted', async () => {
   expect(result.current.workouts.map((w) => w.id)).toEqual(['ex-1']);
 
   await act(async () => {
-    jest.advanceTimersByTime(UNDO_MS + 1);
+    vi.advanceTimersByTime(UNDO_MS + 1);
   });
   expect(mockFrom).toHaveBeenCalledTimes(1); // never sent a delete
 });
 
 test('a failed delete restores the entry and says so', async () => {
-  jest.spyOn(console, 'error').mockImplementation(() => {});
+  vi.spyOn(console, 'error').mockImplementation(() => {});
   const { result } = await loaded();
-  jest.useFakeTimers();
+  vi.useFakeTimers();
   queueResults({ data: null, error: { message: 'denied' } });
 
   act(() => result.current.deleteWorkout('ex-1'));
   await act(async () => {
-    jest.advanceTimersByTime(UNDO_MS + 1);
+    vi.advanceTimersByTime(UNDO_MS + 1);
   });
 
   expect(result.current.workouts.map((w) => w.id)).toEqual(['ex-1']);
@@ -188,7 +188,7 @@ describe('with the add_workout_exercise function installed', () => {
   });
 
   test('a real database error is reported and does not fall back', async () => {
-    jest.spyOn(console, 'error').mockImplementation(() => {});
+    vi.spyOn(console, 'error').mockImplementation(() => {});
     const { result } = await loaded();
     mockRpc.mockResolvedValue({ data: null, error: { code: '23514', message: 'weight must be positive' } });
 

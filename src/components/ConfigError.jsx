@@ -17,7 +17,7 @@ const ConfigError = () => (
         (copy <code>.env.example</code>) with:
       </p>
       <pre className="config-snippet">
-        {'REACT_APP_SUPABASE_URL=...\nREACT_APP_SUPABASE_ANON_KEY=...'}
+        {'VITE_SUPABASE_URL=...\nVITE_SUPABASE_ANON_KEY=...'}
       </pre>
       <p className="auth-subtext">
         Then restart the dev server. On Vercel, add the same two variables under Settings &gt;

@@ -3,7 +3,7 @@
 A free, mobile-and-desktop lifting log. Log exercises set by set, track progress per lift
 (top weight, estimated 1RM, volume, PRs), and track body weight.
 
-**Stack:** React (Create React App), Supabase (auth + Postgres), Chart.js. Everything runs on free tiers.
+**Stack:** React, Vite, Vitest, Supabase (auth + Postgres), Chart.js. Everything runs on free tiers.
 
 ## Setup
 
@@ -12,7 +12,7 @@ A free, mobile-and-desktop lifting log. Log exercises set by set, track progress
    npm install
    ```
 2. Copy `.env.example` to `.env` and fill in your Supabase project URL and anon key
-   (Supabase dashboard: Project Settings > API).
+   (Supabase dashboard: Project Settings > API). Restart the dev server after changing `.env`.
 3. In the Supabase SQL Editor, run these files from `supabase/`, in order:
    - `schema.sql` - workout tables and row-level security
    - `migrate_legacy_workouts.sql` - optional, copies entries from the old single-row `workouts` table
@@ -32,14 +32,16 @@ Supabase project's `/auth/v1/callback` URL.
 
 ## Scripts
 
-- `npm start` - dev server on http://localhost:3000
-- `npm test` - run tests (watch mode)
-- `npm run build` - production build
+- `npm start` (or `npm run dev`) - dev server on http://localhost:3000
+- `npm test` - run tests in watch mode (`npx vitest run` for a single run)
+- `npm run lint` - ESLint
+- `npm run build` - production build into `build/`
+- `npm run preview` - serve the production build locally
 
 ## Deploying
 
 The app is a single-page app with real URLs (`/`, `/history`, `/profile`). `vercel.json` rewrites every path to
-`index.html` so refreshing a deep link works. Set `REACT_APP_SUPABASE_URL` and `REACT_APP_SUPABASE_ANON_KEY` in the
+`index.html` so refreshing a deep link works. Set `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` in the
 host's environment variables, and add the deployed URL to Supabase (Authentication > URL Configuration) and, for
 Google sign-in, to the OAuth client's authorized JavaScript origins.
 

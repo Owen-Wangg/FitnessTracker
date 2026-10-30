@@ -5,9 +5,9 @@ import { useAuth } from './useAuth';
 let mockSession = null;
 let mockListener = null;
 let mockSignOutError = null;
-const mockUnsubscribe = jest.fn();
+const mockUnsubscribe = vi.fn();
 
-jest.mock('../utils/supabaseClient', () => ({
+vi.mock('../utils/supabaseClient', () => ({
   supabase: {
     auth: {
       getSession: () => Promise.resolve({ data: { session: mockSession } }),

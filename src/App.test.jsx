@@ -5,10 +5,10 @@ import App from './App';
 import { ToastProvider } from './components/ToastProvider';
 
 // The real client needs env vars and a network; stub just what App uses.
-// Plain functions (not jest.fn) because CRA resets mock implementations between tests.
+// Plain functions (not vi.fn) because mockReset clears mock implementations between tests.
 let mockSession = null;
-jest.mock('./utils/supabaseClient', () => {
-  const { queryResult } = require('./testUtils/queryMock');
+vi.mock('./utils/supabaseClient', async () => {
+  const { queryResult } = await import('./testUtils/queryMock');
   return {
     supabase: {
       auth: {
@@ -21,7 +21,7 @@ jest.mock('./utils/supabaseClient', () => {
   };
 });
 
-jest.mock('react-chartjs-2', () => ({ Line: () => <div data-testid="chart" /> }));
+vi.mock('react-chartjs-2', () => ({ Line: () => <div data-testid="chart" /> }));
 
 const renderApp = (path = '/') =>
   render(

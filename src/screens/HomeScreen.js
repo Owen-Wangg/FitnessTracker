@@ -9,7 +9,6 @@ import '../assets/styles/HomeScreen.css';
 const HomeScreen = ({
   todaysWorkouts,
   allWorkouts,
-  recentExercises,
   onAddWorkoutClick,
   showAddModal,
   setShowAddModal,
@@ -36,7 +35,6 @@ const HomeScreen = ({
         show={showAddModal}
         onClose={() => setShowAddModal(false)}
         onAddWorkout={addWorkout}
-        recentExercises={recentExercises}
       />
     </div>
   );

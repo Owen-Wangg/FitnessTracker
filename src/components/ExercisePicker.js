@@ -1,78 +1,29 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
-import { FaTimes, FaSearch, FaInfoCircle, FaPlus } from 'react-icons/fa';
-import {
-  MUSCLE_FILTERS,
-  filterExercises,
-  findExercise,
-  titleCase,
-  useExerciseLibrary,
-} from '../utils/exerciseLibrary';
+import { FaTimes, FaSearch, FaPlus } from 'react-icons/fa';
+import { GROUPS, searchExercises } from '../utils/exerciseLibrary';
 import ExerciseThumb from './ExerciseThumb';
-import ExerciseDetailModal from './ExerciseDetailModal';
 import '../assets/styles/ExerciseLibrary.css';
 
-const PAGE_SIZE = 40;
-
 // onSelect receives { id, name }; id is null for a custom exercise.
-// recent: [{ exerciseId, name }] shown first when nothing is filtered.
-const ExercisePicker = ({ show, onClose, onSelect, recent = [] }) => {
-  const exercises = useExerciseLibrary();
+const ExercisePicker = ({ show, onClose, onSelect }) => {
   const [query, setQuery] = useState('');
-  const [muscle, setMuscle] = useState('all');
-  const [equipment, setEquipment] = useState('all');
-  const [limit, setLimit] = useState(PAGE_SIZE);
-  const [detail, setDetail] = useState(null);
-
-  useEffect(() => setLimit(PAGE_SIZE), [query, muscle, equipment]);
-
-  const equipmentOptions = useMemo(
-    () => [...new Set(exercises.map((e) => e.equipment))].sort(),
-    [exercises]
-  );
-
-  const results = useMemo(
-    () => filterExercises(exercises, { query, muscle, equipment }),
-    [exercises, query, muscle, equipment]
-  );
-
-  const recentExercises = useMemo(() => {
-    const seen = new Set();
-    return recent
-      .map((r) => findExercise(r.exerciseId, r.name))
-      .filter((e) => e && !seen.has(e.id) && seen.add(e.id))
-      .slice(0, 6);
-  }, [recent, exercises]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!show) return null;
 
-  const choose = (exercise) => {
-    onSelect({ id: exercise.id, name: exercise.name });
-    setDetail(null);
-  };
-
   const trimmedQuery = query.trim();
+  const results = searchExercises(trimmedQuery);
   const exactMatch = results.some((e) => e.name.toLowerCase() === trimmedQuery.toLowerCase());
-  const showRecent = !trimmedQuery && muscle === 'all' && equipment === 'all' && recentExercises.length > 0;
 
   const renderRow = (exercise) => (
-    <li key={exercise.id} className="exercise-row">
-      <button type="button" className="exercise-row-main" onClick={() => choose(exercise)}>
-        <ExerciseThumb exercise={exercise} />
-        <span className="exercise-row-text">
-          <span className="exercise-row-name">{exercise.name}</span>
-          <span className="exercise-row-meta">
-            {exercise.primary.map(titleCase).join(', ') || 'Full body'} &middot; {titleCase(exercise.equipment)}
-          </span>
-        </span>
-      </button>
+    <li key={exercise.id}>
       <button
         type="button"
-        className="icon-btn"
-        onClick={() => setDetail(exercise)}
-        aria-label={`Details for ${exercise.name}`}
+        className="exercise-row"
+        onClick={() => onSelect({ id: exercise.id, name: exercise.name })}
       >
-        <FaInfoCircle />
+        <ExerciseThumb exercise={exercise} size={48} />
+        <span className="exercise-row-name">{exercise.name}</span>
       </button>
     </li>
   );
@@ -100,55 +51,29 @@ const ExercisePicker = ({ show, onClose, onSelect, recent = [] }) => {
               type="search"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search 800+ exercises"
+              placeholder="Search"
               aria-label="Search exercises"
               autoComplete="off"
             />
           </div>
-
-          <div className="chip-row" role="group" aria-label="Filter by muscle">
-            {MUSCLE_FILTERS.map((m) => (
-              <button
-                key={m.id}
-                type="button"
-                className={`chip ${muscle === m.id ? 'active' : ''}`}
-                aria-pressed={muscle === m.id}
-                onClick={() => setMuscle(m.id)}
-              >
-                {m.label}
-              </button>
-            ))}
-          </div>
-
-          <select value={equipment} onChange={(e) => setEquipment(e.target.value)} aria-label="Filter by equipment">
-            <option value="all">Any equipment</option>
-            {equipmentOptions.map((eq) => (
-              <option key={eq} value={eq}>{titleCase(eq)}</option>
-            ))}
-          </select>
         </div>
 
         <div className="library-scroll">
-          {exercises.length === 0 && <p className="library-empty">Loading exercises...</p>}
-
-          {showRecent && (
-            <>
-              <h3 className="library-section">Recent</h3>
-              <ul className="exercise-list">{recentExercises.map(renderRow)}</ul>
-              <h3 className="library-section">All exercises</h3>
-            </>
+          {trimmedQuery ? (
+            <ul className="exercise-list">{results.map(renderRow)}</ul>
+          ) : (
+            GROUPS.map((group) => (
+              <section key={group}>
+                <h3 className="library-section">{group}</h3>
+                <ul className="exercise-list">
+                  {results.filter((e) => e.group === group).map(renderRow)}
+                </ul>
+              </section>
+            ))
           )}
 
-          <ul className="exercise-list">{results.slice(0, limit).map(renderRow)}</ul>
-
-          {exercises.length > 0 && results.length === 0 && (
-            <p className="library-empty">No exercises match. Try a different search or filter.</p>
-          )}
-
-          {results.length > limit && (
-            <button type="button" className="more-btn" onClick={() => setLimit((l) => l + PAGE_SIZE)}>
-              Show more ({results.length - limit} left)
-            </button>
+          {trimmedQuery && results.length === 0 && (
+            <p className="library-empty">No match in the basics.</p>
           )}
         </div>
 
@@ -159,8 +84,6 @@ const ExercisePicker = ({ show, onClose, onSelect, recent = [] }) => {
             </button>
           </div>
         )}
-
-        <ExerciseDetailModal exercise={detail} onClose={() => setDetail(null)} onSelect={choose} />
       </div>
     </div>,
     document.body

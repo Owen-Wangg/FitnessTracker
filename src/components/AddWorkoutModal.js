@@ -1,15 +1,14 @@
 import React, { useState } from 'react';
 import { FaPlus, FaTimes, FaChevronRight } from 'react-icons/fa';
 import { formatLocalDate } from '../utils/workoutMetrics';
-import { findExercise, titleCase } from '../utils/exerciseLibrary';
+import { findExercise } from '../utils/exerciseLibrary';
 import ExercisePicker from './ExercisePicker';
 import ExerciseThumb from './ExerciseThumb';
 import '../assets/styles/AddWorkoutModal.css';
 
 const emptySet = () => ({ weight: '', reps: '' });
 
-// recentExercises: [{ exerciseId, name }] offered first in the picker.
-const AddWorkoutModal = ({ show, onClose, onAddWorkout, recentExercises = [] }) => {
+const AddWorkoutModal = ({ show, onClose, onAddWorkout }) => {
   const [date, setDate] = useState(() => formatLocalDate(new Date()));
   const [exercise, setExercise] = useState(null); // { id, name }; id is null for custom exercises
   const [showPicker, setShowPicker] = useState(false);
@@ -86,11 +85,7 @@ const AddWorkoutModal = ({ show, onClose, onAddWorkout, recentExercises = [] }) 
                   <ExerciseThumb exercise={libraryEntry} size={48} />
                   <span className="exercise-select-text">
                     <span className="exercise-select-name">{exercise.name}</span>
-                    <span className="exercise-select-meta">
-                      {libraryEntry
-                        ? libraryEntry.primary.map(titleCase).join(', ') || 'Full body'
-                        : 'Custom exercise'}
-                    </span>
+                    {!libraryEntry && <span className="exercise-select-meta">Custom exercise</span>}
                   </span>
                   <span className="exercise-select-action">Change</span>
                 </>
@@ -98,7 +93,6 @@ const AddWorkoutModal = ({ show, onClose, onAddWorkout, recentExercises = [] }) 
                 <>
                   <span className="exercise-select-text">
                     <span className="exercise-select-name">Choose an exercise</span>
-                    <span className="exercise-select-meta">Search 800+ with photos</span>
                   </span>
                   <FaChevronRight aria-hidden="true" />
                 </>
@@ -160,7 +154,6 @@ const AddWorkoutModal = ({ show, onClose, onAddWorkout, recentExercises = [] }) 
 
         <ExercisePicker
           show={showPicker}
-          recent={recentExercises}
           onClose={() => setShowPicker(false)}
           onSelect={(picked) => {
             setExercise(picked);

@@ -8,11 +8,7 @@
   background: var(--surface-2);
 }
 .workout-details { flex: 1; min-width: 0; }
-.workout-thumb-btn { padding: 0; min-height: 0; background: transparent; border-radius: var(--radius-sm); line-height: 0; }
-.workout-thumb-btn:hover:not(:disabled) { background: transparent; opacity: 0.85; }
-.workout-item > .exercise-thumb,
-.workout-item > .workout-thumb-btn { flex-shrink: 0; }
-.workout-muscles { margin-bottom: var(--space-2); }
+.workout-item > .exercise-thumb { flex-shrink: 0; }
 .workout-details h3 { margin-bottom: var(--space-1); }
 .workout-details p { color: var(--text-muted); font-size: 0.875rem; font-variant-numeric: tabular-nums; }
 

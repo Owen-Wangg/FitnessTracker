@@ -2,13 +2,13 @@ import React, { useState } from 'react';
 import { FaDumbbell } from 'react-icons/fa';
 import { exerciseImageUrl } from '../utils/exerciseLibrary';
 
-// Exercise photo with a dumbbell placeholder for custom exercises or failed loads.
+// Exercise photo, with a dumbbell placeholder for custom exercises or failed loads.
 const ExerciseThumb = ({ exercise, size = 56 }) => {
   const [failed, setFailed] = useState(false);
-  const src = exerciseImageUrl(exercise, 0);
+  const src = exerciseImageUrl(exercise);
 
   return (
-    <span className="exercise-thumb" style={{ width: size, height: size }}>
+    <span className={`exercise-thumb ${src && !failed ? '' : 'placeholder'}`} style={{ width: size, height: size }}>
       {src && !failed ? (
         <img src={src} alt="" loading="lazy" onError={() => setFailed(true)} />
       ) : (

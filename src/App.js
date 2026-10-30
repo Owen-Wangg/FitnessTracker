@@ -40,20 +40,6 @@ function App() {
     [workouts]
   );
 
-  // Most recently logged distinct exercises (workouts are newest first).
-  const recentExercises = useMemo(() => {
-    const seen = new Set();
-    const recent = [];
-    for (const w of workouts) {
-      const key = w.exerciseId || w.name.trim().toLowerCase();
-      if (!key || seen.has(key)) continue;
-      seen.add(key);
-      recent.push({ exerciseId: w.exerciseId, name: w.name });
-      if (recent.length === 10) break;
-    }
-    return recent;
-  }, [workouts]);
-
   useEffect(() => {
     supabase.auth
       .getSession()
@@ -276,7 +262,6 @@ function App() {
           <HomeScreen
             todaysWorkouts={todaysWorkouts}
             allWorkouts={workouts}
-            recentExercises={recentExercises}
             onAddWorkoutClick={() => setShowAddModal(true)}
             showAddModal={showAddModal}
             setShowAddModal={setShowAddModal}

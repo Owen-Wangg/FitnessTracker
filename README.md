@@ -1,70 +1,48 @@
-# Getting Started with Create React App
+# Fitness Tracker
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A free, mobile-and-desktop lifting log. Log exercises set by set, track progress per lift
+(top weight, estimated 1RM, volume, PRs), and track body weight.
 
-## Available Scripts
+**Stack:** React (Create React App), Supabase (auth + Postgres), Chart.js. Everything runs on free tiers.
 
-In the project directory, you can run:
+## Setup
 
-### `npm start`
+1. Install dependencies:
+   ```
+   npm install
+   ```
+2. Copy `.env.example` to `.env` and fill in your Supabase project URL and anon key
+   (Supabase dashboard: Project Settings > API).
+3. In the Supabase SQL Editor, run these files from `supabase/`, in order:
+   - `schema.sql` - workout tables and row-level security
+   - `migrate_legacy_workouts.sql` - optional, copies entries from the old single-row `workouts` table
+   - `body_weight.sql` - body weight tracking
+   - `exercise_library.sql` - links logged exercises to the built-in exercise list
+4. Start the app:
+   ```
+   npm start
+   ```
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+### Optional: Google sign-in
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+Enable the Google provider under Authentication > Providers in Supabase and add your site URL to
+Authentication > URL Configuration. Google needs an OAuth client whose redirect URI is your
+Supabase project's `/auth/v1/callback` URL.
 
-### `npm test`
+## Scripts
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+- `npm start` - dev server on http://localhost:3000
+- `npm test` - run tests
+- `npm run build` - production build
 
-### `npm run build`
+## Project layout
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+- `src/App.js` - app shell, data loading, auth state
+- `src/screens/` - Home, History, Profile
+- `src/components/` - UI pieces (add-workout form, exercise picker, charts, auth)
+- `src/utils/workoutMetrics.js` - volume, top set, estimated 1RM (unit tested)
+- `src/data/fundamentals.js` - the built-in exercise list
+- `supabase/` - SQL to run in the Supabase dashboard
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+Exercise photos come from the public-domain [Free Exercise DB](https://github.com/yuhonas/free-exercise-db),
+served through the jsDelivr CDN.

@@ -1,80 +1,44 @@
 .modal-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.7);
+  inset: 0;
+  z-index: 2000;
   display: flex;
-  align-items: center;
+  align-items: flex-end; /* bottom sheet on mobile */
   justify-content: center;
-  z-index: 1001; /* Above bottom nav */
+  background: rgba(5, 7, 10, 0.7);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
 }
 
 .modal-content {
-  background-color: var(--surface-dark);
-  padding: 25px;
-  border-radius: var(--border-radius);
-  box-shadow: var(--box-shadow);
-  width: 90%;
-  max-width: 400px;
-}
-
-.modal-content h2 {
-  margin-top: 0;
-  margin-bottom: 20px;
-  text-align: center;
-  color: var(--primary-text);
-}
-
-.form-group {
-  margin-bottom: 15px;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 5px;
-  color: var(--secondary-text);
-  font-size: 0.9em;
-}
-
-.form-group input {
   width: 100%;
-  padding: 10px;
-  border-radius: var(--border-radius);
-  border: 1px solid #555;
-  background-color: var(--background-dark);
-  color: var(--primary-text);
-  font-size: 1em;
+  max-height: 92dvh;
+  overflow-y: auto;
+  padding: var(--space-5) var(--space-5) calc(var(--space-5) + env(safe-area-inset-bottom));
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-bottom: none;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  box-shadow: var(--shadow);
 }
+.modal-content h2 { margin-bottom: var(--space-5); }
 
-/* Make the calendar icon in the date input white */
-input[type="date"]::-webkit-calendar-picker-indicator {
-  filter: invert(1);
-  /* Optionally: */
-  /* background-color: white; */
-  /* border-radius: 50%; */
-}
+.modal-actions { display: flex; gap: var(--space-3); margin-top: var(--space-5); }
+.modal-actions button { flex: 1; }
 
-/* For Firefox */
-input[type="date"]::-moz-calendar-picker-indicator {
-  filter: invert(1);
+.cancel-btn {
+  background: transparent;
+  color: var(--text);
+  border-color: var(--border-strong);
 }
+.cancel-btn:hover:not(:disabled) { background: var(--surface-2); }
 
-.modal-actions {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 25px;
-}
-
-.modal-actions button {
-  margin-left: 10px;
-}
-
-.modal-actions .cancel-btn {
-  background-color: var(--secondary-text);
-  color: var(--background-dark);
-}
-.modal-actions .cancel-btn:hover {
-  background-color: #999;
+@media (min-width: 600px) {
+  .modal-overlay { align-items: center; }
+  .modal-content {
+    max-width: 440px;
+    border-bottom: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding-bottom: var(--space-5);
+  }
 }

@@ -1,46 +1,17 @@
-.home-screen {
-  /* Optional: Add specific padding if content-area padding isn't enough */
-}
+.home-header,
+.history-screen > h1,
+.profile-screen > h1 { margin-bottom: var(--space-5); }
 
 .home-header {
   display: flex;
+  align-items: center;
   justify-content: space-between;
+  gap: var(--space-3);
+}
+.home-header h1 { margin: 0; }
+
+.add-workout-btn-header {
+  display: inline-flex;
   align-items: center;
-  margin-bottom: 25px; /* Space below header */
-  padding-top: 10px; /* Space above header content */
-}
-
-.header-title-group {
-  display: flex;
-  align-items: center;
-}
-
-.header-icon {
-  color: var(--primary-text); /* Or var(--accent-blue) if you prefer */
-  margin-right: 12px;
-}
-
-.home-header h1 {
-  margin: 0;
-  font-size: 1.8em; /* As per image, looks large */
-  font-weight: bold;
-  color: var(--primary-text);
-}
-
-.add-workout-btn-circular {
-  background-color: var(--accent-blue);
-  color: var(--primary-text);
-  width: 48px;  /* Adjust size as needed */
-  height: 48px;
-  border-radius: 50%; /* Makes it circular */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0; /* Remove default button padding */
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25); /* Specific shadow for this button */
-  font-size: 1.2em; /* Adjust icon size if FaPlus size prop isn't enough */
-}
-
-.add-workout-btn-circular:hover {
-  background-color: #2563EB; /* Darker blue for hover */
+  gap: var(--space-2);
 }

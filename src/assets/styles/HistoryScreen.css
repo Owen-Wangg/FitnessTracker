@@ -1,172 +1,58 @@
-.history-screen h1, .history-screen h2 {
-  color: var(--primary-text);
-  margin-bottom: 15px;
+/* Mobile: single column. Desktop: calendar beside selected-day workouts, graph full width */
+.history-screen {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0 var(--space-4);
 }
-.history-screen h2 {
-  font-size: 1.4em;
-  margin-top: 25px;
+.history-screen > h1 { grid-column: 1 / -1; }
+
+@media (min-width: 900px) {
+  .history-screen { grid-template-columns: minmax(320px, 400px) minmax(0, 1fr); align-items: start; }
+  .progress-graph-container { grid-column: 1 / -1; }
 }
 
-.calendar-container {
-  margin-bottom: 20px;
-  /* Assuming .card styles from a global.css or similar apply for background/padding/border-radius */
-}
+.exercise-selector-container { display: flex; flex-direction: column; gap: var(--space-2); margin-bottom: var(--space-4); max-width: 360px; }
 
-/* react-calendar Customization */
+/* react-calendar theme */
 .react-calendar {
   width: 100%;
-  max-width: 450px;
-  margin-left: auto;
-  margin-right: auto;
+  background: transparent;
   border: none;
-  background-color: var(--surface-dark);
-  color: var(--primary-text);
-  border-radius: var(--border-radius);
-  padding: 15px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  font-family: inherit;
+  color: var(--text);
 }
-
-.react-calendar__navigation button {
-  color: var(--accent-color);
-  background: none;
-  font-size: 1.1em;
-  min-width: 44px;
-  font-weight: bold;
+.react-calendar button {
+  min-height: 0;
+  color: var(--text);
+  background: transparent;
+  border-radius: var(--radius-sm);
 }
-.react-calendar__navigation button:hover,
-.react-calendar__navigation button:focus {
-  background-color: var(--background-dark);
-}
-.react-calendar__navigation button[disabled] {
-  background-color: var(--surface-dark);
-  color: var(--secondary-text);
-}
-.react-calendar__navigation__label {
-  font-weight: bold;
-  font-size: 1.1em;
-  color: var(--primary-text);
-}
-
-.react-calendar__month-view__weekdays__weekday {
-  color: var(--secondary-text);
-  text-transform: uppercase;
-  font-weight: 500;
-  font-size: 0.7em;
-  padding-bottom: 0.5em;
-}
-.react-calendar__month-view__weekdays__weekday abbr {
-  text-decoration: none;
-}
-
-/* --- Base Tile Styling --- */
-.react-calendar__tile {
-  color: var(--primary-text);
-  background: none;
-  padding: 10px 5px;
-  font-size: 0.9em;
-  position: relative; /* Still needed for the :now dot */
-  border: 1px solid transparent;
-  transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
-}
-
+.react-calendar button:disabled { background: transparent; opacity: 0.4; }
+.react-calendar__navigation { display: flex; margin-bottom: var(--space-3); }
+.react-calendar__navigation button { min-width: 44px; min-height: 44px; font-weight: 600; }
+.react-calendar__navigation button:enabled:hover,
+.react-calendar__navigation button:enabled:focus,
 .react-calendar__tile:enabled:hover,
-.react-calendar__tile:enabled:focus {
-  background-color: var(--background-dark);
-  color: var(--accent-color);
-}
+.react-calendar__tile:enabled:focus { background: var(--surface-2); }
+.react-calendar__month-view__weekdays { text-align: center; font-size: 0.75rem; font-weight: 500; color: var(--text-muted); text-transform: uppercase; }
+.react-calendar__month-view__weekdays abbr { text-decoration: none; }
+.react-calendar__month-view__days__day--neighboringMonth { color: var(--text-muted); opacity: 0.45; }
+.react-calendar__tile { padding: 10px 4px; position: relative; font-variant-numeric: tabular-nums; }
+.react-calendar__tile--now { background: var(--surface-2); box-shadow: inset 0 0 0 1px var(--border-strong); }
+.react-calendar__tile--active,
+.react-calendar__tile--active:enabled:hover,
+.react-calendar__tile--active:enabled:focus { background: var(--accent); color: #fff; }
 
-/* --- Current Date Styling (:now) --- */
-.react-calendar__tile--now {
-  font-weight: bold;
-  color: var(--accent-color); /* Blue text for current date */
-  background: none;
-  border-color: transparent; /* No border unless also selected */
-}
-
-/* Dot ONLY for the CURRENT date (today) - WHITE dot */
-.react-calendar__tile--now::after {
+/* Dot under days that have workouts */
+.react-calendar__tile.has-workouts::after {
   content: '';
   position: absolute;
-  bottom: 4px;
   left: 50%;
-  transform: translateX(-50%);
+  bottom: 4px;
   width: 5px;
   height: 5px;
+  transform: translateX(-50%);
   border-radius: 50%;
-  background-color: var(--primary-text); /* WHITE dot for today */
+  background: var(--success);
 }
-
-/* --- Styling for Dates with Workouts (.has-workouts) --- NO DOT */
-.react-calendar__tile.has-workouts {
-  color: var(--accent-color); /* BLUE text for dates with workouts */
-  font-weight: bold;
-  /* No ::after pseudo-element here, so no dot by default */
-}
-
-/* If current date ALSO has workouts (and is not selected) */
-/* It should have blue text (from .has-workouts or .tile--now) */
-/* And its dot should be WHITE (from .tile--now::after) - This is already handled */
-
-
-/* --- Selected Date Styling (:active) --- HIGHLIGHTED COLOR BACKGROUND & SHAPE, NO DOT (unless also :now) */
-.react-calendar__tile--active {
-  background: var(--accent-color) !important;
-  color: var(--primary-text) !important;
-  font-weight: bold;
-  border-radius: 50%;
-  height: 36px;
-  width: 36px;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  padding: 0 !important;
-  border-color: var(--accent-color) !important;
-  /* The ::after dot from .tile--now::after will still apply if this tile is also .tile--now */
-}
-
-.react-calendar__tile--active:enabled:hover,
-.react-calendar__tile--active:enabled:focus {
-  background: var(--accent-color-dark) !important;
-}
-
-/* If a selected date (.tile--active) is NOT today (.tile--now), ensure NO dot appears from .has-workouts */
-.react-calendar__tile--active.has-workouts:not(.react-calendar__tile--now)::after {
-    display: none; /* Explicitly hide dot from .has-workouts if it's active but not today */
-}
-/* If a selected date IS today, the .tile--now::after (white dot) will take precedence if its specificity is higher or equal.
-   If .react-calendar__tile.has-workouts::after was still defined, we'd need to ensure .tile--now::after wins.
-   Since we removed the general .has-workouts::after, this is simpler. The white dot from .tile--now::after
-   should appear correctly even if the tile is active. */
-
-
-/* --- Dim days from other months --- */
-.react-calendar__month-view__days__day--neighboringMonth {
-  color: var(--secondary-text) !important;
-  background: none !important;
-  border-color: transparent !important;
-}
-/* Ensure no dot for neighboring month days */
-.react-calendar__month-view__days__day--neighboringMonth::after {
-  display: none !important;
-}
-
-
-/* --- Progress Graph and Exercise Select --- */
-.progress-graph-container {
-  margin-top: 30px;
-}
-.progress-graph-container h2 {
-  margin-top: 0;
-}
-
-.exercise-select {
-  display: block;
-  width: 100%;
-  padding: 10px;
-  margin-bottom: 15px;
-  background-color: var(--background-dark);
-  color: var(--primary-text);
-  border: 1px solid #555;
-  border-radius: var(--border-radius);
-  font-size: 1em;
-}
+.react-calendar__tile--active.has-workouts::after { background: #fff; }

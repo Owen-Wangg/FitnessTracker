@@ -202,3 +202,126 @@ describe('with the add_workout_exercise function installed', () => {
     expect(screen.getByRole('alert')).toHaveTextContent(/weight must be positive/);
   });
 });
+
+describe('updateWorkout', () => {
+  const edited = {
+    id: 'ex-1',
+    date: '2025-06-03',
+    name: 'Front Squat',
+    exercise_id: 'Front_Squat_Clean_Grip',
+    workout_sets: [
+      { id: 'n1', set_number: 1, weight: 155, reps: 6, set_type: 'normal' },
+      { id: 'n2', set_number: 2, weight: 155, reps: 6, set_type: 'warmup' },
+    ],
+  };
+  const changes = {
+    name: 'Front Squat',
+    exerciseId: 'Front_Squat_Clean_Grip',
+    date: '2025-06-03',
+    sets: [{ weight: 155, reps: 6 }, { weight: 155, reps: 6, set_type: 'warmup' }],
+  };
+
+  test('with the function installed: one call, and the entry is replaced in place', async () => {
+    const { result } = await loaded();
+    mockRpc.mockResolvedValue({ data: edited, error: null });
+
+    let ok;
+    await act(async () => {
+      ok = await result.current.updateWorkout('ex-1', changes);
+    });
+
+    expect(ok).toBe(true);
+    expect(mockRpc).toHaveBeenCalledWith('update_workout_exercise', {
+      p_id: 'ex-1',
+      p_date: '2025-06-03',
+      p_name: 'Front Squat',
+      p_exercise_id: 'Front_Squat_Clean_Grip',
+      p_sets: [{ weight: 155, reps: 6 }, { weight: 155, reps: 6, set_type: 'warmup' }],
+    });
+    expect(mockFrom).toHaveBeenCalledTimes(1); // only the initial load
+    expect(result.current.workouts).toHaveLength(1);
+    expect(result.current.workouts[0]).toMatchObject({ id: 'ex-1', name: 'Front Squat', date: '2025-06-03' });
+    expect(result.current.workouts[0].sets).toHaveLength(2);
+    expect(screen.getByText('Changes saved')).toBeInTheDocument();
+  });
+
+  test('moving an entry to another date re-sorts the list', async () => {
+    queueResults({
+      data: [row, { id: 'ex-2', date: '2025-05-20', name: 'Deadlift', exercise_id: null, workout_sets: [] }],
+      error: null,
+    });
+    const { result } = renderHook(() => useWorkouts(user), { wrapper });
+    await waitFor(() => expect(result.current.status).toBe('ready'));
+    mockRpc.mockResolvedValue({ data: { ...edited, id: 'ex-2', date: '2025-06-09', name: 'Deadlift' }, error: null });
+
+    await act(async () => {
+      await result.current.updateWorkout('ex-2', { ...changes, name: 'Deadlift', date: '2025-06-09' });
+    });
+    expect(result.current.workouts.map((w) => w.id)).toEqual(['ex-2', 'ex-1']);
+  });
+
+  test('fallback without the function: update, replace the sets, update state', async () => {
+    const { result } = await loaded();
+    queueResults(
+      { data: { id: 'ex-1', date: '2025-06-03', name: 'Front Squat', exercise_id: 'Front_Squat_Clean_Grip' }, error: null },
+      { data: null, error: null }, // delete old sets
+      { data: edited.workout_sets, error: null } // insert new sets
+    );
+
+    let ok;
+    await act(async () => {
+      ok = await result.current.updateWorkout('ex-1', changes);
+    });
+
+    expect(ok).toBe(true);
+    expect(mockFrom).toHaveBeenCalledTimes(4); // load, update, delete sets, insert sets
+    expect(result.current.workouts[0].name).toBe('Front Squat');
+  });
+
+  test('fallback: if inserting the new sets fails, the old values are put back and the entry is unchanged', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    const { result } = await loaded();
+    queueResults(
+      { data: { id: 'ex-1', date: '2025-06-03', name: 'Front Squat', exercise_id: null }, error: null },
+      { data: null, error: null }, // delete old sets
+      { data: null, error: { message: 'insert failed' } }, // insert new sets fails
+      { data: null, error: null }, // put back: restore the exercise row
+      { data: null, error: null, count: 0 }, // put back: the sets are gone
+      { data: null, error: null } // put back: re-insert the original sets
+    );
+
+    let ok;
+    await act(async () => {
+      ok = await result.current.updateWorkout('ex-1', changes);
+    });
+
+    expect(ok).toBe(false);
+    expect(mockFrom).toHaveBeenCalledTimes(7); // load + 3 attempts + 3 put-back calls
+    expect(result.current.workouts[0].name).toBe('Squat'); // unchanged in the UI
+    expect(screen.getByRole('alert')).toHaveTextContent(/insert failed/);
+  });
+
+  test('a real database error is reported and nothing changes', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    const { result } = await loaded();
+    mockRpc.mockResolvedValue({ data: null, error: { code: '23514', message: 'reps must be positive' } });
+
+    let ok;
+    await act(async () => {
+      ok = await result.current.updateWorkout('ex-1', changes);
+    });
+    expect(ok).toBe(false);
+    expect(result.current.workouts[0].name).toBe('Squat');
+    expect(screen.getByRole('alert')).toHaveTextContent(/reps must be positive/);
+  });
+
+  test('ignores an unknown id', async () => {
+    const { result } = await loaded();
+    let ok;
+    await act(async () => {
+      ok = await result.current.updateWorkout('nope', changes);
+    });
+    expect(ok).toBe(false);
+    expect(mockRpc).not.toHaveBeenCalled();
+  });
+});

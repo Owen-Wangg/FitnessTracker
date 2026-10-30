@@ -115,6 +115,115 @@ export const useWorkouts = (user) => {
     [user, toast]
   );
 
+  // Saves edits to an existing entry; its sets are replaced by workoutData.sets.
+  // workoutData: { name, exerciseId, date, sets: [{ weight, reps, set_type? }] }. Resolves true on success.
+  const updateWorkout = useCallback(
+    async (id, workoutData) => {
+      const original = workouts.find((w) => w.id === id);
+      if (!user || !original) return false;
+      const name = (workoutData.name || '').trim();
+      const date = workoutData.date || original.date;
+      const sets = workoutData.sets || [];
+      if (!name || sets.length === 0) return false;
+      const exerciseId = workoutData.exerciseId || null;
+      const setPayload = sets.map((s) => ({
+        weight: s.weight,
+        reps: s.reps,
+        ...(s.set_type ? { set_type: s.set_type } : {}),
+      }));
+
+      const replaceInState = (row, rowSets) =>
+        setWorkouts((prev) => sortNewestFirst(prev.map((w) => (w.id === id ? normalizeWorkout(row, rowSets) : w))));
+
+      try {
+        // Preferred: one atomic database call (see supabase/update_workout_function.sql).
+        const { data: saved, error: rpcError } = await supabase.rpc('update_workout_exercise', {
+          p_id: id,
+          p_date: date,
+          p_name: name,
+          p_exercise_id: exerciseId,
+          p_sets: setPayload,
+        });
+        if (!rpcError) {
+          replaceInState(saved, saved.workout_sets);
+          toast.show('Changes saved', { type: 'success', duration: 2500 });
+          return true;
+        }
+        if (!isMissingFunction(rpcError)) throw rpcError;
+
+        // Fallback while the function is not installed: update, then swap the sets, putting the
+        // old values back if anything fails part-way.
+        const putBack = async () => {
+          try {
+            await supabase
+              .from('workout_exercises')
+              .update({ date: original.date, name: original.name, exercise_id: original.exerciseId })
+              .eq('id', id);
+            const { count } = await supabase
+              .from('workout_sets')
+              .select('id', { count: 'exact', head: true })
+              .eq('workout_exercise_id', id);
+            if (!count) {
+              await supabase.from('workout_sets').insert(
+                original.sets.map((s) => ({
+                  workout_exercise_id: id,
+                  user_id: user.id,
+                  set_number: s.set_number,
+                  weight: s.weight,
+                  reps: s.reps,
+                  set_type: s.set_type || 'normal',
+                }))
+              );
+            }
+          } catch (restoreError) {
+            console.error('Could not restore the previous values:', restoreError);
+          }
+        };
+
+        const { data: exercise, error: updateError } = await supabase
+          .from('workout_exercises')
+          .update({ date, name, exercise_id: exerciseId })
+          .eq('id', id)
+          .select('id, date, name, exercise_id')
+          .single();
+        if (updateError) throw updateError;
+
+        const { error: deleteError } = await supabase.from('workout_sets').delete().eq('workout_exercise_id', id);
+        if (deleteError) {
+          await putBack();
+          throw deleteError;
+        }
+
+        const { data: insertedSets, error: setsError } = await supabase
+          .from('workout_sets')
+          .insert(
+            setPayload.map((s, i) => ({
+              workout_exercise_id: id,
+              user_id: user.id,
+              set_number: i + 1,
+              weight: s.weight,
+              reps: s.reps,
+              set_type: s.set_type || 'normal',
+            }))
+          )
+          .select(SET_COLUMNS);
+        if (setsError) {
+          await putBack();
+          throw setsError;
+        }
+
+        replaceInState(exercise, insertedSets);
+        toast.show('Changes saved', { type: 'success', duration: 2500 });
+        return true;
+      } catch (error) {
+        console.error('Error updating workout:', error);
+        toast.show(`Could not save changes: ${error.message}`, { type: 'error' });
+        return false;
+      }
+    },
+    [user, workouts, toast]
+  );
+
   // Removes the entry right away and deletes it for real after UNDO_MS unless undone.
   const deleteWorkout = useCallback(
     (id) => {
@@ -151,5 +260,5 @@ export const useWorkouts = (user) => {
     [workouts, toast]
   );
 
-  return { workouts, status, reload, addWorkout, deleteWorkout };
+  return { workouts, status, reload, addWorkout, updateWorkout, deleteWorkout };
 };

@@ -30,7 +30,7 @@ vi.setConfig({ testTimeout: 20000 });
 const renderApp = (path = '/') =>
   render(
     <ToastProvider>
-      <MemoryRouter initialEntries={[path]} future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+      <MemoryRouter initialEntries={[path]}>
         <App />
       </MemoryRouter>
     </ToastProvider>

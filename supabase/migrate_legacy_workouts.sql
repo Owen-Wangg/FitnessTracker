@@ -19,6 +19,14 @@ begin
     where name is not null and date is not null
     order by date, name
   loop
+    -- Skip rows the new schema cannot hold (likely typos) and report them.
+    if coalesce(old_row.weight, 0) < 0 or coalesce(old_row.weight, 0) >= 100000
+       or coalesce(old_row.sets, 1) > 100 then
+      raise notice 'Skipped % on %: weight=%, sets=%, reps=%',
+        old_row.name, old_row.date, old_row.weight, old_row.sets, old_row.reps;
+      continue;
+    end if;
+
     insert into public.workout_exercises (user_id, date, name)
     values (old_row.user_id, old_row.date::date, old_row.name)
     returning id into new_id;

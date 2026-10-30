@@ -4,7 +4,7 @@
 .bw-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-3); margin-bottom: var(--space-5); }
 .bw-stat { display: flex; flex-direction: column; gap: 2px; }
 .bw-stat-label { font-size: 0.75rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); }
-.bw-stat-value { font-size: 1.25rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.bw-stat-value { font-family: var(--font-display); font-size: 1.75rem; font-weight: 700; font-variant-numeric: tabular-nums; }
 
 .bw-empty { margin-bottom: var(--space-4); color: var(--text-muted); font-size: 0.9375rem; }
 

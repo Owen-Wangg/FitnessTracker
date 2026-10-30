@@ -12,12 +12,13 @@ import {
   Filler,
 } from 'chart.js';
 import { topSet, bestEstimated1RM, workoutVolume, parseLocalDate } from '../utils/workoutMetrics';
+import { CHART_COLORS } from '../utils/theme';
 import '../assets/styles/ProgressGraph.css';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler);
 
-const ACCENT = '91, 141, 239';
-const PR_COLOR = '#4cc38a';
+const ACCENT = CHART_COLORS.accentRgb;
+const PR_COLOR = CHART_COLORS.pr;
 
 const METRICS = {
   top: { label: 'Top weight', title: 'Heaviest set per day' },
@@ -100,7 +101,7 @@ const ProgressGraph = ({ workouts, exerciseName }) => {
         pointRadius: isPR.map((pr) => (pr ? 7 : 4)),
         pointHoverRadius: isPR.map((pr) => (pr ? 9 : 6)),
         pointBackgroundColor: isPR.map((pr) => (pr ? PR_COLOR : `rgb(${ACCENT})`)),
-        pointBorderColor: '#12151c',
+        pointBorderColor: CHART_COLORS.surface,
         pointBorderWidth: 2,
       },
     ],
@@ -113,23 +114,23 @@ const ProgressGraph = ({ workouts, exerciseName }) => {
     scales: {
       x: {
         grid: { display: false },
-        ticks: { color: '#8b93a7', font: { size: 11 }, maxRotation: 0, autoSkip: true },
+        ticks: { color: CHART_COLORS.muted, font: { size: 11 }, maxRotation: 0, autoSkip: true },
       },
       y: {
         beginAtZero: false,
         grace: '10%',
-        grid: { color: 'rgba(139, 147, 167, 0.12)' },
+        grid: { color: CHART_COLORS.grid },
         border: { display: false },
-        ticks: { color: '#8b93a7', callback: (v) => formatNumber(v) },
+        ticks: { color: CHART_COLORS.muted, callback: (v) => formatNumber(v) },
       },
     },
     plugins: {
       legend: { display: false },
       tooltip: {
-        backgroundColor: '#181c26',
-        titleColor: '#e8eaf0',
-        bodyColor: '#e8eaf0',
-        borderColor: '#323a4d',
+        backgroundColor: CHART_COLORS.raised,
+        titleColor: CHART_COLORS.text,
+        bodyColor: CHART_COLORS.text,
+        borderColor: CHART_COLORS.border,
         borderWidth: 1,
         padding: 10,
         cornerRadius: 8,

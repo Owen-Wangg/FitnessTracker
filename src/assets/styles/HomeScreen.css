@@ -15,3 +15,10 @@
   align-items: center;
   gap: var(--space-2);
 }
+
+/* Dashboard tiles: stacked on mobile, hero + week tile side by side on desktop */
+.home-dashboard { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0 var(--space-4); }
+
+@media (min-width: 900px) {
+  .home-dashboard { grid-template-columns: minmax(0, 3fr) minmax(280px, 2fr); }
+}

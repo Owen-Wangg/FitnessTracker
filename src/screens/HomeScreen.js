@@ -1,5 +1,6 @@
 import React from 'react';
 import SummaryCard from '../components/SummaryCard';
+import WeekStrip from '../components/WeekStrip';
 import WorkoutList from '../components/WorkoutList';
 import AddWorkoutModal from '../components/AddWorkoutModal';
 import { FaPlus } from 'react-icons/fa';
@@ -7,6 +8,7 @@ import '../assets/styles/HomeScreen.css';
 
 const HomeScreen = ({
   todaysWorkouts,
+  allWorkouts,
   recentExercises,
   onAddWorkoutClick,
   showAddModal,
@@ -23,7 +25,11 @@ const HomeScreen = ({
         </button>
       </div>
 
-      <SummaryCard workouts={todaysWorkouts} />
+      <div className="home-dashboard">
+        <SummaryCard workouts={todaysWorkouts} />
+        <WeekStrip workouts={allWorkouts} />
+      </div>
+
       <WorkoutList workouts={todaysWorkouts} onDelete={deleteWorkout} />
 
       <AddWorkoutModal

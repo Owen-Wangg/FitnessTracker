@@ -25,8 +25,8 @@
   font-weight: 500;
 }
 .metric-btn:hover:not(:disabled) { background: transparent; color: var(--text); }
-.metric-btn.active { background: var(--accent); color: #fff; }
-.metric-btn.active:hover:not(:disabled) { background: var(--accent); color: #fff; }
+.metric-btn.active { background: var(--accent); color: var(--on-accent); }
+.metric-btn.active:hover:not(:disabled) { background: var(--accent); color: var(--on-accent); }
 
 .graph-stats {
   display: grid;
@@ -36,7 +36,7 @@
 }
 .graph-stat { display: flex; flex-direction: column; gap: 2px; }
 .graph-stat-label { font-size: 0.75rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); }
-.graph-stat-value { font-size: 1.0625rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.graph-stat-value { font-family: var(--font-display); font-size: 1.5rem; font-weight: 700; font-variant-numeric: tabular-nums; }
 .graph-stat-value.up { color: var(--success); }
 .graph-stat-value.down { color: var(--danger); }
 
@@ -44,7 +44,7 @@
 .graph-message { color: var(--text-muted); font-size: 0.9375rem; text-align: center; padding: var(--space-5) 0; }
 
 .graph-legend { display: flex; align-items: center; gap: var(--space-2); margin-top: var(--space-3); font-size: 0.8125rem; color: var(--text-muted); }
-.pr-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--success); }
+.pr-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--pr); }
 
 @media (min-width: 900px) {
   .chart-container { height: 340px; }

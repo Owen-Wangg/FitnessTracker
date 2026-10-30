@@ -11,6 +11,7 @@ import {
 } from 'chart.js';
 import { FaTrash } from 'react-icons/fa';
 import { formatLocalDate, parseLocalDate } from '../utils/workoutMetrics';
+import { CHART_COLORS } from '../utils/theme';
 import '../assets/styles/BodyWeightCard.css';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Filler);
@@ -43,14 +44,14 @@ const BodyWeightCard = ({ entries = [], onLog, onDelete }) => {
     datasets: [
       {
         data: entries.map((e) => e.weight),
-        fill: { target: 'origin', above: 'rgba(91, 141, 239, 0.12)' },
-        borderColor: 'rgb(91, 141, 239)',
+        fill: { target: 'origin', above: `rgba(${CHART_COLORS.accentRgb}, 0.12)` },
+        borderColor: CHART_COLORS.accent,
         borderWidth: 2,
         tension: 0.3,
         pointRadius: 4,
         pointHoverRadius: 6,
-        pointBackgroundColor: 'rgb(91, 141, 239)',
-        pointBorderColor: '#12151c',
+        pointBackgroundColor: CHART_COLORS.accent,
+        pointBorderColor: CHART_COLORS.surface,
         pointBorderWidth: 2,
       },
     ],
@@ -61,21 +62,21 @@ const BodyWeightCard = ({ entries = [], onLog, onDelete }) => {
     maintainAspectRatio: false,
     interaction: { mode: 'nearest', axis: 'x', intersect: false },
     scales: {
-      x: { grid: { display: false }, ticks: { color: '#8b93a7', font: { size: 11 }, maxRotation: 0, autoSkip: true } },
+      x: { grid: { display: false }, ticks: { color: CHART_COLORS.muted, font: { size: 11 }, maxRotation: 0, autoSkip: true } },
       y: {
         grace: '10%',
-        grid: { color: 'rgba(139, 147, 167, 0.12)' },
+        grid: { color: CHART_COLORS.grid },
         border: { display: false },
-        ticks: { color: '#8b93a7', callback: (v) => fmt(v) },
+        ticks: { color: CHART_COLORS.muted, callback: (v) => fmt(v) },
       },
     },
     plugins: {
       legend: { display: false },
       tooltip: {
-        backgroundColor: '#181c26',
-        titleColor: '#e8eaf0',
-        bodyColor: '#e8eaf0',
-        borderColor: '#323a4d',
+        backgroundColor: CHART_COLORS.raised,
+        titleColor: CHART_COLORS.text,
+        bodyColor: CHART_COLORS.text,
+        borderColor: CHART_COLORS.border,
         borderWidth: 1,
         padding: 10,
         cornerRadius: 8,

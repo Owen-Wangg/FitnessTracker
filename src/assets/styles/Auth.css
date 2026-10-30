@@ -5,7 +5,7 @@
   align-items: center;
   justify-content: center;
   padding: var(--space-4);
-  background: radial-gradient(ellipse at top, rgba(91, 141, 239, 0.12), transparent 60%), var(--bg);
+  background: radial-gradient(ellipse at top, rgba(198, 255, 61, 0.09), transparent 60%), var(--bg);
 }
 
 .auth-container { width: 100%; max-width: 420px; padding: var(--space-6) var(--space-5); margin-bottom: 0; box-shadow: var(--shadow); }
@@ -44,7 +44,7 @@
 }
 .auth-tab:hover:not(:disabled) { background: transparent; color: var(--text); }
 .auth-tab.active,
-.auth-tab.active:hover:not(:disabled) { background: var(--accent); color: #fff; }
+.auth-tab.active:hover:not(:disabled) { background: var(--accent); color: var(--on-accent); }
 
 .google-button {
   width: 100%;

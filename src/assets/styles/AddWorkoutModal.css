@@ -84,7 +84,7 @@
   background: var(--accent-soft);
   color: var(--accent);
 }
-.add-set-btn:hover:not(:disabled) { background: var(--accent); color: #fff; }
+.add-set-btn:hover:not(:disabled) { background: var(--accent); color: var(--on-accent); }
 
 @media (min-width: 600px) {
   .modal-overlay { align-items: center; }

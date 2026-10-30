@@ -275,6 +275,7 @@ function App() {
         {activeScreen === 'home' && (
           <HomeScreen
             todaysWorkouts={todaysWorkouts}
+            allWorkouts={workouts}
             recentExercises={recentExercises}
             onAddWorkoutClick={() => setShowAddModal(true)}
             showAddModal={showAddModal}

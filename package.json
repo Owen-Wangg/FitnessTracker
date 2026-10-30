@@ -24,6 +24,11 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
+  "jest": {
+    "transformIgnorePatterns": [
+      "node_modules/(?!(react-calendar|@wojtekmaj|get-user-locale|memoize|mimic-function)/)"
+    ]
+  },
   "eslintConfig": {
     "extends": [
       "react-app",

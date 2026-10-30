@@ -1,6 +1,10 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
+// Fonts are bundled with the app (no requests to Google Fonts).
+import '@fontsource-variable/inter/wght.css';
+import '@fontsource/barlow-condensed/latin-600.css';
+import '@fontsource/barlow-condensed/latin-700.css';
 import './assets/styles/global.css';
 import App from './App';
 import ConfigError from './components/ConfigError';

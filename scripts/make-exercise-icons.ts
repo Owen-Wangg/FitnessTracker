@@ -1,13 +1,13 @@
 // Draws a simple equipment illustration (no people) for each exercise in src/data/fundamentals.ts
 // and writes public/exercises/<id>.webp, which the app serves itself.
-// Usage: node scripts/make-exercise-icons.mjs   (re-run after adding exercises; add a drawing below)
+// Usage: npm run icons   (re-run after adding exercises; add a drawing below)
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
-// Read the ids straight from the source file: importing the .ts module would need a TypeScript runtime.
+// Read the ids straight from the source file rather than importing it (its imports are written for Vite).
 const FUNDAMENTALS = [...fs.readFileSync(path.join(root, 'src/data/fundamentals.ts'), 'utf8').matchAll(/\bid: '([^']+)'/g)].map(
   (m) => ({ id: m[1] })
 );
@@ -20,39 +20,39 @@ const ACCENT = '#2563eb';
 const BG = '#f8fafc';
 
 // --- primitives -------------------------------------------------------------------------------
-const line = (x1, y1, x2, y2, { w = 5, c = INK } = {}) =>
+const line = (x1: number, y1: number, x2: number, y2: number, { w = 5, c = INK }: { w?: number; c?: string } = {}): string =>
   `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${c}" stroke-width="${w}" stroke-linecap="round"/>`;
 // A padded bar: dark outline with a light fill.
-const pad = (x1, y1, x2, y2, w = 14) => line(x1, y1, x2, y2, { w: w + 6 }) + line(x1, y1, x2, y2, { w, c: PAD });
-const circle = (cx, cy, r, fill = 'none') =>
+const pad = (x1: number, y1: number, x2: number, y2: number, w = 14): string => line(x1, y1, x2, y2, { w: w + 6 }) + line(x1, y1, x2, y2, { w, c: PAD });
+const circle = (cx: number, cy: number, r: number, fill = 'none'): string =>
   `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${fill}" stroke="${INK}" stroke-width="4"/>`;
-const rect = (x, y, w, h, fill = 'none', r = 3) =>
+const rect = (x: number, y: number, w: number, h: number, fill = 'none', r = 3): string =>
   `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${r}" fill="${fill}" stroke="${INK}" stroke-width="4"/>`;
-const floor = () => line(14, 172, 178, 172, { w: 4 });
-const thin = (points) =>
+const floor = (): string => line(14, 172, 178, 172, { w: 4 });
+const thin = (points: string): string =>
   `<polyline points="${points}" fill="none" stroke="${INK}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>`;
-const arrow = (x1, y1, x2, y2) => {
+const arrow = (x1: number, y1: number, x2: number, y2: number): string => {
   const a = Math.atan2(y2 - y1, x2 - x1);
-  const h = (d) => `${x2 - 11 * Math.cos(a + d)},${y2 - 11 * Math.sin(a + d)}`;
+  const h = (d: number) => `${x2 - 11 * Math.cos(a + d)},${y2 - 11 * Math.sin(a + d)}`;
   return (
     line(x1, y1, x2, y2, { w: 4, c: ACCENT }) +
     `<polyline points="${h(0.5)} ${x2},${y2} ${h(-0.5)}" fill="none" stroke="${ACCENT}" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>`
   );
 };
-const dumbbell = (cx, cy, rot = 0) =>
+const dumbbell = (cx: number, cy: number, rot = 0): string =>
   `<g transform="rotate(${rot} ${cx} ${cy})">` +
   line(cx - 22, cy, cx + 22, cy, { w: 5 }) +
   rect(cx - 30, cy - 12, 10, 24, ACCENT, 3) +
   rect(cx + 20, cy - 12, 10, 24, ACCENT, 3) +
   `</g>`;
 // Weight-stack tower with a pulley at (px, py).
-const tower = (x, top = 22) =>
+const tower = (x: number, top = 22): string =>
   rect(x, top, 26, 150 - top + 0, 'none', 4) +
   [0, 1, 2, 3, 4, 5].map((i) => line(x + 5, top + 24 + i * 16, x + 21, top + 24 + i * 16, { w: 4, c: PAD })).join('');
-const pulley = (x, y) => circle(x, y, 7, '#fff');
+const pulley = (x: number, y: number): string => circle(x, y, 7, '#fff');
 
 // --- one drawing per exercise id ---------------------------------------------------------------
-const DRAW = {
+const DRAW: Record<string, () => string> = {
   Incline_Dumbbell_Press: () =>
     pad(40, 140, 80, 140, 14) + pad(46, 134, 100, 70, 14) + line(62, 146, 62, 172) + line(40, 172, 86, 172) +
     dumbbell(118, 44) + arrow(150, 100, 150, 66),
@@ -141,7 +141,7 @@ const DRAW = {
     line(100, 130, 150, 130, { w: 6, c: ACCENT }) + arrow(164, 150, 164, 100),
 };
 
-const svg = (body) =>
+const svg = (body: string): string =>
   `<svg xmlns="http://www.w3.org/2000/svg" width="${SIZE}" height="${SIZE}" viewBox="0 0 192 192">` +
   `<rect width="192" height="192" fill="${BG}"/>${body}</svg>`;
 

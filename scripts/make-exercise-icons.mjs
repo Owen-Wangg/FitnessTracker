@@ -47,8 +47,6 @@ const tower = (x, top = 22) =>
   rect(x, top, 26, 150 - top + 0, 'none', 4) +
   [0, 1, 2, 3, 4, 5].map((i) => line(x + 5, top + 24 + i * 16, x + 21, top + 24 + i * 16, { w: 4, c: PAD })).join('');
 const pulley = (x, y) => circle(x, y, 7, '#fff');
-const rope = (x, y) =>
-  line(x, y, x - 14, y + 20, { w: 5, c: ACCENT }) + line(x, y, x + 14, y + 20, { w: 5, c: ACCENT }) + line(x, y - 14, x, y, { w: 3 });
 
 // --- one drawing per exercise id ---------------------------------------------------------------
 const DRAW = {

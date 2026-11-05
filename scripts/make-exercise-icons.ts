@@ -28,7 +28,6 @@ const circle = (cx: number, cy: number, r: number, fill = 'none'): string =>
   `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${fill}" stroke="${INK}" stroke-width="4"/>`;
 const rect = (x: number, y: number, w: number, h: number, fill = 'none', r = 3): string =>
   `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${r}" fill="${fill}" stroke="${INK}" stroke-width="4"/>`;
-const floor = (): string => line(14, 172, 178, 172, { w: 4 });
 const thin = (points: string): string =>
   `<polyline points="${points}" fill="none" stroke="${INK}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>`;
 const arrow = (x1: number, y1: number, x2: number, y2: number): string => {
@@ -39,11 +38,11 @@ const arrow = (x1: number, y1: number, x2: number, y2: number): string => {
     `<polyline points="${h(0.5)} ${x2},${y2} ${h(-0.5)}" fill="none" stroke="${ACCENT}" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>`
   );
 };
-const dumbbell = (cx: number, cy: number, rot = 0): string =>
+const dumbbell = (cx: number, cy: number, rot = 0, fill = ACCENT): string =>
   `<g transform="rotate(${rot} ${cx} ${cy})">` +
   line(cx - 22, cy, cx + 22, cy, { w: 5 }) +
-  rect(cx - 30, cy - 12, 10, 24, ACCENT, 3) +
-  rect(cx + 20, cy - 12, 10, 24, ACCENT, 3) +
+  rect(cx - 30, cy - 12, 10, 24, fill, 3) +
+  rect(cx + 20, cy - 12, 10, 24, fill, 3) +
   `</g>`;
 // Weight-stack tower with a pulley at (px, py).
 const tower = (x: number, top = 22): string =>
@@ -52,93 +51,106 @@ const tower = (x: number, top = 22): string =>
 const pulley = (x: number, y: number): string => circle(x, y, 7, '#fff');
 
 // --- one drawing per exercise id ---------------------------------------------------------------
+// Fixed equipment is slate/grey, the moving part is blue, and a grey "ghost" shows where a
+// movement starts. Everything stands on the floor line at y = 172.
+const ghost = '#e2e8f0';
+const post = (x: number, top = 150): string => line(x, top, x, 172);
+const base = (x1: number, x2: number): string => line(x1, 172, x2, 172);
+
 const DRAW: Record<string, () => string> = {
   Incline_Dumbbell_Press: () =>
-    pad(40, 140, 80, 140, 14) + pad(46, 134, 100, 70, 14) + line(62, 146, 62, 172) + line(40, 172, 86, 172) +
-    dumbbell(118, 44) + arrow(150, 100, 150, 66),
-
-  Dumbbell_Incline_Row: () =>
-    pad(40, 140, 80, 140, 14) + pad(46, 134, 100, 70, 14) + line(62, 146, 62, 172) + line(40, 172, 86, 172) +
-    dumbbell(128, 128, 90) + arrow(160, 150, 160, 112),
-
-  Dumbbell_Shoulder_Press: () =>
-    pad(44, 134, 100, 134, 14) + pad(52, 128, 52, 60, 14) + line(72, 142, 72, 172) + line(46, 172, 98, 172) +
-    dumbbell(76, 30) + arrow(150, 100, 150, 56),
-
-  Seated_Dumbbell_Curl: () =>
-    pad(44, 134, 100, 134, 14) + pad(52, 128, 52, 60, 14) + line(72, 142, 72, 172) + line(46, 172, 98, 172) +
-    dumbbell(130, 110, 90) + `<path d="M150 150 A34 34 0 0 0 150 84" fill="none" stroke="${ACCENT}" stroke-width="4" stroke-linecap="round"/>` +
-    `<polyline points="143,86 150,82 152,91" fill="none" stroke="${ACCENT}" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>`,
+    pad(36, 136, 76, 136, 14) + pad(44, 130, 104, 70, 16) + post(56, 144) + line(92, 86, 112, 172) + base(34, 126) +
+    dumbbell(118, 44) + arrow(152, 100, 152, 62),
 
   Butterfly: () =>
-    pad(96, 140, 96, 78, 24) + pad(96, 152, 96, 152, 24) + line(96, 160, 96, 172) + line(70, 172, 122, 172) +
-    line(76, 110, 44, 66, { w: 6 }) + line(116, 110, 148, 66, { w: 6 }) +
-    pad(40, 60, 40, 84, 12) + pad(152, 60, 152, 84, 12) +
-    arrow(30, 40, 54, 40) + arrow(162, 40, 138, 40),
+    pad(96, 74, 96, 130, 26) + pad(78, 148, 114, 148, 14) + post(96, 156) + base(72, 120) +
+    line(78, 66, 46, 78, { w: 6 }) + line(114, 66, 146, 78, { w: 6 }) + circle(78, 66, 6, '#fff') + circle(114, 66, 6, '#fff') +
+    pad(44, 84, 44, 128, 14) + pad(148, 84, 148, 128, 14) +
+    arrow(20, 50, 46, 50) + arrow(172, 50, 146, 50),
 
   Leverage_Chest_Press: () =>
-    pad(36, 138, 36, 70, 18) + pad(36, 146, 84, 146, 14) + line(60, 154, 60, 172) + line(30, 172, 130, 172) +
-    line(48, 90, 110, 90, { w: 6 }) + line(110, 76, 110, 104, { w: 8 }) + line(110, 90, 148, 90, { w: 5, c: ACCENT }) +
-    arrow(122, 60, 154, 60),
+    pad(34, 146, 84, 146, 14) + pad(34, 140, 34, 80, 18) + post(60, 154) + base(24, 100) +
+    line(50, 104, 116, 104, { w: 6, c: ACCENT }) + line(116, 88, 116, 120, { w: 9, c: ACCENT }) + circle(50, 104, 6, '#fff') +
+    arrow(128, 60, 164, 60),
 
   'Wide-Grip_Lat_Pulldown': () =>
-    line(36, 22, 156, 22, { w: 6 }) + line(36, 22, 36, 172, { w: 6 }) + pulley(60, 34) + pulley(132, 34) +
-    thin('60,41 54,70') + thin('132,41 138,70') + line(40, 72, 152, 72, { w: 6, c: ACCENT }) +
-    pad(82, 150, 114, 150, 14) + pad(70, 126, 128, 126, 12) + line(98, 158, 98, 172) + line(60, 172, 140, 172) +
-    arrow(96, 86, 96, 112),
+    line(150, 22, 150, 172, { w: 6 }) + line(60, 22, 150, 22, { w: 6 }) + pulley(96, 36) + line(96, 22, 96, 29, { w: 3 }) +
+    thin('90,41 58,72') + thin('102,41 134,72') + line(46, 74, 146, 74, { w: 7, c: ACCENT }) +
+    pad(70, 150, 120, 150, 14) + pad(80, 132, 124, 132, 12) + post(96, 158) + base(60, 132) +
+    arrow(96, 92, 96, 118),
+
+  Dumbbell_Incline_Row: () =>
+    pad(56, 146, 104, 146, 14) + post(80, 154) + base(48, 112) +
+    pad(98, 84, 106, 130, 18) + line(106, 130, 106, 146, { w: 6 }) +
+    line(118, 112, 152, 112, { w: 6, c: ACCENT }) + line(152, 98, 152, 126, { w: 9, c: ACCENT }) + line(106, 112, 118, 112, { w: 6, c: ACCENT }) +
+    arrow(170, 80, 134, 80),
+
+  Dumbbell_Shoulder_Press: () =>
+    pad(40, 140, 90, 140, 14) + pad(50, 134, 44, 70, 16) + post(66, 148) + base(36, 96) +
+    dumbbell(58, 38) + arrow(124, 100, 124, 58),
 
   Cable_Seated_Lateral_Raise: () =>
-    tower(24) + pulley(52, 148) + thin('52,148 100,128') + rect(98, 120, 14, 14, ACCENT, 4) +
-    `<path d="M112 128 A46 46 0 0 0 150 82" fill="none" stroke="${ACCENT}" stroke-width="4" stroke-linecap="round" stroke-dasharray="1 8"/>` +
-    arrow(138, 96, 152, 70) + floor(),
+    tower(16) + pulley(62, 152) + thin('62,152 108,134') +
+    rect(100, 128, 16, 12, ghost, 4) +
+    `<path d="M124 128 A56 56 0 0 0 152 72" fill="none" stroke="${ACCENT}" stroke-width="4" stroke-linecap="round" stroke-dasharray="1 8"/>` +
+    rect(142, 52, 20, 12, ACCENT, 4) + arrow(154, 92, 158, 74) + base(14, 178),
 
   Cable_Rear_Delt_Fly: () =>
-    line(14, 22, 178, 22, { w: 5 }) + line(14, 22, 14, 172, { w: 5 }) + line(178, 22, 178, 172, { w: 5 }) +
-    pulley(34, 36) + pulley(158, 36) + thin('34,43 86,100') + thin('158,43 106,100') +
-    rect(80, 98, 14, 14, ACCENT, 4) + rect(98, 98, 14, 14, ACCENT, 4) + arrow(60, 140, 40, 150) + arrow(132, 140, 152, 150) + floor(),
+    line(22, 22, 22, 172, { w: 6 }) + line(170, 22, 170, 172, { w: 6 }) + line(22, 22, 170, 22, { w: 6 }) +
+    pulley(40, 42) + pulley(152, 42) + thin('40,49 104,108') + thin('152,49 88,108') +
+    rect(80, 106, 14, 14, ACCENT, 4) + rect(98, 106, 14, 14, ACCENT, 4) +
+    arrow(76, 142, 48, 154) + arrow(116, 142, 144, 154) + base(14, 178),
+
+  Seated_Dumbbell_Curl: () =>
+    pad(40, 140, 90, 140, 14) + pad(46, 134, 46, 66, 16) + post(66, 148) + base(36, 96) +
+    dumbbell(122, 142, 0, ghost) + dumbbell(122, 86, 0) +
+    `<path d="M150 136 A34 34 0 0 0 150 92" fill="none" stroke="${ACCENT}" stroke-width="4" stroke-linecap="round"/>` +
+    `<polyline points="143,94 151,90 154,99" fill="none" stroke="${ACCENT}" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>`,
 
   Machine_Preacher_Curls: () =>
-    pad(44, 84, 96, 128, 20) + line(70, 130, 70, 160) + pad(110, 140, 150, 140, 14) +
-    line(150, 130, 150, 172, { w: 6 }) + line(96, 172, 164, 172) +
-    line(98, 88, 130, 70, { w: 6 }) + rect(130, 56, 14, 28, ACCENT, 4) + arrow(150, 100, 160, 70),
+    pad(30, 144, 74, 144, 14) + post(52, 152) + base(26, 80) +
+    pad(86, 90, 122, 122, 20) + line(112, 120, 112, 172) + base(92, 140) +
+    line(122, 86, 150, 70, { w: 6, c: ACCENT }) + rect(144, 50, 14, 30, ACCENT, 4) +
+    arrow(176, 98, 176, 56),
 
   Triceps_Pushdown: () =>
-    tower(26) + line(52, 34, 132, 34, { w: 5 }) + pulley(132, 34) + line(132, 41, 132, 70, { w: 3 }) +
-    line(132, 70, 116, 94, { w: 6, c: ACCENT }) + line(132, 70, 148, 94, { w: 6, c: ACCENT }) +
-    arrow(172, 74, 172, 126) + floor(),
+    tower(24) + line(50, 34, 134, 34, { w: 5 }) + pulley(134, 34) + line(134, 41, 134, 72, { w: 3 }) +
+    line(134, 72, 118, 98, { w: 6, c: ACCENT }) + line(134, 72, 150, 98, { w: 6, c: ACCENT }) +
+    arrow(172, 74, 172, 128) + base(14, 178),
 
   Triceps_Overhead_Extension_with_Rope: () =>
-    tower(26) + pulley(66, 152) + thin('66,152 108,110 112,60') +
-    line(112, 56, 98, 36, { w: 6, c: ACCENT }) + line(112, 56, 128, 36, { w: 6, c: ACCENT }) +
-    arrow(164, 90, 164, 40) + floor(),
-
-  Cable_Crunch: () =>
-    tower(26) + line(52, 34, 116, 34, { w: 5 }) + pulley(116, 34) + thin('116,41 116,100') +
-    line(116, 100, 100, 122, { w: 6, c: ACCENT }) + line(116, 100, 132, 122, { w: 6, c: ACCENT }) +
-    pad(100, 160, 100, 160, 22) + arrow(160, 70, 160, 120) + floor(),
+    tower(24) + pulley(66, 152) + thin('66,152 108,112 112,62') +
+    line(112, 58, 98, 38, { w: 6, c: ACCENT }) + line(112, 58, 128, 38, { w: 6, c: ACCENT }) +
+    arrow(166, 92, 166, 42) + base(14, 178),
 
   Leg_Press: () =>
-    line(30, 160, 150, 70, { w: 6 }) + line(30, 172, 168, 172, { w: 5 }) + line(150, 70, 168, 172, { w: 5 }) +
-    pad(44, 148, 62, 116, 16) + pad(56, 156, 90, 156, 14) +
-    `<g transform="rotate(-37 118 108)">` + rect(104, 56, 14, 60, PAD, 4) + `</g>` + arrow(100, 90, 130, 70),
+    line(26, 166, 150, 82, { w: 6 }) + line(150, 82, 164, 172, { w: 5 }) + base(16, 176) +
+    pad(36, 146, 66, 125, 16) + pad(52, 160, 88, 160, 12) +
+    pad(104, 78, 132, 116, 12) + arrow(118, 132, 146, 112),
 
   Leg_Extensions: () =>
-    pad(36, 132, 36, 66, 18) + pad(36, 140, 92, 140, 16) + line(64, 148, 64, 172) + line(28, 172, 136, 172) +
-    line(88, 136, 140, 150, { w: 6 }) + rect(132, 140, 16, 34, ACCENT, 6) + arrow(168, 150, 168, 110),
+    pad(36, 140, 92, 140, 16) + pad(36, 134, 36, 70, 18) + post(64, 148) + base(26, 140) +
+    line(88, 138, 142, 138, { w: 6, c: ghost }) + line(88, 138, 140, 150, { w: 6, c: ACCENT }) + rect(132, 142, 16, 30, ACCENT, 6) +
+    arrow(168, 150, 168, 106),
 
   Seated_Leg_Curl: () =>
-    pad(36, 132, 36, 66, 18) + pad(36, 140, 108, 140, 16) + line(64, 148, 64, 172) + line(28, 172, 150, 172) +
-    pad(104, 124, 140, 124, 12) + line(138, 156, 138, 172, { w: 6 }) + rect(122, 150, 36, 14, ACCENT, 6) +
-    arrow(168, 120, 168, 164),
+    pad(36, 140, 100, 140, 16) + pad(36, 134, 36, 66, 18) + post(64, 148) + base(26, 150) +
+    pad(78, 120, 124, 120, 12) + pad(110, 154, 150, 154, 14) + line(150, 154, 164, 124, { w: 6 }) + circle(164, 120, 6, '#fff') +
+    arrow(176, 116, 176, 160),
 
   Standing_Calf_Raises: () =>
     rect(62, 20, 68, 18, PAD, 6) + line(70, 38, 70, 128, { w: 6 }) + line(122, 38, 122, 128, { w: 6 }) +
     rect(52, 128, 88, 16, ACCENT, 4) + rect(40, 144, 112, 28, PAD, 4) + arrow(166, 108, 166, 64),
 
+  Cable_Crunch: () =>
+    tower(24) + line(50, 34, 112, 34, { w: 5 }) + pulley(112, 34) + thin('112,41 112,100') +
+    line(112, 100, 96, 122, { w: 6, c: ACCENT }) + line(112, 100, 128, 122, { w: 6, c: ACCENT }) +
+    pad(86, 158, 138, 158, 14) + arrow(164, 66, 164, 124) + base(14, 178),
+
   Hanging_Leg_Raise: () =>
-    line(22, 172, 170, 172, { w: 5 }) + pad(52, 150, 52, 54, 22) + line(52, 160, 52, 172, { w: 6 }) +
-    pad(78, 100, 128, 100, 12) + line(128, 100, 128, 172, { w: 6 }) +
-    line(100, 130, 150, 130, { w: 6, c: ACCENT }) + arrow(164, 150, 164, 100),
+    pad(46, 138, 46, 58, 22) + pad(60, 96, 104, 96, 12) + line(104, 96, 104, 172, { w: 6 }) + post(46, 148) + base(30, 124) +
+    rect(62, 112, 14, 56, ghost, 7) + rect(62, 112, 62, 14, ACCENT, 7) +
+    arrow(152, 164, 152, 112),
 };
 
 const svg = (body: string): string =>

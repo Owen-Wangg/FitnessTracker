@@ -4,13 +4,13 @@ const entry = (date, name, sets, extra = {}) => ({ id: `${date}-${name}`, date, 
 
 describe('buildSeries', () => {
   const workouts = [
-    entry('2025-06-08', 'Bench Press', [{ weight: 190, reps: 5 }]),
-    entry('2025-06-01', 'bench press', [{ weight: 185, reps: 5 }, { weight: 175, reps: 8 }]),
-    entry('2025-06-01', 'Squat', [{ weight: 275, reps: 5 }]),
+    entry('2025-06-08', 'Flat Chest Press Machine', [{ weight: 190, reps: 5 }]),
+    entry('2025-06-01', 'flat chest press machine', [{ weight: 185, reps: 5 }, { weight: 175, reps: 8 }]),
+    entry('2025-06-01', 'Leg Press Machine', [{ weight: 275, reps: 5 }]),
   ];
 
   test('groups one lift across name casing and sorts oldest first', () => {
-    const series = buildSeries(workouts, 'Barbell_Bench_Press_-_Medium_Grip');
+    const series = buildSeries(workouts, 'Leverage_Chest_Press');
     expect(series.map((d) => d.date)).toEqual(['2025-06-01', '2025-06-08']);
     expect(series[0].top).toEqual({ weight: 185, reps: 5 });
     expect(series[0].volume).toBe(185 * 5 + 175 * 8);
@@ -18,10 +18,10 @@ describe('buildSeries', () => {
 
   test('merges multiple entries on the same day', () => {
     const twice = [
-      entry('2025-06-01', 'Bench Press', [{ weight: 135, reps: 10 }]),
-      entry('2025-06-01', 'Bench Press', [{ weight: 205, reps: 3 }]),
+      entry('2025-06-01', 'Flat Chest Press Machine', [{ weight: 135, reps: 10 }]),
+      entry('2025-06-01', 'Flat Chest Press Machine', [{ weight: 205, reps: 3 }]),
     ];
-    const [day] = buildSeries(twice, 'Barbell_Bench_Press_-_Medium_Grip');
+    const [day] = buildSeries(twice, 'Leverage_Chest_Press');
     expect(day.top).toEqual({ weight: 205, reps: 3 });
     expect(day.volume).toBe(1350 + 615);
   });
@@ -33,8 +33,8 @@ describe('buildSeries', () => {
   });
 
   test('skips days with only warm-up sets', () => {
-    const warm = [entry('2025-06-01', 'Squat', [{ weight: 95, reps: 10, set_type: 'warmup' }])];
-    expect(buildSeries(warm, 'Barbell_Squat')).toEqual([]);
+    const warm = [entry('2025-06-01', 'Leg Press Machine', [{ weight: 95, reps: 10, set_type: 'warmup' }])];
+    expect(buildSeries(warm, 'Leg_Press')).toEqual([]);
   });
 });
 

@@ -2,8 +2,8 @@ import { FUNDAMENTALS, GROUPS } from '../data/fundamentals';
 
 export { FUNDAMENTALS, GROUPS };
 
-// Thumbnails live in public/exercises (made by scripts/fetch-exercise-photos.mjs from the public-domain
-// Free Exercise DB), so they are served by the app itself: fast, cacheable, and no third-party host.
+// Thumbnails live in public/exercises (drawn by scripts/make-exercise-icons.mjs), so they are served
+// by the app itself: fast, cacheable, and no third-party host.
 export const exerciseImageUrl = (exercise) =>
   exercise ? `${import.meta.env.BASE_URL}exercises/${exercise.id}.webp` : null;
 

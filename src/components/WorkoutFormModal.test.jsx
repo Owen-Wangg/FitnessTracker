@@ -28,7 +28,7 @@ describe('adding', () => {
 
   test('names the incomplete set', () => {
     const { onSubmit } = setup();
-    pickExercise('Squat');
+    pickExercise('Leg Press Machine');
     userEvent.type(screen.getByLabelText(/set 1 weight/i), '225');
     userEvent.click(screen.getByRole('button', { name: 'Save' }));
     expect(screen.getByRole('alert')).toHaveTextContent(/set 1/);
@@ -38,7 +38,7 @@ describe('adding', () => {
   test('saves a picked exercise with its sets', async () => {
     const { onSubmit } = setup();
     expect(screen.getByRole('heading', { name: 'Add Exercise' })).toBeInTheDocument();
-    pickExercise('Squat');
+    pickExercise('Leg Press Machine');
     userEvent.type(screen.getByLabelText(/set 1 weight/i), '225');
     userEvent.type(screen.getByLabelText(/set 1 reps/i), '5');
     userEvent.click(screen.getByRole('button', { name: /add set/i }));
@@ -49,8 +49,8 @@ describe('adding', () => {
     expect(onSubmit).toHaveBeenCalledTimes(1);
     expect(onSubmit).toHaveBeenCalledWith(
       expect.objectContaining({
-        name: 'Squat',
-        exerciseId: 'Barbell_Squat',
+        name: 'Leg Press Machine',
+        exerciseId: 'Leg_Press',
         sets: [{ weight: 225, reps: 5 }, { weight: 225, reps: 5 }],
       })
     );
@@ -80,8 +80,8 @@ describe('editing', () => {
   const workout = {
     id: 'ex-1',
     date: '2025-06-01',
-    name: 'Squat',
-    exerciseId: 'Barbell_Squat',
+    name: 'Leg Press Machine',
+    exerciseId: 'Leg_Press',
     sets: [
       { id: 's1', set_number: 1, weight: 95, reps: 10, set_type: 'warmup' },
       { id: 's2', set_number: 2, weight: 225, reps: 5, set_type: 'normal' },
@@ -92,7 +92,7 @@ describe('editing', () => {
     setup({ initial: workout });
     expect(screen.getByRole('heading', { name: 'Edit Exercise' })).toBeInTheDocument();
     expect(screen.getByLabelText('Date')).toHaveValue('2025-06-01');
-    expect(screen.getByText('Squat')).toBeInTheDocument();
+    expect(screen.getByText('Leg Press Machine')).toBeInTheDocument();
     expect(screen.getByLabelText(/set 1 weight/i)).toHaveValue(95);
     expect(screen.getByLabelText(/set 2 weight/i)).toHaveValue(225);
     expect(screen.getByLabelText(/set 2 reps/i)).toHaveValue(5);
@@ -103,8 +103,8 @@ describe('editing', () => {
     const { onSubmit } = setup({ initial: workout });
     userEvent.click(screen.getByRole('button', { name: 'Save changes' }));
     expect(onSubmit).toHaveBeenCalledWith({
-      name: 'Squat',
-      exerciseId: 'Barbell_Squat',
+      name: 'Leg Press Machine',
+      exerciseId: 'Leg_Press',
       date: '2025-06-01',
       sets: [{ weight: 95, reps: 10, set_type: 'warmup' }, { weight: 225, reps: 5 }],
     });
@@ -118,12 +118,12 @@ describe('editing', () => {
     userEvent.clear(screen.getByLabelText(/set 2 weight/i));
     userEvent.type(screen.getByLabelText(/set 2 weight/i), '235');
     userEvent.click(screen.getByRole('button', { name: /add set/i }));
-    pickExercise('Front Squat');
+    pickExercise('Leg Extension Machine');
     userEvent.click(screen.getByRole('button', { name: 'Save changes' }));
 
     expect(onSubmit).toHaveBeenCalledWith({
-      name: 'Front Squat',
-      exerciseId: 'Front_Squat_Clean_Grip',
+      name: 'Leg Extension Machine',
+      exerciseId: 'Leg_Extensions',
       date: '2025-06-02',
       sets: [
         { weight: 95, reps: 10, set_type: 'warmup' },

@@ -10,8 +10,8 @@ describe('library data', () => {
 
 describe('findExercise', () => {
   test('finds by id, then by case-insensitive name', () => {
-    expect(findExercise('Barbell_Squat', 'whatever').name).toBe('Squat');
-    expect(findExercise(null, '  squat ').id).toBe('Barbell_Squat');
+    expect(findExercise('Leg_Press', 'whatever').name).toBe('Leg Press Machine');
+    expect(findExercise(null, '  leg press machine ').id).toBe('Leg_Press');
   });
 
   test('returns null for custom exercises', () => {
@@ -21,28 +21,28 @@ describe('findExercise', () => {
 
 describe('exerciseKey and exerciseOptions', () => {
   test('treats a library id and a typed name of the same lift as one exercise', () => {
-    const a = { exerciseId: 'Barbell_Bench_Press_-_Medium_Grip', name: 'Bench Press' };
-    const b = { exerciseId: null, name: 'bench press' };
+    const a = { exerciseId: 'Leverage_Chest_Press', name: 'Flat Chest Press Machine' };
+    const b = { exerciseId: null, name: 'flat chest press machine' };
     expect(exerciseKey(a)).toBe(exerciseKey(b));
   });
 
   test('options are distinct, labelled, and in first-seen order', () => {
     const options = exerciseOptions([
       { exerciseId: null, name: 'Sled Push' },
-      { exerciseId: 'Barbell_Squat', name: 'Squat' },
+      { exerciseId: 'Leg_Press', name: 'Leg Press Machine' },
       { exerciseId: null, name: 'sled push' },
-      { exerciseId: null, name: 'squat' },
+      { exerciseId: null, name: 'leg press machine' },
     ]);
     expect(options).toEqual([
       { key: 'sled push', label: 'Sled Push' },
-      { key: 'Barbell_Squat', label: 'Squat' },
+      { key: 'Leg_Press', label: 'Leg Press Machine' },
     ]);
   });
 });
 
 describe('searchExercises', () => {
   test('matches name or group, all terms required', () => {
-    expect(searchExercises('bench').every((e) => /bench/i.test(e.name))).toBe(true);
+    expect(searchExercises('press').every((e) => /press/i.test(e.name))).toBe(true);
     expect(searchExercises('chest').length).toBeGreaterThan(0);
     expect(searchExercises('incline press').map((e) => e.name)).toContain('Incline Dumbbell Press');
   });
@@ -55,7 +55,7 @@ describe('searchExercises', () => {
 
 describe('exerciseImageUrl', () => {
   test('points at the bundled thumbnail, and is null for custom exercises', () => {
-    expect(exerciseImageUrl({ id: 'Barbell_Squat' })).toBe('/exercises/Barbell_Squat.webp');
+    expect(exerciseImageUrl({ id: 'Leg_Press' })).toBe('/exercises/Leg_Press.webp');
     expect(exerciseImageUrl(null)).toBeNull();
   });
 

@@ -24,12 +24,12 @@ test('shows only the selected day\'s workouts', () => {
 test('lists each exercise once in the graph dropdown, ignoring name casing', () => {
   render(
     <HistoryScreen
-      allWorkouts={[workout('a', 'Bench Press'), workout('b', 'bench press', '2025-01-01'), workout('c', 'Sled Push')]}
+      allWorkouts={[workout('a', 'Flat Chest Press Machine'), workout('b', 'flat chest press machine', '2025-01-01'), workout('c', 'Sled Push')]}
     />
   );
   const select = screen.getByLabelText(/select exercise for graph/i);
   const labels = within(select).getAllByRole('option').map((o) => o.textContent);
-  expect(labels).toEqual(['Bench Press', 'Sled Push']);
+  expect(labels).toEqual(['Flat Chest Press Machine', 'Sled Push']);
   expect(screen.getByTestId('chart')).toBeInTheDocument();
 });
 

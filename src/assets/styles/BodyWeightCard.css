@@ -8,8 +8,8 @@
 
 .bw-empty { margin-bottom: var(--space-4); color: var(--text-muted); font-size: 0.9375rem; }
 
-.bw-form { display: grid; grid-template-columns: 1fr 1fr auto; align-items: end; gap: var(--space-3); }
-.bw-form .form-group { margin-bottom: 0; }
+.bw-form { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto; align-items: end; gap: var(--space-3); }
+.bw-form .form-group { margin-bottom: 0; min-width: 0; }
 .bw-hint { margin-top: var(--space-2); }
 
 .bw-chart { margin-top: var(--space-5); }
@@ -30,6 +30,6 @@
 .bw-delete:hover:not(:disabled) { background: var(--danger-soft); color: var(--danger); }
 
 @media (max-width: 480px) {
-  .bw-form { grid-template-columns: 1fr 1fr; }
+  .bw-form { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
   .bw-form button { grid-column: 1 / -1; }
 }

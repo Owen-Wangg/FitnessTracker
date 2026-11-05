@@ -1,5 +1,5 @@
 // My curated exercise list. `id` names the thumbnail in public/exercises (see
-// scripts/make-exercise-icons.mjs); `name` is the display name.
+// scripts/make-exercise-icons.ts); `name` is the display name.
 import { GROUPS, type Exercise } from '../types';
 
 export { GROUPS };

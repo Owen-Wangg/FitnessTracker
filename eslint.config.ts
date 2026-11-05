@@ -7,7 +7,7 @@ import tseslint from 'typescript-eslint';
 const testGlobals = {
   describe: 'readonly', test: 'readonly', it: 'readonly', expect: 'readonly', vi: 'readonly',
   beforeEach: 'readonly', afterEach: 'readonly', beforeAll: 'readonly', afterAll: 'readonly',
-};
+} as const;
 
 export default tseslint.config(
   { ignores: ['build/**', 'node_modules/**'] },

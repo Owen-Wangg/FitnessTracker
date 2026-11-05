@@ -34,7 +34,7 @@ Supabase project's `/auth/v1/callback` URL.
 
 - `npm start` (or `npm run dev`) - dev server on http://localhost:3000
 - `npm test` - run tests in watch mode (`npx vitest run` for a single run)
-- `npm run lint` - ESLint
+- `npm run lint` - type-check (`tsc`) then ESLint; `npm run typecheck` runs just the type check
 - `npm run build` - production build into `build/`
 - `npm run preview` - serve the production build locally
 
@@ -53,11 +53,11 @@ Google sign-in, to the OAuth client's authorized JavaScript origins.
 - `src/components/` - UI pieces (add-workout form, exercise picker, charts, auth, toasts)
 - `src/utils/` - pure logic, unit tested: volume / 1RM (`workoutMetrics`), chart series and PRs (`progress`),
   form validation, exercise lookup
-- `src/data/fundamentals.js` - the built-in exercise list
+- `src/data/fundamentals.ts` - the built-in exercise list
 - `supabase/` - SQL to run in the Supabase dashboard
 
 Deleting a workout or weight entry shows an Undo toast; the delete is only sent once the toast expires.
 
 Exercise thumbnails are simple equipment illustrations (no people) drawn by `scripts/make-exercise-icons.mjs`
 into `public/exercises/` and served by the app itself; after adding an exercise to
-`src/data/fundamentals.js`, add a drawing for it in that script and run `node scripts/make-exercise-icons.mjs`.
+`src/data/fundamentals.ts`, add a drawing for it in that script and run `node scripts/make-exercise-icons.mjs`.

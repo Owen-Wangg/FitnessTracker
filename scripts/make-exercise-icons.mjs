@@ -1,13 +1,16 @@
-// Draws a simple equipment illustration (no people) for each exercise in src/data/fundamentals.js
+// Draws a simple equipment illustration (no people) for each exercise in src/data/fundamentals.ts
 // and writes public/exercises/<id>.webp, which the app serves itself.
 // Usage: node scripts/make-exercise-icons.mjs   (re-run after adding exercises; add a drawing below)
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath, pathToFileURL } from 'node:url';
+import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
-const { FUNDAMENTALS } = await import(pathToFileURL(path.join(root, 'src/data/fundamentals.js')).href);
+// Read the ids straight from the source file: importing the .ts module would need a TypeScript runtime.
+const FUNDAMENTALS = [...fs.readFileSync(path.join(root, 'src/data/fundamentals.ts'), 'utf8').matchAll(/\bid: '([^']+)'/g)].map(
+  (m) => ({ id: m[1] })
+);
 const outDir = path.join(root, 'public', 'exercises');
 const SIZE = 192;
 

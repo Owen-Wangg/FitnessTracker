@@ -1,14 +1,17 @@
-// Downloads the photo for each exercise in src/data/fundamentals.js from the public-domain
+// Downloads the photo for each exercise in src/data/fundamentals.ts from the public-domain
 // Free Exercise DB (https://github.com/yuhonas/free-exercise-db, Unlicense), shrinks it to a
 // thumbnail, and writes public/exercises/<id>.webp so the app can serve it itself.
 // Usage: node scripts/fetch-exercise-photos.mjs   (re-run after adding exercises)
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath, pathToFileURL } from 'node:url';
+import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
-const { FUNDAMENTALS } = await import(pathToFileURL(path.join(root, 'src/data/fundamentals.js')).href);
+// Read the ids straight from the source file: importing the .ts module would need a TypeScript runtime.
+const FUNDAMENTALS = [...fs.readFileSync(path.join(root, 'src/data/fundamentals.ts'), 'utf8').matchAll(/\bid: '([^']+)'/g)].map(
+  (m) => ({ id: m[1] })
+);
 const outDir = path.join(root, 'public', 'exercises');
 const SOURCE = 'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises';
 const SIZE = 192; // shown at up to 72px, so this covers 2x screens

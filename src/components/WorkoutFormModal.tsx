@@ -139,7 +139,7 @@ const WorkoutFormModal = ({ initial = null, initialDate, history = [], onClose, 
 
           <div className="form-group">
             <span className="field-label">Exercise</span>
-            <button type="button" className="exercise-select-btn" onClick={() => setShowPicker(true)}>
+            <button type="button" className="exercise-select-btn" data-autofocus onClick={() => setShowPicker(true)}>
               {exercise ? (
                 <>
                   <ExerciseThumb exercise={libraryEntry} size={48} />

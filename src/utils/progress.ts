@@ -1,4 +1,4 @@
-import { topSet, bestEstimated1RM, bestReps, daysBetween, workoutVolume } from './workoutMetrics';
+import { topSet, bestEstimated1RM, bestReps, daysBetween, workoutLoadVolume } from './workoutMetrics';
 import { exerciseKey } from './exerciseLibrary';
 import type { Metric, Workout } from '../types';
 
@@ -30,7 +30,7 @@ export const buildSeries = (workouts: Workout[] | null | undefined, key: string)
       day.e1rm = Math.max(day.e1rm, e1rm);
       if (w.bodyWeight && w.bodyWeight > 0) day.relative = Math.max(day.relative, e1rm / w.bodyWeight);
       day.reps = Math.max(day.reps, bestReps(w));
-      day.volume += workoutVolume(w);
+      day.volume += workoutLoadVolume(w);
     });
 
   return (Object.values(byDate).filter((d) => d.top) as ScoredDay[])

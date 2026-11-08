@@ -42,6 +42,13 @@ describe('buildSeries', () => {
     expect(series.map((d) => d.reps)).toEqual([10, 11]);
   });
 
+  test('chart volume for a bodyweight exercise includes body weight, unlike totals', () => {
+    const logged = [entry('2025-06-01', 'Pull-Up', [{ weight: 0, reps: 10, load: 180 }], { exerciseId: 'Pull_Up' })];
+    const [day] = buildSeries(logged, 'Pull_Up');
+    expect(day.volume).toBe(1800);
+    expect(day.top).toEqual({ weight: 180, reps: 10 });
+  });
+
   test('relative strength is the best estimated 1RM divided by body weight that day', () => {
     const logged = [
       entry('2025-06-01', 'Flat Chest Press Machine', [{ weight: 150, reps: 1 }], { bodyWeight: 200 }),

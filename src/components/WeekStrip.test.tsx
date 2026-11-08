@@ -77,3 +77,15 @@ test('shows no breakdown before anything has been logged', () => {
   render(<WeekStrip workouts={[]} />);
   expect(screen.queryByRole('list', { name: /sets by muscle group/i })).not.toBeInTheDocument();
 });
+
+test('body weight does not inflate the weekly volume', () => {
+  const pullUps: Workout = {
+    id: 'u',
+    date: '2025-06-10',
+    name: 'Pull-Up',
+    exerciseId: 'Pull_Up',
+    sets: [{ weight: 0, reps: 10, load: 180 }], // the app adds a 180 lb body weight as the load
+  };
+  render(<WeekStrip workouts={[press('a', '2025-06-09', 100), pullUps]} />);
+  expect(screen.getByText('500')).toBeInTheDocument(); // 100 x 5 from the press only
+});

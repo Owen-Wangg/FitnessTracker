@@ -1,6 +1,7 @@
 import React from 'react';
 import { FaPen, FaTrash } from 'react-icons/fa';
-import { workoutVolume } from '../utils/workoutMetrics';
+import { workoutReps, workoutVolume } from '../utils/workoutMetrics';
+import { plural } from '../utils/format';
 import { findExercise } from '../utils/exerciseLibrary';
 import { toDisplay } from '../utils/units';
 import type { Workout } from '../types';
@@ -20,6 +21,13 @@ const WorkoutItem = ({ workout, onDelete, onEdit }: WorkoutItemProps) => {
   const exercise = findExercise(workout.exerciseId, workout.name);
   const bodyweight = exercise?.loadType === 'bodyweight';
 
+  // Weight lifted in total. Body weight is not counted, so a bodyweight exercise shows its reps instead
+  // (plus the extra weight, if any was added).
+  const lifted = toDisplay(workoutVolume(workout), unit);
+  const totalText = bodyweight
+    ? `${plural(workoutReps(workout), 'rep')} total${lifted > 0 ? ` · ${lifted.toLocaleString()} ${unit} added` : ''}`
+    : `${lifted.toLocaleString()} ${unit} total`;
+
   return (
     <div className="workout-item card">
       <ExerciseThumb exercise={exercise} size={64} />
@@ -38,7 +46,7 @@ const WorkoutItem = ({ workout, onDelete, onEdit }: WorkoutItemProps) => {
             </li>
           ))}
         </ol>
-        <p className="workout-volume">{toDisplay(workoutVolume(workout), unit).toLocaleString()} {unit} total</p>
+        <p className="workout-volume">{totalText}</p>
       </div>
 
       {(onEdit || onDelete) && (

@@ -2,8 +2,9 @@
 //   { id, date: 'YYYY-MM-DD', name, sets: [{ weight, reps, set_type }] }
 // Warm-up sets are excluded from every metric.
 
-// A set's `load` (body weight + added weight, for bodyweight exercises) stands in for `weight`
-// in every metric when present.
+// A set's `load` (body weight + added weight, for bodyweight exercises) stands in for `weight` in the
+// strength measures (top set, estimated 1RM, per-exercise volume). Totals and summaries count only
+// `weight`, the weight actually lifted or added, so body weight never inflates them.
 import type { BodyWeight, Workout, WorkoutSet } from '../types';
 import { isBodyweight } from './exerciseLibrary';
 
@@ -50,18 +51,26 @@ export const estimate1RM = (weight: unknown, reps: unknown): number => {
   return r === 1 ? w : w * (1 + r / 30);
 };
 
-export const setVolume = (set: Pick<WorkoutSet, 'weight' | 'reps' | 'load'>): number => loadOf(set) * (Number(set.reps) || 0);
+// Weight lifted x reps. For bodyweight exercises that is the added weight only, so a pull-up with no
+// belt counts 0; this is what totals and summaries use.
+export const setVolume = (set: Pick<WorkoutSet, 'weight' | 'reps'>): number => (Number(set.weight) || 0) * (Number(set.reps) || 0);
 
 export const workoutVolume = (workout: WithSets): number =>
   countedSets(workout).reduce((sum, s) => sum + setVolume(s), 0);
 
+// Like workoutVolume but counting body weight for bodyweight exercises (the set's `load`). Used for one
+// exercise's progress chart, where "pull-up volume including body weight" is the meaningful trend.
+export const workoutLoadVolume = (workout: WithSets): number =>
+  countedSets(workout).reduce((sum, s) => sum + loadOf(s) * (Number(s.reps) || 0), 0);
+
 export const totalVolume = (workouts: WithSets[] | null | undefined): number =>
   (workouts || []).reduce((sum, w) => sum + workoutVolume(w), 0);
 
-// Heaviest set (ties broken by more reps), or null if there are no counted sets.
-export const topSet = (workout: WithSets): { weight: number; reps: number } | null =>
+// Heaviest set (ties broken by more reps), or null if there are no counted sets. By default a bodyweight
+// set counts with body weight (its load); pass false to compare only the weight actually lifted.
+export const topSet = (workout: WithSets, includeBodyWeight = true): { weight: number; reps: number } | null =>
   countedSets(workout).reduce<{ weight: number; reps: number } | null>((best, s) => {
-    const weight = loadOf(s);
+    const weight = includeBodyWeight ? loadOf(s) : Number(s.weight) || 0;
     const reps = Number(s.reps) || 0;
     if (!best || weight > best.weight || (weight === best.weight && reps > best.reps)) {
       return { weight, reps };
@@ -71,6 +80,10 @@ export const topSet = (workout: WithSets): { weight: number; reps: number } | nu
 
 export const bestEstimated1RM = (workout: WithSets): number =>
   countedSets(workout).reduce((best, s) => Math.max(best, estimate1RM(loadOf(s), s.reps)), 0);
+
+// Total reps across the counted sets.
+export const workoutReps = (workout: WithSets): number =>
+  countedSets(workout).reduce((sum, s) => sum + (Number(s.reps) || 0), 0);
 
 // Most reps in a single counted set. The natural progress measure for bodyweight exercises.
 export const bestReps = (workout: WithSets): number =>

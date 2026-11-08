@@ -6,6 +6,8 @@ import {
   topSet,
   bestEstimated1RM,
   bestReps,
+  workoutLoadVolume,
+  workoutReps,
   bodyWeightOn,
   applyBodyWeight,
   formatLocalDate,
@@ -144,11 +146,29 @@ describe('bodyweight exercises', () => {
     expect(applyBodyWeight([bench], [])[0]).toBe(bench);
   });
 
-  test('metrics use load in place of weight', () => {
+  test('strength measures use load (body weight included)', () => {
     const [w] = applyBodyWeight([pullUps('2025-06-10', [{ weight: 0, reps: 10 }, { weight: 25, reps: 4 }])], bodyWeights);
-    expect(workoutVolume(w)).toBe(175 * 10 + 200 * 4);
     expect(topSet(w)).toEqual({ weight: 200, reps: 4 });
     expect(bestEstimated1RM(w)).toBeCloseTo(Math.max(175 * (1 + 10 / 30), 200 * (1 + 4 / 30)));
+    expect(workoutLoadVolume(w)).toBe(175 * 10 + 200 * 4); // per-exercise volume, for the chart
+  });
+
+  test('totals count only the weight actually lifted, never body weight', () => {
+    const [w] = applyBodyWeight([pullUps('2025-06-10', [{ weight: 0, reps: 10 }, { weight: 25, reps: 4 }])], bodyWeights);
+    expect(workoutVolume(w)).toBe(25 * 4); // the unweighted set adds nothing
+    expect(totalVolume([w])).toBe(100);
+    expect(topSet(w, false)).toEqual({ weight: 25, reps: 4 });
+  });
+
+  test('an unweighted bodyweight workout adds nothing to a total', () => {
+    const [w] = applyBodyWeight([pullUps('2025-06-10', [{ weight: 0, reps: 12 }])], bodyWeights);
+    expect(workoutVolume(w)).toBe(0);
+    expect(workoutReps(w)).toBe(12);
+  });
+
+  test('workoutReps adds up counted sets and skips warm-ups', () => {
+    expect(workoutReps(workout([{ weight: 100, reps: 8 }, { weight: 100, reps: 7 }, { weight: 45, reps: 10, set_type: 'warmup' }]))).toBe(15);
+    expect(workoutReps(null)).toBe(0);
   });
 
   test('bestReps is the most reps in one counted set', () => {

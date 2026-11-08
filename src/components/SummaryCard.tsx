@@ -14,7 +14,7 @@ const SummaryCard = ({ workouts = [] }: { workouts?: Workout[] }) => {
     0
   );
   const heaviest = workouts.reduce<{ weight: number; reps: number } | null>((best, w) => {
-    const top = topSet(w);
+    const top = topSet(w, false); // the heaviest weight actually lifted, not body weight
     return top && (!best || top.weight > best.weight) ? top : best;
   }, null);
 

@@ -45,3 +45,32 @@ test('only shows the buttons that have a handler', () => {
   expect(screen.getByRole('button', { name: 'Edit Squat' })).toBeInTheDocument();
   expect(screen.queryByRole('button', { name: 'Delete Squat' })).not.toBeInTheDocument();
 });
+
+describe('bodyweight exercises', () => {
+  const pullUps = (sets: { weight: number; reps: number }[]) => ({
+    id: 'w2',
+    date: '2025-06-01',
+    name: 'Pull-Up',
+    exerciseId: 'Pull_Up',
+    // as the app passes it: the set load includes a 180 lb body weight
+    sets: sets.map((s, i) => ({ id: `p${i}`, set_number: i + 1, ...s, load: 180 + s.weight })),
+  });
+
+  test('shows total reps, not a weight total that would include body weight', () => {
+    render(<WorkoutItem workout={pullUps([{ weight: 0, reps: 10 }, { weight: 0, reps: 8 }])} />);
+    expect(screen.getAllByText('Bodyweight')).toHaveLength(2);
+    expect(screen.getByText('18 reps total')).toBeInTheDocument();
+    expect(screen.queryByText(/lbs total/)).not.toBeInTheDocument();
+  });
+
+  test('adds the extra weight when some was used', () => {
+    render(<WorkoutItem workout={pullUps([{ weight: 0, reps: 10 }, { weight: 25, reps: 4 }])} />);
+    expect(screen.getByText('BW + 25 lbs')).toBeInTheDocument();
+    expect(screen.getByText('14 reps total · 100 lbs added')).toBeInTheDocument();
+  });
+
+  test('says "1 rep" for a single rep', () => {
+    render(<WorkoutItem workout={pullUps([{ weight: 0, reps: 1 }])} />);
+    expect(screen.getByText('1 rep total')).toBeInTheDocument();
+  });
+});

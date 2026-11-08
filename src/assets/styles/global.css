@@ -67,13 +67,13 @@
   --accent-soft: rgba(101, 163, 13, 0.14);
   --accent-glow: rgba(101, 163, 13, 0.14);
   --accent-edge: rgba(101, 163, 13, 0.3);
-  --accent-text: #4d7c0f;
+  --accent-text: #4a740f;
   --chart-line: #65a30d;
   --on-accent: #0a0c10;
   --pr: #cc7a00;
-  --pr-text: #a85d00;
-  --success: #15803d;
-  --danger: #dc2626;
+  --pr-text: #a05600;
+  --success: #16793a;
+  --danger: #c81e1e;
   --danger-soft: rgba(220, 38, 38, 0.1);
   --shadow: 0 10px 28px rgba(20, 30, 50, 0.12);
 

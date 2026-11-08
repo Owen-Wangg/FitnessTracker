@@ -34,7 +34,59 @@ export const buildSeries = (workouts: Workout[] | null | undefined, key: string)
     .sort((a, b) => a.date.localeCompare(b.date));
 };
 
-export const valueFor = (day: ScoredDay, metric: Metric): number => (metric === 'top' ? day.top.weight : day[metric]);
+// Time windows for the chart, counted back from the latest session (not from today), so a break
+// from training never leaves an empty chart.
+export type RangeKey = '1m' | '3m' | '6m' | 'all';
+export const RANGES: { key: RangeKey; label: string; days: number }[] = [
+  { key: '1m', label: '1M', days: 30 },
+  { key: '3m', label: '3M', days: 91 },
+  { key: '6m', label: '6M', days: 182 },
+  { key: 'all', label: 'All', days: Infinity },
+];
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+const dayNumber = (date: string): number => {
+  const [y, m, d] = date.split('-').map(Number);
+  return Date.UTC(y, m - 1, d) / DAY_MS;
+};
+
+// Days between the first and last point of a series (oldest first).
+const spanDays = (days: { date: string }[]): number =>
+  days.length < 2 ? 0 : dayNumber(days[days.length - 1].date) - dayNumber(days[0].date);
+
+// Ranges worth offering: those shorter than the history. Empty when the history is short, because
+// the choice would change nothing.
+export const availableRanges = (days: { date: string }[]): RangeKey[] => {
+  const span = spanDays(days);
+  const shorter = RANGES.filter((r) => r.days < span).map((r) => r.key);
+  return shorter.length > 0 ? [...shorter, 'all'] : [];
+};
+
+export const inRange = <T extends { date: string }>(days: T[], range: RangeKey): T[] => {
+  const { days: window } = RANGES.find((r) => r.key === range) ?? RANGES[RANGES.length - 1];
+  if (days.length === 0 || window === Infinity) return days;
+  const cutoff = dayNumber(days[days.length - 1].date) - window;
+  return days.filter((d) => dayNumber(d.date) >= cutoff);
+};
+
+// Least-squares line through the points (evenly spaced by position), as one fitted value per point.
+// Null with fewer than three points, where a "trend" would just be a line between two dots.
+export const trendLine = (values: number[]): number[] | null => {
+  const n = values.length;
+  if (n < 3) return null;
+  const meanX = (n - 1) / 2;
+  const meanY = values.reduce((sum, v) => sum + v, 0) / n;
+  let covariance = 0;
+  let variance = 0;
+  values.forEach((v, i) => {
+    covariance += (i - meanX) * (v - meanY);
+    variance += (i - meanX) ** 2;
+  });
+  const slope = covariance / variance;
+  return values.map((_, i) => meanY + slope * (i - meanX));
+};
+
+export const valueFor =(day: ScoredDay, metric: Metric): number => (metric === 'top' ? day.top.weight : day[metric]);
 
 // A point is a PR when it beats everything before it. The first session is just the baseline.
 export const personalRecordFlags = (values: number[]): boolean[] => {

@@ -3,7 +3,7 @@ import { parseLocalDate } from '../utils/workoutMetrics';
 import { isBodyweight } from '../utils/exerciseLibrary';
 import { toDisplay } from '../utils/units';
 import { useUnit } from './UnitProvider';
-import { buildSeries, valueFor, personalRecordFlags } from '../utils/progress';
+import { RANGES, availableRanges, buildSeries, inRange, valueFor, personalRecordFlags, type RangeKey } from '../utils/progress';
 import TrendChart, { type TrendPoint } from './TrendChart';
 import type { Metric, Workout } from '../types';
 import type { ScoredDay } from '../utils/progress';
@@ -48,6 +48,11 @@ const ProgressGraph = ({ workouts, exerciseKey, exerciseLabel }: ProgressGraphPr
     [workouts, exerciseKey]
   );
 
+  // The range choice only appears once the history is longer than the shortest range.
+  const [pickedRange, setPickedRange] = useState<RangeKey | null>(null);
+  const rangeOptions = availableRanges(days);
+  const range = pickedRange && rangeOptions.includes(pickedRange) ? pickedRange : 'all';
+
   if (!workouts || !Array.isArray(workouts) || workouts.length === 0) {
     return <p className="graph-message">No workout data available to display progress.</p>;
   }
@@ -58,8 +63,14 @@ const ProgressGraph = ({ workouts, exerciseKey, exerciseLabel }: ProgressGraphPr
     return <p className="graph-message">No data for "{exerciseLabel}".</p>;
   }
 
-  const values = days.map((d) => shown(valueFor(d, metric)));
-  const isPR = personalRecordFlags(values);
+  // Personal records are judged against the whole history, then the chosen range is cut out of it.
+  const allValues = days.map((d) => shown(valueFor(d, metric)));
+  const allFlags = personalRecordFlags(allValues);
+  const visible = inRange(
+    days.map((day, i) => ({ date: day.date, day, value: allValues[i], highlight: allFlags[i] })),
+    range
+  );
+  const values = visible.map((p) => p.value);
 
   const first = values[0];
   const latest = values[values.length - 1];
@@ -67,11 +78,11 @@ const ProgressGraph = ({ workouts, exerciseKey, exerciseLabel }: ProgressGraphPr
   const change = latest - first;
   const changePct = first > 0 ? (change / first) * 100 : 0;
 
-  const data: ProgressPoint[] = days.map((day, i) => ({
+  const data: ProgressPoint[] = visible.map(({ day, value, highlight }) => ({
     key: day.date,
     label: shortDate(day.date),
-    value: values[i],
-    highlight: isPR[i],
+    value,
+    highlight,
     day,
   }));
 
@@ -114,7 +125,7 @@ const ProgressGraph = ({ workouts, exerciseKey, exerciseLabel }: ProgressGraphPr
           <span className="graph-stat-label">Change</span>
           <span className={`graph-stat-value ${change > 0 ? 'up' : change < 0 ? 'down' : ''}`}>
             {change > 0 ? '+' : ''}{formatNumber(change)} {unit}
-            {days.length > 1 && first > 0 && ` (${change > 0 ? '+' : ''}${changePct.toFixed(0)}%)`}
+            {values.length > 1 && first > 0 && ` (${change > 0 ? '+' : ''}${changePct.toFixed(0)}%)`}
           </span>
         </div>
       </div>
@@ -123,9 +134,30 @@ const ProgressGraph = ({ workouts, exerciseKey, exerciseLabel }: ProgressGraphPr
         data={data}
         describe={describe}
         formatValue={formatNumber}
+        trend
         ariaLabel={`${METRICS[metric].label} for ${exerciseLabel} over time`}
       />
-      <p className="graph-legend"><span className="pr-dot" /> Personal record</p>
+      <div className="graph-footer">
+        <p className="graph-legend">
+          <span className="legend-item"><span className="pr-dot" /> Personal record</span>
+          {data.length >= 3 && <span className="legend-item"><span className="trend-swatch" /> Trend</span>}
+        </p>
+        {rangeOptions.length > 0 && (
+          <div className="metric-toggle range-toggle" role="group" aria-label="Time range">
+            {RANGES.filter((r) => rangeOptions.includes(r.key)).map((r) => (
+              <button
+                key={r.key}
+                type="button"
+                className={`metric-btn ${range === r.key ? 'active' : ''}`}
+                aria-pressed={range === r.key}
+                onClick={() => setPickedRange(r.key)}
+              >
+                {r.label}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 };

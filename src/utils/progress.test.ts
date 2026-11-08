@@ -1,5 +1,5 @@
 import type { WorkoutSet } from '../types';
-import { buildSeries, valueFor, personalRecordFlags, niceScale } from './progress';
+import { availableRanges, buildSeries, inRange, valueFor, personalRecordFlags, niceScale, trendLine } from './progress';
 
 const entry = (date: string, name: string, sets: WorkoutSet[], extra = {}) => ({ id: `${date}-${name}`, date, name, sets, ...extra });
 
@@ -55,6 +55,47 @@ describe('valueFor', () => {
     expect(valueFor(day, 'e1rm')).toBe(220);
     expect(valueFor(day, 'volume')).toBe(600);
     expect(valueFor(day, 'reps')).toBe(5);
+  });
+});
+
+describe('ranges', () => {
+  const at = (...dates: string[]) => dates.map((date) => ({ date }));
+
+  test('offers nothing when the history is under a month', () => {
+    expect(availableRanges(at('2025-06-01', '2025-06-20'))).toEqual([]);
+    expect(availableRanges(at('2025-06-01'))).toEqual([]);
+    expect(availableRanges([])).toEqual([]);
+  });
+
+  test('offers only ranges shorter than the history, plus All', () => {
+    expect(availableRanges(at('2025-05-01', '2025-06-15'))).toEqual(['1m', 'all']);
+    expect(availableRanges(at('2024-12-01', '2025-06-15'))).toEqual(['1m', '3m', '6m', 'all']);
+  });
+
+  test('inRange counts back from the latest session, not from today', () => {
+    const days = at('2024-01-01', '2024-03-01', '2024-04-10', '2024-05-01');
+    expect(inRange(days, '1m').map((d) => d.date)).toEqual(['2024-04-10', '2024-05-01']);
+    expect(inRange(days, '3m').map((d) => d.date)).toEqual(['2024-03-01', '2024-04-10', '2024-05-01']);
+    expect(inRange(days, 'all')).toHaveLength(4);
+    expect(inRange([], '1m')).toEqual([]);
+  });
+});
+
+describe('trendLine', () => {
+  test('needs at least three points', () => {
+    expect(trendLine([])).toBeNull();
+    expect(trendLine([100, 110])).toBeNull();
+  });
+
+  test('is exact for a straight line and flat for a constant', () => {
+    expect(trendLine([100, 110, 120, 130])).toEqual([100, 110, 120, 130]);
+    expect(trendLine([5, 5, 5])).toEqual([5, 5, 5]);
+  });
+
+  test('smooths a noisy rise into an upward line through the mean', () => {
+    const fit = trendLine([100, 120, 110, 140]) as number[];
+    expect(fit[3]).toBeGreaterThan(fit[0]);
+    expect(fit.reduce((a, b) => a + b, 0) / 4).toBeCloseTo(117.5);
   });
 });
 

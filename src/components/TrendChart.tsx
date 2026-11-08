@@ -1,6 +1,6 @@
 import React, { useId } from 'react';
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-import { niceScale } from '../utils/progress';
+import { niceScale, trendLine } from '../utils/progress';
 import '../assets/styles/TrendChart.css';
 
 // Line/area chart over time, shared by the exercise progress graph and the body weight chart.
@@ -59,25 +59,28 @@ const TooltipCard = <T extends TrendPoint>({ active, payload, describe }: Toolti
   );
 };
 
+//   trend:    draw a faint dashed line of best fit (needs 3+ points)
 interface TrendChartProps<T extends TrendPoint> {
   data: T[];
   describe: (point: T) => TooltipContent;
   formatValue?: (value: number) => string;
   height?: number;
+  trend?: boolean;
   ariaLabel: string;
 }
 
-const TrendChart = <T extends TrendPoint>({ data, describe, formatValue = String, height = 280, ariaLabel }: TrendChartProps<T>) => {
+const TrendChart = <T extends TrendPoint>({ data, describe, formatValue = String, height = 280, trend = false, ariaLabel }: TrendChartProps<T>) => {
   const gradientId = useId();
   const values = data.map((d) => d.value);
-  const min = Math.min(...values);
-  const max = Math.max(...values);
-  const { domain, ticks } = niceScale(min, max);
+  const fitted = trend ? trendLine(values) : null;
+  const rows = fitted ? data.map((d, i) => ({ ...d, trend: fitted[i] })) : data;
+  const all = fitted ? [...values, ...fitted] : values;
+  const { domain, ticks } = niceScale(Math.min(...all), Math.max(...all));
 
   return (
     <div className="trend-chart" style={{ height }} role="img" aria-label={ariaLabel}>
       <ResponsiveContainer width="100%" height="100%">
-        <AreaChart data={data} margin={{ top: 8, right: 12, bottom: 0, left: 0 }}>
+        <AreaChart data={rows} margin={{ top: 8, right: 12, bottom: 0, left: 0 }}>
           <defs>
             <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor="var(--chart-line)" stopOpacity={0.25} />
@@ -106,6 +109,21 @@ const TrendChart = <T extends TrendPoint>({ data, describe, formatValue = String
             activeDot={<Dot />}
             isAnimationActive={false}
           />
+          {fitted && (
+            <Area
+              type="linear"
+              dataKey="trend"
+              stroke="var(--text-muted)"
+              strokeWidth={1.5}
+              strokeDasharray="5 5"
+              strokeOpacity={0.7}
+              fill="none"
+              dot={false}
+              activeDot={false}
+              isAnimationActive={false}
+              className="trend-line"
+            />
+          )}
         </AreaChart>
       </ResponsiveContainer>
     </div>

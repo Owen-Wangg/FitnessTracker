@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import ProgressGraph from './ProgressGraph';
 
@@ -47,6 +47,51 @@ test('switching metric changes the numbers and the title', () => {
 
   userEvent.click(screen.getByRole('button', { name: 'Est. 1RM' }));
   expect(screen.getByText('Latest').nextSibling).toHaveTextContent('233.3 lbs'); // 200 x (1 + 5/30)
+});
+
+test('draws a trend line once there are three points, and says so in the legend', () => {
+  const { container, rerender } = render(<ProgressGraph workouts={history} exerciseKey={BENCH} exerciseLabel="Flat Chest Press Machine" />);
+  expect(container.querySelector('.trend-line')).toBeInTheDocument();
+  expect(screen.getByText('Trend')).toBeInTheDocument();
+
+  rerender(<ProgressGraph workouts={history.slice(0, 2)} exerciseKey={BENCH} exerciseLabel="Flat Chest Press Machine" />);
+  expect(container.querySelector('.trend-line')).not.toBeInTheDocument();
+  expect(screen.queryByText('Trend')).not.toBeInTheDocument();
+});
+
+describe('time range', () => {
+  const longHistory = [
+    session('2024-12-20', 150),
+    session('2025-03-01', 165),
+    session('2025-05-20', 180),
+    session('2025-06-10', 190),
+    session('2025-06-24', 200),
+  ];
+  const renderLong = () => render(<ProgressGraph workouts={longHistory} exerciseKey={BENCH} exerciseLabel="Flat Chest Press Machine" />);
+
+  test('is hidden while the history is short', () => {
+    render(<ProgressGraph workouts={history} exerciseKey={BENCH} exerciseLabel="Flat Chest Press Machine" />);
+    expect(screen.queryByRole('group', { name: /time range/i })).not.toBeInTheDocument();
+  });
+
+  test('shows only the ranges that make a difference, defaulting to All', () => {
+    renderLong();
+    const group = screen.getByRole('group', { name: /time range/i });
+    expect(within(group).getAllByRole('button').map((b) => b.textContent)).toEqual(['1M', '3M', '6M', 'All']);
+    expect(within(group).getByRole('button', { name: 'All' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByText('Change').nextSibling).toHaveTextContent('+50 lbs');
+  });
+
+  test('narrowing the range updates the numbers but keeps PRs judged against all history', () => {
+    const { container } = renderLong();
+    userEvent.click(screen.getByRole('button', { name: '1M' }));
+    expect(screen.getByRole('button', { name: '1M' })).toHaveAttribute('aria-pressed', 'true');
+    // last 30 days of data: Jun 10 (190) and Jun 24 (200)
+    expect(screen.getByText('Change').nextSibling).toHaveTextContent('+10 lbs');
+    const points = dots(container).filter((c) => c.getAttribute('stroke') === 'var(--surface)');
+    expect(points).toHaveLength(2);
+    expect(points.filter((c) => c.getAttribute('fill') === 'var(--pr)')).toHaveLength(2);
+  });
 });
 
 test('a single session still draws a point', () => {

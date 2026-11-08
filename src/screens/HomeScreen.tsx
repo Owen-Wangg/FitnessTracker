@@ -1,6 +1,7 @@
 import React from 'react';
 import SummaryCard from '../components/SummaryCard';
 import WeekStrip from '../components/WeekStrip';
+import MonthSummary from '../components/MonthSummary';
 import WorkoutList from '../components/WorkoutList';
 import { FaPlus } from 'react-icons/fa';
 import type { Workout } from '../types';
@@ -35,6 +36,7 @@ const HomeScreen = ({
       <div className="home-dashboard">
         <SummaryCard workouts={todaysWorkouts} />
         <WeekStrip workouts={allWorkouts} />
+        {allWorkouts.length > 0 && <MonthSummary workouts={allWorkouts} />}
       </div>
 
       <WorkoutList workouts={todaysWorkouts} onDelete={deleteWorkout} onEdit={onEditWorkout} loading={loading} />

@@ -1,6 +1,7 @@
 import React from 'react';
 import BodyWeightCard from '../components/BodyWeightCard';
 import ThemeSelector from '../components/ThemeSelector';
+import ConsistencyCard from '../components/ConsistencyCard';
 import PersonalRecordsCard from '../components/PersonalRecordsCard';
 import UnitSelector from '../components/UnitSelector';
 import { useUnit } from '../components/UnitProvider';
@@ -78,6 +79,8 @@ const ProfileScreen = ({
           </div>
         )}
       </div>
+
+      <ConsistencyCard workouts={workouts} />
 
       <PersonalRecordsCard workouts={workouts} />
 

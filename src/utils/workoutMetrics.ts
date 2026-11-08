@@ -12,7 +12,7 @@ type WithSets = { sets?: WorkoutSet[] } | null | undefined;
 const countedSets = (workout: WithSets): WorkoutSet[] =>
   (workout?.sets || []).filter((s) => s && s.set_type !== 'warmup' && Number(s.reps) > 0);
 
-const loadOf = (set: Pick<WorkoutSet, 'weight' | 'load'>): number => Number(set.load ?? set.weight) || 0;
+export const loadOf = (set: Pick<WorkoutSet, 'weight' | 'load'>): number => Number(set.load ?? set.weight) || 0;
 
 // Body weight to use for a date: the latest entry on or before it, else the earliest one after it,
 // else null. `bodyWeights` is oldest first.

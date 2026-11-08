@@ -1,0 +1,15 @@
+.records-card { max-width: 560px; }
+.records-title { display: flex; align-items: center; gap: var(--space-2); margin-bottom: var(--space-3); font-size: 0.8125rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); }
+.records-title svg { color: var(--pr-text); }
+.records-empty { color: var(--text-muted); font-size: 0.9375rem; }
+
+.records-list { list-style: none; margin: 0; padding: 0; }
+.record-row { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-3) 0; border-bottom: 1px solid var(--border); }
+.record-row:last-child { border-bottom: none; }
+.record-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.record-name { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.record-detail { font-size: 0.8125rem; color: var(--text-muted); }
+.record-value { font-family: var(--font-display); font-size: 1.125rem; font-weight: 700; text-align: right; font-variant-numeric: tabular-nums; }
+
+.records-toggle { width: 100%; margin-top: var(--space-2); background: transparent; color: var(--accent-text); font-size: 0.875rem; font-weight: 600; }
+.records-toggle:hover:not(:disabled) { background: var(--surface-2); }

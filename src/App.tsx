@@ -102,6 +102,7 @@ function App() {
                 user={user}
                 handleSignOut={handleSignOut}
                 lifetimeStats={lifetimeStats}
+                workouts={workouts}
                 bodyWeights={bodyWeights}
                 onLogBodyWeight={logBodyWeight}
                 onDeleteBodyWeight={deleteBodyWeight}

@@ -1,17 +1,19 @@
 import React from 'react';
 import BodyWeightCard from '../components/BodyWeightCard';
 import ThemeSelector from '../components/ThemeSelector';
+import PersonalRecordsCard from '../components/PersonalRecordsCard';
 import UnitSelector from '../components/UnitSelector';
 import { useUnit } from '../components/UnitProvider';
 import { toDisplay } from '../utils/units';
 import { displayNameFor, avatarUrlFor, type UserLike } from '../utils/userProfile';
-import type { BodyWeight, BodyWeightDraft, ThemePreference } from '../types';
+import type { BodyWeight, BodyWeightDraft, ThemePreference, Workout } from '../types';
 import '../assets/styles/ProfileScreen.css';
 
 interface ProfileScreenProps {
   user?: UserLike | null;
   handleSignOut?: () => void | Promise<void>;
   lifetimeStats?: { totalWeightLifted: number };
+  workouts?: Workout[]; // everything logged, for the records and trends
   bodyWeights?: BodyWeight[]; // oldest first
   onLogBodyWeight: (entry: BodyWeightDraft) => Promise<boolean>;
   onDeleteBodyWeight: (id: string) => void;
@@ -23,6 +25,7 @@ const ProfileScreen = ({
   user = null,
   handleSignOut,
   lifetimeStats = { totalWeightLifted: 0 },
+  workouts = [],
   bodyWeights = [],
   onLogBodyWeight,
   onDeleteBodyWeight,
@@ -75,6 +78,8 @@ const ProfileScreen = ({
           </div>
         )}
       </div>
+
+      <PersonalRecordsCard workouts={workouts} />
 
       {onThemeChange && (
         <div className="appearance-card card">

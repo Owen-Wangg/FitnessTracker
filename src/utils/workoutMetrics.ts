@@ -84,6 +84,15 @@ export const formatLocalDate = (date: Date): string => {
   return `${y}-${m}-${d}`;
 };
 
+// The date n days after (or before, if negative) a 'YYYY-MM-DD' date.
+export const addDays = (date: string, n: number): string => {
+  const d = parseLocalDate(date);
+  return formatLocalDate(new Date(d.getFullYear(), d.getMonth(), d.getDate() + n));
+};
+
+// Monday of the week containing a 'YYYY-MM-DD' date (weeks run Monday to Sunday).
+export const mondayOf = (date: string): string => addDays(date, -((parseLocalDate(date).getDay() + 6) % 7));
+
 // Whole days from one 'YYYY-MM-DD' date to another (negative if `to` is earlier).
 export const daysBetween = (from: string, to: string): number => {
   const utc = (date: string) => {

@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { FaTrophy } from 'react-icons/fa';
 import { findExercise } from '../utils/exerciseLibrary';
 import { personalRecords, type PersonalRecord } from '../utils/records';
-import { parseLocalDate } from '../utils/workoutMetrics';
+import { dateWithYear, formatNumber as fmt } from '../utils/format';
 import { toDisplay } from '../utils/units';
 import { useUnit } from './UnitProvider';
 import ExerciseThumb from './ExerciseThumb';
@@ -10,10 +10,6 @@ import type { Workout } from '../types';
 import '../assets/styles/PersonalRecordsCard.css';
 
 const SHOWN_AT_FIRST = 5;
-
-const fmt = (n: number) => n.toLocaleString(undefined, { maximumFractionDigits: 1 });
-const shortDate = (date: string) =>
-  parseLocalDate(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 
 // Your best set for every exercise you have logged, most recently set first.
 const PersonalRecordsCard = ({ workouts = [] }: { workouts?: Workout[] }) => {
@@ -28,7 +24,7 @@ const PersonalRecordsCard = ({ workouts = [] }: { workouts?: Workout[] }) => {
       : `${fmt(toDisplay(r.weight, unit))} ${unit} × ${r.reps}`;
 
   const detail = (r: PersonalRecord) =>
-    r.bodyweight ? shortDate(r.date) : `Est. 1RM ${fmt(toDisplay(r.e1rm, unit))} ${unit} · ${shortDate(r.date)}`;
+    r.bodyweight ? dateWithYear(r.date) : `Est. 1RM ${fmt(toDisplay(r.e1rm, unit))} ${unit} · ${dateWithYear(r.date)}`;
 
   return (
     <div className="records-card card">

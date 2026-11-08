@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { parseLocalDate } from '../utils/workoutMetrics';
+import { formatNumber, longDate, shortDate } from '../utils/format';
 import { isBodyweight } from '../utils/exerciseLibrary';
 import { toDisplay } from '../utils/units';
 import { useUnit } from './UnitProvider';
@@ -20,11 +20,7 @@ const METRICS: Record<Metric, { label: string; title: string }> = {
 // Bodyweight exercises lead with reps; the weight metrics there include body weight.
 const EXTERNAL_METRICS: Metric[] = ['top', 'e1rm', 'volume'];
 const BODYWEIGHT_METRICS: Metric[] = ['reps', 'top', 'e1rm', 'volume'];
-const formatNumber = (n: number) => n.toLocaleString(undefined, { maximumFractionDigits: 1 });
 const formatRatio = (n: number) => n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-const shortDate = (date: string) => parseLocalDate(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-const longDate = (date: string) =>
-  parseLocalDate(date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
 
 interface ProgressPoint extends TrendPoint {
   day: ScoredDay;

@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { FaFire, FaTrophy } from 'react-icons/fa';
-import { formatLocalDate, totalVolume } from '../utils/workoutMetrics';
+import { addDays, formatLocalDate, mondayOf, totalVolume } from '../utils/workoutMetrics';
 import { toDisplay } from '../utils/units';
 import { countPersonalRecords, daysSinceByGroup, setsByGroup } from '../utils/weekSummary';
 import { GROUPS } from '../types';
@@ -10,27 +10,19 @@ import '../assets/styles/WeekStrip.css';
 
 const DAY_LABELS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
-// Monday of the week containing `date`, at local midnight.
-const startOfWeek = (date: Date): Date => {
-  const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-  d.setDate(d.getDate() - ((d.getDay() + 6) % 7));
-  return d;
-};
-
 // How long ago a muscle group was trained, in words: "Trained today", "Trained 9d ago", "Not trained yet".
 const trainedText = (age: number | null): string =>
   age === null ? 'Not trained yet' : age <= 0 ? 'Trained today' : age === 1 ? 'Trained yesterday' : `Trained ${age}d ago`;
 
-const addDays = (date: Date, n: number): Date => new Date(date.getFullYear(), date.getMonth(), date.getDate() + n);
 
 // This week at a glance: which days you trained, volume versus last week, sets per muscle group
 // and personal records.
 const WeekStrip = ({ workouts = [] }: { workouts?: Workout[] }) => {
   const { unit } = useUnit();
   const { days, trainedCount, volume, lastWeekVolume, groupSets, groupAge, records } = useMemo(() => {
-    const monday = startOfWeek(new Date());
-    const dayKeys = Array.from({ length: 7 }, (_, i) => formatLocalDate(addDays(monday, i)));
-    const lastKeys = new Set(Array.from({ length: 7 }, (_, i) => formatLocalDate(addDays(monday, i - 7))));
+    const monday = mondayOf(formatLocalDate(new Date()));
+    const dayKeys = Array.from({ length: 7 }, (_, i) => addDays(monday, i));
+    const lastKeys = new Set(Array.from({ length: 7 }, (_, i) => addDays(monday, i - 7)));
 
     const thisWeek = workouts.filter((w) => dayKeys.includes(w.date));
     const trained = new Set(thisWeek.map((w) => w.date));

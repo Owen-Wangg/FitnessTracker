@@ -1,14 +1,12 @@
 import React, { useMemo, useState } from 'react';
 import { FaTrash } from 'react-icons/fa';
-import { formatLocalDate, parseLocalDate } from '../utils/workoutMetrics';
+import { formatLocalDate } from '../utils/workoutMetrics';
+import { formatNumber as fmt, longDate, shortDate } from '../utils/format';
 import { fromDisplay, toDisplay } from '../utils/units';
 import { useUnit } from './UnitProvider';
 import TrendChart, { type TrendPoint } from './TrendChart';
 import type { BodyWeight, BodyWeightDraft } from '../types';
 import '../assets/styles/BodyWeightCard.css';
-
-const fmt = (n: number) => n.toLocaleString(undefined, { maximumFractionDigits: 1 });
-const shortDate = (d: string) => parseLocalDate(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 
 interface BodyWeightPoint extends TrendPoint {
   entry: BodyWeight;
@@ -45,12 +43,7 @@ const BodyWeightCard = ({ entries: loggedEntries = [], onLog, onDelete }: BodyWe
   const data: BodyWeightPoint[] = entries.map((e) => ({ key: e.date, label: shortDate(e.date), value: e.weight, entry: e }));
 
   const describe = ({ entry }: BodyWeightPoint) => ({
-    title: parseLocalDate(entry.date).toLocaleDateString('en-US', {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    }),
+    title: longDate(entry.date),
     lines: [`${fmt(entry.weight)} ${unit}`],
   });
 

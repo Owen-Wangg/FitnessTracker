@@ -4,6 +4,7 @@ import '@daypicker/react/style.css';
 import WorkoutList from '../components/WorkoutList';
 import ProgressGraph from '../components/ProgressGraph';
 import { formatLocalDate, parseLocalDate } from '../utils/workoutMetrics';
+import { longDate } from '../utils/format';
 import { exerciseOptions } from '../utils/exerciseLibrary';
 import type { Workout } from '../types';
 import '../assets/styles/HistoryScreen.css';
@@ -53,7 +54,7 @@ const HistoryScreen = ({ allWorkouts = [], loading = false, deleteWorkout = () =
       </div>
 
       <div className="selected-date-workouts card">
-        <h2 className="section-title">Workouts on {selectedDate.toLocaleDateString()}</h2>
+        <h2 className="section-title">Workouts on {longDate(formatLocalDate(selectedDate))}</h2>
         <WorkoutList workouts={workoutsForSelectedDate} onDelete={deleteWorkout} onEdit={onEditWorkout} loading={loading} />
       </div>
 

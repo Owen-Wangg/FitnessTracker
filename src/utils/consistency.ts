@@ -1,6 +1,6 @@
 // How consistently you train: a streak of weeks that met a goal, and your weekly average.
 import type { Workout } from '../types';
-import { formatLocalDate, parseLocalDate } from './workoutMetrics';
+import { addDays, mondayOf } from './workoutMetrics';
 
 export const GOAL_KEY = 'fitness-weekly-goal';
 export const WEEKLY_GOALS = [2, 3, 4, 5];
@@ -37,17 +37,6 @@ export interface Consistency {
   weeksCounted: number; // how many finished weeks the average covers
 }
 
-// Monday of the week containing a 'YYYY-MM-DD' date.
-const mondayOf = (date: string): string => {
-  const d = parseLocalDate(date);
-  return formatLocalDate(new Date(d.getFullYear(), d.getMonth(), d.getDate() - ((d.getDay() + 6) % 7)));
-};
-
-const nextMonday = (monday: string): string => {
-  const d = parseLocalDate(monday);
-  return formatLocalDate(new Date(d.getFullYear(), d.getMonth(), d.getDate() + 7));
-};
-
 // Weeks run Monday to Sunday and count distinct days trained. The current week is still in progress, so
 // it adds to a streak once it meets the goal but never breaks one before then. The average covers up to
 // the last eight finished weeks, including weeks with no training. Workouts dated after `today` are ignored.
@@ -67,7 +56,7 @@ export const consistency = (workouts: Workout[], goal: number, today: string): C
 
   // Days trained in every week from the first workout's week to this one, empty weeks included.
   const weeks: number[] = [];
-  for (let monday = [...daysByWeek.keys()].sort()[0]; monday <= thisMonday; monday = nextMonday(monday)) {
+  for (let monday = [...daysByWeek.keys()].sort()[0]; monday <= thisMonday; monday = addDays(monday, 7)) {
     weeks.push(daysByWeek.get(monday)?.size ?? 0);
   }
 

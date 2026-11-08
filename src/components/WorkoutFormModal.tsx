@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { FaPlus, FaTimes, FaChevronRight } from 'react-icons/fa';
-import { daysBetween, formatLocalDate, parseLocalDate } from '../utils/workoutMetrics';
+import { daysBetween, formatLocalDate } from '../utils/workoutMetrics';
+import { shortDate } from '../utils/format';
 import { findExercise } from '../utils/exerciseLibrary';
 import { daysAgoText, describeSets, lastSession } from '../utils/lastSession';
 import { validateWorkoutForm } from '../utils/workoutForm';
@@ -12,8 +13,6 @@ import type { SetInput, Workout, WorkoutDraft, WorkoutSet } from '../types';
 import '../assets/styles/WorkoutFormModal.css';
 
 const emptySet = (): SetInput => ({ weight: '', reps: '' });
-
-const shortDate = (date: string) => parseLocalDate(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 
 // Form rows hold the raw input strings. set_type is carried along (not shown) so editing keeps tags.
 // Weights are shown in the chosen unit.

@@ -11,6 +11,8 @@ import {
   formatLocalDate,
   parseLocalDate,
   daysBetween,
+  addDays,
+  mondayOf,
 } from './workoutMetrics';
 import type { WorkoutSet } from '../types';
 
@@ -152,6 +154,24 @@ describe('bodyweight exercises', () => {
   test('bestReps is the most reps in one counted set', () => {
     expect(bestReps(workout([{ weight: 0, reps: 8 }, { weight: 0, reps: 12 }, { weight: 0, reps: 30, set_type: 'warmup' }]))).toBe(12);
     expect(bestReps(workout([]))).toBe(0);
+  });
+});
+
+describe('addDays and mondayOf', () => {
+  test('addDays moves across month and year ends, forward and back', () => {
+    expect(addDays('2025-06-30', 1)).toBe('2025-07-01');
+    expect(addDays('2025-12-31', 1)).toBe('2026-01-01');
+    expect(addDays('2025-03-01', -1)).toBe('2025-02-28');
+    expect(addDays('2024-03-01', -1)).toBe('2024-02-29');
+    expect(addDays('2025-06-11', 0)).toBe('2025-06-11');
+  });
+
+  test('mondayOf gives the Monday that starts the Monday-to-Sunday week', () => {
+    expect(mondayOf('2025-06-09')).toBe('2025-06-09'); // a Monday
+    expect(mondayOf('2025-06-11')).toBe('2025-06-09'); // Wednesday
+    expect(mondayOf('2025-06-15')).toBe('2025-06-09'); // Sunday belongs to the week before
+    expect(mondayOf('2025-06-16')).toBe('2025-06-16');
+    expect(mondayOf('2025-01-01')).toBe('2024-12-30'); // across a year boundary
   });
 });
 

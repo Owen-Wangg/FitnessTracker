@@ -60,3 +60,7 @@
   background: var(--success);
 }
 .rdp-selected.has-workouts .rdp-day_button::after { background: var(--on-accent); }
+
+.date-header { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-3); margin-bottom: var(--space-4); }
+.date-header .section-title { margin: 0; }
+.add-on-date-btn { display: inline-flex; align-items: center; gap: var(--space-2); flex-shrink: 0; }

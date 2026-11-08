@@ -28,8 +28,8 @@ function App() {
   const { preference: themePreference, setPreference: setThemePreference } = useTheme();
 
   const loadingWorkouts = status === 'loading';
-  // null = closed; { workout: null } = adding; { workout } = editing that entry
-  const [form, setForm] = useState<{ workout: Workout | null } | null>(null);
+  // null = closed; { workout: null } = adding (on `date`, if given); { workout } = editing that entry
+  const [form, setForm] = useState<{ workout: Workout | null; date?: string } | null>(null);
 
   const today = useToday();
   const todaysWorkouts = useMemo(() => workouts.filter((w) => w.date === today), [workouts, today]);
@@ -86,6 +86,7 @@ function App() {
                 loading={loadingWorkouts}
                 deleteWorkout={deleteWorkout}
                 onEditWorkout={(workout) => setForm({ workout })}
+                onAddWorkout={(date) => setForm({ workout: null, date })}
               />
             }
           />
@@ -111,8 +112,9 @@ function App() {
       <BottomNav />
       {form && (
         <WorkoutFormModal
-          key={form.workout?.id ?? 'new'}
+          key={form.workout?.id ?? `new-${form.date ?? ''}`}
           initial={form.workout}
+          initialDate={form.date}
           history={workouts}
           onClose={() => setForm(null)}
           onSubmit={handleSubmitForm}

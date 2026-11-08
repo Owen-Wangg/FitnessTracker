@@ -73,3 +73,28 @@ describe('calendar', () => {
     expect(marked).toEqual([String(day)]);
   });
 });
+
+describe('adding to the selected day', () => {
+  test('the Add button reports the selected day', () => {
+    const onAddWorkout = vi.fn();
+    render(<HistoryScreen allWorkouts={[]} onAddWorkout={onAddWorkout} />);
+    userEvent.click(screen.getByRole('button', { name: /add/i }));
+    expect(onAddWorkout).toHaveBeenCalledWith(today);
+  });
+
+  test('after picking another day it reports that day', () => {
+    const onAddWorkout = vi.fn();
+    const now = new Date();
+    const day = now.getDate() === 1 ? 2 : 1;
+    const { container } = render(<HistoryScreen allWorkouts={[]} onAddWorkout={onAddWorkout} />);
+    const button = [...container.querySelectorAll('.rdp-day:not(.rdp-outside) .rdp-day_button')].find((b) => b.textContent === String(day))!;
+    userEvent.click(button);
+    userEvent.click(screen.getByRole('button', { name: /add/i }));
+    expect(onAddWorkout).toHaveBeenCalledWith(formatLocalDate(new Date(now.getFullYear(), now.getMonth(), day)));
+  });
+
+  test('there is no Add button when nothing handles it', () => {
+    render(<HistoryScreen allWorkouts={[]} />);
+    expect(screen.queryByRole('button', { name: /add/i })).not.toBeInTheDocument();
+  });
+});

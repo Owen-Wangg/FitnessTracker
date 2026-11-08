@@ -3,6 +3,7 @@ import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import WorkoutFormModal from './WorkoutFormModal';
 import type { Workout } from '../types';
+import { formatLocalDate } from '../utils/workoutMetrics';
 
 // Typing into several fields is slow when the whole suite runs in parallel.
 vi.setConfig({ testTimeout: 20000 });
@@ -236,5 +237,23 @@ describe('editing keeps set tags', () => {
       expect.objectContaining({ sets: [{ weight: 225, reps: 5 }, { weight: 185, reps: 8, set_type: 'drop' }] })
     );
     await screen.findByRole('button', { name: /save changes/i });
+  });
+});
+
+describe('starting date', () => {
+  test('defaults to today', () => {
+    setup();
+    expect(screen.getByLabelText('Date')).toHaveValue(formatLocalDate(new Date()));
+  });
+
+  test('starts on the given date when adding', () => {
+    setup({ initialDate: '2025-03-14' });
+    expect(screen.getByLabelText('Date')).toHaveValue('2025-03-14');
+  });
+
+  test('an entry being edited keeps its own date over the given one', () => {
+    const workout: Workout = { id: 'w', date: '2025-06-01', name: 'Leg Press Machine', exerciseId: 'Leg_Press', sets: [{ weight: 225, reps: 5 }] };
+    setup({ initial: workout, initialDate: '2025-03-14' });
+    expect(screen.getByLabelText('Date')).toHaveValue('2025-06-01');
   });
 });

@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { DayPicker } from '@daypicker/react';
+import { FaPlus } from 'react-icons/fa';
 import '@daypicker/react/style.css';
 import WorkoutList from '../components/WorkoutList';
 import ProgressGraph from '../components/ProgressGraph';
@@ -14,9 +15,10 @@ interface HistoryScreenProps {
   loading?: boolean;
   deleteWorkout?: (id: string) => void;
   onEditWorkout?: (workout: Workout) => void;
+  onAddWorkout?: (date: string) => void; // log a workout on the selected day, e.g. one you forgot
 }
 
-const HistoryScreen = ({ allWorkouts = [], loading = false, deleteWorkout = () => {}, onEditWorkout }: HistoryScreenProps) => {
+const HistoryScreen = ({ allWorkouts = [], loading = false, deleteWorkout = () => {}, onEditWorkout, onAddWorkout }: HistoryScreenProps) => {
   const [selectedDate, setSelectedDate] = useState(() => new Date());
   const [chosenExercise, setChosenExercise] = useState('');
 
@@ -54,7 +56,14 @@ const HistoryScreen = ({ allWorkouts = [], loading = false, deleteWorkout = () =
       </div>
 
       <div className="selected-date-workouts card">
-        <h2 className="section-title">Workouts on {longDate(formatLocalDate(selectedDate))}</h2>
+        <div className="date-header">
+          <h2 className="section-title">Workouts on {longDate(formatLocalDate(selectedDate))}</h2>
+          {onAddWorkout && (
+            <button type="button" className="add-on-date-btn" onClick={() => onAddWorkout(formatLocalDate(selectedDate))}>
+              <FaPlus aria-hidden="true" /> Add
+            </button>
+          )}
+        </div>
         <WorkoutList workouts={workoutsForSelectedDate} onDelete={deleteWorkout} onEdit={onEditWorkout} loading={loading} />
       </div>
 

@@ -125,3 +125,24 @@ describe('editing a saved exercise', () => {
     expect(screen.getByLabelText(/set 1 weight/i)).toHaveValue(null);
   });
 });
+
+describe('adding from the history screen', () => {
+  beforeEach(() => {
+    mockSession = { user: { id: 'u1', email: 'ada@example.com' } };
+  });
+
+  test('the form opens on the day picked in the calendar', async () => {
+    const { container } = renderApp('/history');
+    await screen.findByRole('heading', { name: 'Workout History' }, SLOW);
+
+    const now = new Date();
+    const day = now.getDate() === 1 ? 2 : 1;
+    const dayButton = [...container.querySelectorAll('.rdp-day:not(.rdp-outside) .rdp-day_button')].find((b) => b.textContent === String(day))!;
+    userEvent.click(dayButton);
+    userEvent.click(screen.getByRole('button', { name: /^add$/i }));
+
+    expect(screen.getByRole('heading', { name: 'Add Exercise' })).toBeInTheDocument();
+    const expected = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    expect(screen.getByLabelText('Date')).toHaveValue(expected);
+  });
+});

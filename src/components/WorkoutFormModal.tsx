@@ -34,16 +34,18 @@ const rowsFrom = (workout: { sets: WorkoutSet[] } | null | undefined, unit: Unit
 //   initial:  the workout being edited, or null/undefined to add a new one
 //   onSubmit: resolves true when saved, which closes the form (the caller does that)
 //   history:  all logged workouts, used to show what you did last time for the chosen exercise
+//   initialDate: the date to start on when adding (defaults to today), e.g. a day picked on the History screen
 interface WorkoutFormModalProps {
   initial?: Workout | null;
+  initialDate?: string;
   history?: Workout[];
   onClose: () => void;
   onSubmit: (draft: WorkoutDraft) => Promise<boolean>;
 }
 
-const WorkoutFormModal = ({ initial = null, history = [], onClose, onSubmit }: WorkoutFormModalProps) => {
+const WorkoutFormModal = ({ initial = null, initialDate, history = [], onClose, onSubmit }: WorkoutFormModalProps) => {
   const editing = Boolean(initial);
-  const [date, setDate] = useState(() => initial?.date ?? formatLocalDate(new Date()));
+  const [date, setDate] = useState(() => initial?.date ?? initialDate ?? formatLocalDate(new Date()));
   const [exercise, setExercise] = useState<PickedExercise | null>(() =>
     initial ? { id: initial.exerciseId ?? null, name: initial.name } : null
   ); // id is null for custom exercises

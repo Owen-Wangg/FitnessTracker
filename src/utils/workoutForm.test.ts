@@ -25,6 +25,14 @@ test('rejects zero reps and negative weight', () => {
   expect(validateWorkoutForm({ ...base, sets: [{ weight: '100', reps: '' }] }).error).toMatch(/set 1/);
 });
 
+test('bodyweight exercises treat a blank weight as 0', () => {
+  const pullUp = { id: 'Pull_Up', name: 'Pull-Up' };
+  expect(validateWorkoutForm({ ...base, exercise: pullUp, sets: [{ weight: '', reps: '8' }, { weight: '25', reps: '5' }] })).toEqual({
+    sets: [{ weight: 0, reps: 8 }, { weight: 25, reps: 5 }],
+  });
+  expect(validateWorkoutForm({ ...base, exercise: pullUp, sets: [{ weight: '', reps: '' }] }).error).toMatch(/set 1/);
+});
+
 test('keeps a set_type so editing does not erase warm-up or drop tags', () => {
   const result = validateWorkoutForm({
     ...base,

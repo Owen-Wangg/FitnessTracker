@@ -1,4 +1,4 @@
-import { topSet, bestEstimated1RM, workoutVolume } from './workoutMetrics';
+import { topSet, bestEstimated1RM, bestReps, workoutVolume } from './workoutMetrics';
 import { exerciseKey } from './exerciseLibrary';
 import type { Metric, Workout } from '../types';
 
@@ -7,6 +7,7 @@ export interface DayPoint {
   top: { weight: number; reps: number } | null;
   e1rm: number;
   volume: number;
+  reps: number; // most reps in one set
 }
 
 export type ScoredDay = DayPoint & { top: { weight: number; reps: number } };
@@ -19,12 +20,13 @@ export const buildSeries = (workouts: Workout[] | null | undefined, key: string)
     .filter((w) => w && w.date && w.name && exerciseKey(w) === key)
     .forEach((w) => {
       const date = w.date.split('T')[0];
-      const day = (byDate[date] = byDate[date] || { date, top: null, e1rm: 0, volume: 0 });
+      const day = (byDate[date] = byDate[date] || { date, top: null, e1rm: 0, volume: 0, reps: 0 });
       const top = topSet(w);
       if (top && (!day.top || top.weight > day.top.weight || (top.weight === day.top.weight && top.reps > day.top.reps))) {
         day.top = top;
       }
       day.e1rm = Math.max(day.e1rm, bestEstimated1RM(w));
+      day.reps = Math.max(day.reps, bestReps(w));
       day.volume += workoutVolume(w);
     });
 

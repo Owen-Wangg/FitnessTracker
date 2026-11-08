@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { parseLocalDate } from '../utils/workoutMetrics';
+import { isBodyweight } from '../utils/exerciseLibrary';
 import { buildSeries, valueFor, personalRecordFlags } from '../utils/progress';
 import TrendChart, { type TrendPoint } from './TrendChart';
 import type { Metric, Workout } from '../types';
@@ -10,9 +11,12 @@ const METRICS: Record<Metric, { label: string; title: string }> = {
   top: { label: 'Top weight', title: 'Heaviest set per day' },
   e1rm: { label: 'Est. 1RM', title: 'Estimated one-rep max (Epley) per day' },
   volume: { label: 'Volume', title: 'Total weight x reps per day' },
+  reps: { label: 'Reps', title: 'Most reps in a single set per day' },
 };
 
-const UNIT = 'lbs';
+// Bodyweight exercises lead with reps; the weight metrics there include body weight.
+const EXTERNAL_METRICS: Metric[] = ['top', 'e1rm', 'volume'];
+const BODYWEIGHT_METRICS: Metric[] = ['reps', 'top', 'e1rm', 'volume'];
 const formatNumber = (n: number) => n.toLocaleString(undefined, { maximumFractionDigits: 1 });
 const shortDate = (date: string) => parseLocalDate(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 const longDate = (date: string) =>
@@ -29,7 +33,10 @@ interface ProgressGraphProps {
 }
 
 const ProgressGraph = ({ workouts, exerciseKey, exerciseLabel }: ProgressGraphProps) => {
-  const [metric, setMetric] = useState<Metric>('top');
+  const [picked, setPicked] = useState<Metric | null>(null);
+  const available = isBodyweight(exerciseKey, exerciseKey) ? BODYWEIGHT_METRICS : EXTERNAL_METRICS;
+  const metric = picked && available.includes(picked) ? picked : available[0];
+  const unit = metric === 'reps' ? 'reps' : 'lbs';
 
   const days = useMemo(
     () => (workouts && exerciseKey ? buildSeries(workouts, exerciseKey) : []),
@@ -64,8 +71,8 @@ const ProgressGraph = ({ workouts, exerciseKey, exerciseLabel }: ProgressGraphPr
   }));
 
   const describe = ({ day, value, highlight }: ProgressPoint) => {
-    const lines = [`${METRICS[metric].label}: ${formatNumber(value)} ${UNIT}`];
-    if (metric !== 'volume') lines.push(`Best set: ${formatNumber(day.top.weight)} lbs x ${day.top.reps}`);
+    const lines = [`${METRICS[metric].label}: ${formatNumber(value)} ${unit}`];
+    if (metric !== 'volume' && metric !== 'reps') lines.push(`Best set: ${formatNumber(day.top.weight)} lbs x ${day.top.reps}`);
     if (highlight) lines.push('New personal record!');
     return { title: longDate(day.date), lines };
   };
@@ -75,15 +82,15 @@ const ProgressGraph = ({ workouts, exerciseKey, exerciseLabel }: ProgressGraphPr
       <div className="graph-header">
         <h4>{METRICS[metric].title}</h4>
         <div className="metric-toggle" role="group" aria-label="Chart metric">
-          {(Object.entries(METRICS) as [Metric, { label: string; title: string }][]).map(([key, { label }]) => (
+          {available.map((key) => (
             <button
               key={key}
               type="button"
               className={`metric-btn ${metric === key ? 'active' : ''}`}
               aria-pressed={metric === key}
-              onClick={() => setMetric(key)}
+              onClick={() => setPicked(key)}
             >
-              {label}
+              {METRICS[key].label}
             </button>
           ))}
         </div>
@@ -92,16 +99,16 @@ const ProgressGraph = ({ workouts, exerciseKey, exerciseLabel }: ProgressGraphPr
       <div className="graph-stats">
         <div className="graph-stat">
           <span className="graph-stat-label">Latest</span>
-          <span className="graph-stat-value">{formatNumber(latest)} {UNIT}</span>
+          <span className="graph-stat-value">{formatNumber(latest)} {unit}</span>
         </div>
         <div className="graph-stat">
           <span className="graph-stat-label">Best</span>
-          <span className="graph-stat-value">{formatNumber(best)} {UNIT}</span>
+          <span className="graph-stat-value">{formatNumber(best)} {unit}</span>
         </div>
         <div className="graph-stat">
           <span className="graph-stat-label">Change</span>
           <span className={`graph-stat-value ${change > 0 ? 'up' : change < 0 ? 'down' : ''}`}>
-            {change > 0 ? '+' : ''}{formatNumber(change)} {UNIT}
+            {change > 0 ? '+' : ''}{formatNumber(change)} {unit}
             {days.length > 1 && first > 0 && ` (${change > 0 ? '+' : ''}${changePct.toFixed(0)}%)`}
           </span>
         </div>

@@ -2,12 +2,38 @@
 //   { id, date: 'YYYY-MM-DD', name, sets: [{ weight, reps, set_type }] }
 // Warm-up sets are excluded from every metric.
 
-import type { WorkoutSet } from '../types';
+// A set's `load` (body weight + added weight, for bodyweight exercises) stands in for `weight`
+// in every metric when present.
+import type { BodyWeight, Workout, WorkoutSet } from '../types';
+import { isBodyweight } from './exerciseLibrary';
 
 type WithSets = { sets?: WorkoutSet[] } | null | undefined;
 
 const countedSets = (workout: WithSets): WorkoutSet[] =>
   (workout?.sets || []).filter((s) => s && s.set_type !== 'warmup' && Number(s.reps) > 0);
+
+const loadOf = (set: Pick<WorkoutSet, 'weight' | 'load'>): number => Number(set.load ?? set.weight) || 0;
+
+// Body weight to use for a date: the latest entry on or before it, else the earliest one after it,
+// else null. `bodyWeights` is oldest first.
+export const bodyWeightOn = (date: string, bodyWeights: BodyWeight[] | null | undefined): number | null => {
+  const day = String(date).split('T')[0];
+  let before: BodyWeight | null = null;
+  for (const entry of bodyWeights || []) {
+    if (entry.date <= day) before = entry;
+    else return (before ?? entry).weight;
+  }
+  return before ? before.weight : null;
+};
+
+// Gives each set of a bodyweight exercise a `load` of body weight + added weight. With no body weight
+// logged yet the load is just the added weight. Other workouts are returned unchanged.
+export const applyBodyWeight = (workouts: Workout[], bodyWeights: BodyWeight[] | null | undefined): Workout[] =>
+  workouts.map((w) => {
+    if (!isBodyweight(w.exerciseId, w.name)) return w;
+    const bodyWeight = bodyWeightOn(w.date, bodyWeights) ?? 0;
+    return { ...w, sets: w.sets.map((s) => ({ ...s, load: bodyWeight + (Number(s.weight) || 0) })) };
+  });
 
 // Epley estimated one-rep max. A single rep is its own 1RM.
 export const estimate1RM = (weight: unknown, reps: unknown): number => {
@@ -17,7 +43,7 @@ export const estimate1RM = (weight: unknown, reps: unknown): number => {
   return r === 1 ? w : w * (1 + r / 30);
 };
 
-export const setVolume = (set: Pick<WorkoutSet, 'weight' | 'reps'>): number => (Number(set.weight) || 0) * (Number(set.reps) || 0);
+export const setVolume = (set: Pick<WorkoutSet, 'weight' | 'reps' | 'load'>): number => loadOf(set) * (Number(set.reps) || 0);
 
 export const workoutVolume = (workout: WithSets): number =>
   countedSets(workout).reduce((sum, s) => sum + setVolume(s), 0);
@@ -28,7 +54,7 @@ export const totalVolume = (workouts: WithSets[] | null | undefined): number =>
 // Heaviest set (ties broken by more reps), or null if there are no counted sets.
 export const topSet = (workout: WithSets): { weight: number; reps: number } | null =>
   countedSets(workout).reduce<{ weight: number; reps: number } | null>((best, s) => {
-    const weight = Number(s.weight) || 0;
+    const weight = loadOf(s);
     const reps = Number(s.reps) || 0;
     if (!best || weight > best.weight || (weight === best.weight && reps > best.reps)) {
       return { weight, reps };
@@ -37,7 +63,11 @@ export const topSet = (workout: WithSets): { weight: number; reps: number } | nu
   }, null);
 
 export const bestEstimated1RM = (workout: WithSets): number =>
-  countedSets(workout).reduce((best, s) => Math.max(best, estimate1RM(s.weight, s.reps)), 0);
+  countedSets(workout).reduce((best, s) => Math.max(best, estimate1RM(loadOf(s), s.reps)), 0);
+
+// Most reps in a single counted set. The natural progress measure for bodyweight exercises.
+export const bestReps = (workout: WithSets): number =>
+  countedSets(workout).reduce((best, s) => Math.max(best, Number(s.reps) || 0), 0);
 
 // 'YYYY-MM-DD' in the user's local timezone (toISOString would use UTC and can be off by a day).
 export const formatLocalDate = (date: Date): string => {

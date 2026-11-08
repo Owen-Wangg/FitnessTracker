@@ -22,6 +22,10 @@ const byName = new Map<string, Exercise>(FUNDAMENTALS.map((e) => [e.name.toLower
 export const findExercise = (exerciseId?: string | null, name?: string | null): Exercise | null =>
   (exerciseId && byId.get(exerciseId)) || (name && byName.get(name.trim().toLowerCase())) || null;
 
+// True for library exercises done against body weight (pull-ups, push-ups...). Custom ones are external.
+export const isBodyweight = (exerciseId?: string | null, name?: string | null): boolean =>
+  findExercise(exerciseId, name)?.loadType === 'bodyweight';
+
 // Stable identity for grouping a lift across entries: the library id when the name or id matches
 // a built-in exercise (so "bench press" and "Bench Press" are one lift), else the lowercased name.
 export const exerciseKey = (workout: WorkoutIdentity): string => {

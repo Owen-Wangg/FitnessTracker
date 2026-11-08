@@ -33,6 +33,15 @@ describe('buildSeries', () => {
     expect(buildSeries(custom, 'squat')).toHaveLength(0);
   });
 
+  test('tracks the most reps in a set, even when added weight is 0', () => {
+    const chinUps = [
+      entry('2025-06-01', 'Pull-Up', [{ weight: 0, reps: 8 }, { weight: 0, reps: 10 }], { exerciseId: 'Pull_Up' }),
+      entry('2025-06-08', 'Pull-Up', [{ weight: 0, reps: 11 }], { exerciseId: 'Pull_Up' }),
+    ];
+    const series = buildSeries(chinUps, 'Pull_Up');
+    expect(series.map((d) => d.reps)).toEqual([10, 11]);
+  });
+
   test('skips days with only warm-up sets', () => {
     const warm = [entry('2025-06-01', 'Leg Press Machine', [{ weight: 95, reps: 10, set_type: 'warmup' }])];
     expect(buildSeries(warm, 'Leg_Press')).toEqual([]);
@@ -40,11 +49,12 @@ describe('buildSeries', () => {
 });
 
 describe('valueFor', () => {
-  const day = { date: '2025-06-01', top: { weight: 200, reps: 3 }, e1rm: 220, volume: 600 };
+  const day = { date: '2025-06-01', top: { weight: 200, reps: 3 }, e1rm: 220, volume: 600, reps: 5 };
   test('selects the chosen metric', () => {
     expect(valueFor(day, 'top')).toBe(200);
     expect(valueFor(day, 'e1rm')).toBe(220);
     expect(valueFor(day, 'volume')).toBe(600);
+    expect(valueFor(day, 'reps')).toBe(5);
   });
 });
 

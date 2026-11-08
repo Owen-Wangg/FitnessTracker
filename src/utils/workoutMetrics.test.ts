@@ -5,6 +5,9 @@ import {
   totalVolume,
   topSet,
   bestEstimated1RM,
+  bestReps,
+  bodyWeightOn,
+  applyBodyWeight,
   formatLocalDate,
   parseLocalDate,
 } from './workoutMetrics';
@@ -93,6 +96,54 @@ describe('topSet and bestEstimated1RM', () => {
       { weight: 185, reps: 8 }, // ~234
     ]);
     expect(bestEstimated1RM(w)).toBeCloseTo(185 * (1 + 8 / 30));
+  });
+});
+
+describe('bodyweight exercises', () => {
+  const bodyWeights = [
+    { id: 'a', date: '2025-05-01', weight: 180 },
+    { id: 'b', date: '2025-06-01', weight: 175 },
+  ];
+  const pullUps = (date: string, sets: WorkoutSet[]) => ({ id: date, date, name: 'Pull-Up', exerciseId: 'Pull_Up', sets });
+
+  test('bodyWeightOn uses the latest entry on or before the date', () => {
+    expect(bodyWeightOn('2025-05-20', bodyWeights)).toBe(180);
+    expect(bodyWeightOn('2025-06-01', bodyWeights)).toBe(175);
+    expect(bodyWeightOn('2025-07-01', bodyWeights)).toBe(175);
+  });
+
+  test('bodyWeightOn falls back to the earliest entry for earlier dates, and null with none', () => {
+    expect(bodyWeightOn('2025-01-01', bodyWeights)).toBe(180);
+    expect(bodyWeightOn('2025-01-01', [])).toBeNull();
+    expect(bodyWeightOn('2025-01-01', undefined)).toBeNull();
+  });
+
+  test('applyBodyWeight sets load to body weight + added weight and leaves the logged weight alone', () => {
+    const [w] = applyBodyWeight([pullUps('2025-06-10', [{ weight: 0, reps: 8 }, { weight: 25, reps: 5 }])], bodyWeights);
+    expect(w.sets.map((s) => s.load)).toEqual([175, 200]);
+    expect(w.sets.map((s) => s.weight)).toEqual([0, 25]);
+  });
+
+  test('applyBodyWeight with no body weight logged uses just the added weight', () => {
+    const [w] = applyBodyWeight([pullUps('2025-06-10', [{ weight: 25, reps: 5 }])], []);
+    expect(w.sets[0].load).toBe(25);
+  });
+
+  test('applyBodyWeight leaves external and custom exercises untouched', () => {
+    const bench = workout([{ weight: 135, reps: 8 }]);
+    expect(applyBodyWeight([bench], bodyWeights)[0]).toBe(bench);
+  });
+
+  test('metrics use load in place of weight', () => {
+    const [w] = applyBodyWeight([pullUps('2025-06-10', [{ weight: 0, reps: 10 }, { weight: 25, reps: 4 }])], bodyWeights);
+    expect(workoutVolume(w)).toBe(175 * 10 + 200 * 4);
+    expect(topSet(w)).toEqual({ weight: 200, reps: 4 });
+    expect(bestEstimated1RM(w)).toBeCloseTo(Math.max(175 * (1 + 10 / 30), 200 * (1 + 4 / 30)));
+  });
+
+  test('bestReps is the most reps in one counted set', () => {
+    expect(bestReps(workout([{ weight: 0, reps: 8 }, { weight: 0, reps: 12 }, { weight: 0, reps: 30, set_type: 'warmup' }]))).toBe(12);
+    expect(bestReps(workout([]))).toBe(0);
   });
 });
 

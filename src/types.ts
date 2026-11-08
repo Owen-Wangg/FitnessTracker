@@ -25,6 +25,9 @@ export interface WorkoutSet {
   weight: number;
   reps: number;
   set_type?: SetType;
+  // The load the metrics use, when it differs from `weight`: body weight + added weight for
+  // bodyweight exercises. Computed in memory (see applyBodyWeight), never saved.
+  load?: number;
 }
 
 // One exercise performed on a date, with its sets.
@@ -93,4 +96,4 @@ export interface BodyWeightDraft {
 
 export type ThemePreference = 'system' | 'light' | 'dark';
 export type ResolvedTheme = 'light' | 'dark';
-export type Metric = 'top' | 'e1rm' | 'volume';
+export type Metric = 'top' | 'e1rm' | 'volume' | 'reps';

@@ -1,4 +1,4 @@
-import { exerciseImageUrl, findExercise, exerciseKey, exerciseOptions, searchExercises, FUNDAMENTALS, GROUPS } from './exerciseLibrary';
+import { exerciseImageUrl, findExercise, isBodyweight, exerciseKey, exerciseOptions, searchExercises, FUNDAMENTALS, GROUPS } from './exerciseLibrary';
 
 describe('library data', () => {
   test('every exercise has a unique id and a known group', () => {
@@ -16,6 +16,21 @@ describe('findExercise', () => {
 
   test('returns null for custom exercises', () => {
     expect(findExercise(null, 'Sled Push')).toBeNull();
+  });
+});
+
+describe('isBodyweight', () => {
+  test('is true for bodyweight library exercises, by id or name', () => {
+    expect(isBodyweight('Pull_Up')).toBe(true);
+    expect(isBodyweight(null, 'push-up')).toBe(true);
+    expect(isBodyweight('Hanging_Leg_Raise')).toBe(true);
+  });
+
+  test('is false for weighted and custom exercises', () => {
+    expect(isBodyweight('Leg_Press')).toBe(false);
+    expect(isBodyweight('Single_Arm_Chest_Supported_Row')).toBe(false);
+    expect(isBodyweight(null, 'Sled Push')).toBe(false);
+    expect(isBodyweight(null, null)).toBe(false);
   });
 });
 

@@ -15,6 +15,7 @@ interface WorkoutItemProps {
 const WorkoutItem = ({ workout, onDelete, onEdit }: WorkoutItemProps) => {
   const sets = workout.sets || [];
   const exercise = findExercise(workout.exerciseId, workout.name);
+  const bodyweight = exercise?.loadType === 'bodyweight';
 
   return (
     <div className="workout-item card">
@@ -25,7 +26,9 @@ const WorkoutItem = ({ workout, onDelete, onEdit }: WorkoutItemProps) => {
         <ol className="set-list">
           {sets.map((s) => (
             <li key={s.id || s.set_number}>
-              <span className="set-list-weight">{s.weight} lbs</span>
+              <span className="set-list-weight">
+                {bodyweight ? (Number(s.weight) > 0 ? `BW + ${s.weight} lbs` : 'Bodyweight') : `${s.weight} lbs`}
+              </span>
               <span className="set-list-reps">&times; {s.reps}</span>
             </li>
           ))}

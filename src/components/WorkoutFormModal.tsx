@@ -41,6 +41,7 @@ const WorkoutFormModal = ({ initial = null, onClose, onSubmit }: WorkoutFormModa
   const [error, setError] = useState('');
 
   const libraryEntry = exercise ? findExercise(exercise.id, exercise.name) : null;
+  const bodyweight = libraryEntry?.loadType === 'bodyweight';
 
   const updateSet = (index: number, field: 'weight' | 'reps', value: string) =>
     setSets((prev) => prev.map((s, i) => (i === index ? { ...s, [field]: value } : s)));
@@ -105,6 +106,7 @@ const WorkoutFormModal = ({ initial = null, onClose, onSubmit }: WorkoutFormModa
                   <span className="exercise-select-text">
                     <span className="exercise-select-name">{exercise.name}</span>
                     {!libraryEntry && <span className="exercise-select-meta">Custom exercise</span>}
+                    {bodyweight && <span className="exercise-select-meta">Bodyweight: added weight is optional</span>}
                   </span>
                   <span className="exercise-select-action">Change</span>
                 </>
@@ -122,7 +124,7 @@ const WorkoutFormModal = ({ initial = null, onClose, onSubmit }: WorkoutFormModa
           <div className="sets-editor">
             <div className="sets-row sets-row-header" aria-hidden="true">
               <span>Set</span>
-              <span>Weight (lbs)</span>
+              <span>{bodyweight ? 'Added (lbs)' : 'Weight (lbs)'}</span>
               <span>Reps</span>
               <span />
             </div>
@@ -132,12 +134,13 @@ const WorkoutFormModal = ({ initial = null, onClose, onSubmit }: WorkoutFormModa
                 <input
                   type="number"
                   inputMode="decimal"
-                  aria-label={`Set ${i + 1} weight in pounds`}
+                  aria-label={bodyweight ? `Set ${i + 1} added weight in pounds` : `Set ${i + 1} weight in pounds`}
                   value={s.weight}
                   onChange={(e) => updateSet(i, 'weight', e.target.value)}
+                  placeholder={bodyweight ? 'BW' : undefined}
                   min="0"
                   step="0.5"
-                  required
+                  required={!bodyweight}
                 />
                 <input
                   type="number"

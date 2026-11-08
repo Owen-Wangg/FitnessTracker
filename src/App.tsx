@@ -5,7 +5,7 @@ import { useAuth } from './hooks/useAuth';
 import { useWorkouts } from './hooks/useWorkouts';
 import { useBodyWeights } from './hooks/useBodyWeights';
 import { useTheme } from './hooks/useTheme';
-import { totalVolume, formatLocalDate } from './utils/workoutMetrics';
+import { totalVolume, formatLocalDate, applyBodyWeight } from './utils/workoutMetrics';
 import type { Workout, WorkoutDraft } from './types';
 import HomeScreen from './screens/HomeScreen';
 import WorkoutFormModal from './components/WorkoutFormModal';
@@ -20,8 +20,10 @@ const ProfileScreen = lazy(() => import('./screens/ProfileScreen'));
 
 function App() {
   const { session, user, loading, recovering, clearRecovery, signOut } = useAuth();
-  const { workouts, status, reload, addWorkout, updateWorkout, deleteWorkout } = useWorkouts(user);
+  const { workouts: loggedWorkouts, status, reload, addWorkout, updateWorkout, deleteWorkout } = useWorkouts(user);
   const { bodyWeights, logBodyWeight, deleteBodyWeight } = useBodyWeights(user);
+  // Bodyweight exercises count body weight + added weight in every total and chart.
+  const workouts = useMemo(() => applyBodyWeight(loggedWorkouts, bodyWeights), [loggedWorkouts, bodyWeights]);
   const { preference: themePreference, setPreference: setThemePreference } = useTheme();
 
   const loadingWorkouts = status === 'loading';

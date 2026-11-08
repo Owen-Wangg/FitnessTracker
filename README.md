@@ -68,10 +68,11 @@ OAuth client's authorized JavaScript origins.
 ## Project layout
 
 - `src/App.tsx` - app shell and routes
-- `src/hooks/` - `useAuth`, `useWorkouts`, `useBodyWeights` (all Supabase access lives here), plus
+- `src/hooks/` - `useAuth`, `useAuthFlow`, `useWorkouts`, `useBodyWeights` (all Supabase access lives here), plus
   `useToday` (a date that rolls over at midnight), `useTheme` and `useDialog` (keyboard and focus for dialogs)
 - `src/screens/` - Home, History, Profile
-- `src/components/` - UI pieces (exercise form and picker, charts, summary cards, auth, toasts)
+- `src/components/` - UI pieces (exercise form and picker, charts, summary cards, toasts); the login screens are
+  `Auth.tsx` plus one small component per step in `authForms/`
 - `src/utils/` - pure logic, unit tested: volume and 1RM (`workoutMetrics`), chart series and PRs (`progress`),
   records, streaks (`consistency`), week and month summaries, muscle split, units, formatting, form validation
 - `src/data/fundamentals.ts` - the exercise list

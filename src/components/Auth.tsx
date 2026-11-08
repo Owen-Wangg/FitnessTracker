@@ -1,183 +1,24 @@
 // src/components/Auth.tsx
-import React, { useState, type ReactNode } from 'react';
-import { supabase } from '../utils/supabaseClient';
-import { FaDumbbell, FaEye, FaEyeSlash, FaEnvelopeOpenText, FaGoogle } from 'react-icons/fa';
+import React from 'react';
+import { FaDumbbell } from 'react-icons/fa';
+import { useAuthFlow } from '../hooks/useAuthFlow';
+import LogInSignUpForm from './authForms/LogInSignUpForm';
+import ForgotPasswordForm from './authForms/ForgotPasswordForm';
+import CheckEmailNotice from './authForms/CheckEmailNotice';
+import NewPasswordForm from './authForms/NewPasswordForm';
 import '../assets/styles/Auth.css';
-
-const MIN_PASSWORD_LENGTH = 8;
-
-type View = 'login' | 'signup' | 'forgot' | 'sent' | 'recovery';
-
-// The auth client, or a readable error (shown by run()) if the app was started without Supabase settings.
-const authClient = () => {
-  if (!supabase) throw new Error('Supabase is not configured.');
-  return supabase.auth;
-};
-
-const friendlyError = (error: unknown): string => {
-  const message = (error as { message?: string } | null)?.message || 'Something went wrong. Please try again.';
-  if (/invalid login credentials/i.test(message)) return 'Incorrect email or password.';
-  if (/email not confirmed/i.test(message)) return 'Please confirm your email first. Check your inbox for the link.';
-  if (/rate limit|too many/i.test(message)) return 'Too many attempts. Please wait a minute and try again.';
-  return message;
-};
-
-interface PasswordFieldProps {
-  id: string;
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-  autoComplete: string;
-  hint?: string;
-  children?: ReactNode;
-}
-
-const PasswordField = ({ id, label, value, onChange, autoComplete, hint, children }: PasswordFieldProps) => {
-  const [visible, setVisible] = useState(false);
-  return (
-    <div className="form-group">
-      <div className="label-row">
-        <label htmlFor={id}>{label}</label>
-        {children}
-      </div>
-      <div className="password-field">
-        <input
-          id={id}
-          type={visible ? 'text' : 'password'}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          autoComplete={autoComplete}
-          minLength={MIN_PASSWORD_LENGTH}
-          required
-        />
-        <button
-          type="button"
-          className="password-toggle"
-          onClick={() => setVisible((v) => !v)}
-          aria-label={visible ? 'Hide password' : 'Show password'}
-          aria-pressed={visible}
-        >
-          {visible ? <FaEyeSlash /> : <FaEye />}
-        </button>
-      </div>
-      {hint && <p className="field-hint">{hint}</p>}
-    </div>
-  );
-};
 
 interface AuthProps {
   recoveryMode?: boolean;
   onPasswordUpdated?: () => void;
 }
 
+// The signed-out screen: the app's header above whichever step of the login flow is showing.
 // recoveryMode: user arrived from a password-reset email and must choose a new password.
+// What each step does lives in useAuthFlow; how each looks lives in ./authForms.
 const Auth = ({ recoveryMode = false, onPasswordUpdated }: AuthProps) => {
-  const [view, setView] = useState<View>(recoveryMode ? 'recovery' : 'login');
-  const [sentKind, setSentKind] = useState<'confirm' | 'reset'>('confirm');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [info, setInfo] = useState('');
-
-  const goTo = (nextView: View) => {
-    setView(nextView);
-    setError('');
-    setInfo('');
-    setPassword('');
-  };
-
-  const run = async (action: () => Promise<void>) => {
-    setLoading(true);
-    setError('');
-    setInfo('');
-    try {
-      await action();
-    } catch (err) {
-      setError(friendlyError(err));
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleLogin = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    run(async () => {
-      const { error: authError } = await authClient().signInWithPassword({ email: email.trim(), password });
-      if (authError) throw authError;
-    });
-  };
-
-  const handleSignUp = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    run(async () => {
-      if (password.length < MIN_PASSWORD_LENGTH) {
-        throw new Error(`Password must be at least ${MIN_PASSWORD_LENGTH} characters.`);
-      }
-      const { data, error: authError } = await authClient().signUp({
-        email: email.trim(),
-        password,
-        options: { emailRedirectTo: window.location.origin },
-      });
-      if (authError) throw authError;
-
-      // Supabase returns a user with no identities when the email is already registered.
-      if (data.user && data.user.identities?.length === 0) {
-        throw new Error('An account with this email already exists. Try logging in instead.');
-      }
-      // With email confirmation off there is already a session and App takes over.
-      if (!data.session) {
-        setSentKind('confirm');
-        setView('sent');
-      }
-    });
-  };
-
-  // Redirects to Google, then back to this origin with a session.
-  const handleGoogle = () =>
-    run(async () => {
-      const { error: authError } = await authClient().signInWithOAuth({
-        provider: 'google',
-        options: { redirectTo: window.location.origin },
-      });
-      if (authError) throw authError;
-    });
-
-  const handleForgot = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    run(async () => {
-      const { error: authError } = await authClient().resetPasswordForEmail(email.trim(), {
-        redirectTo: window.location.origin,
-      });
-      if (authError) throw authError;
-      // Same message whether or not the account exists, so emails cannot be probed.
-      setSentKind('reset');
-      setView('sent');
-    });
-  };
-
-  const handleRecovery = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    run(async () => {
-      const { error: authError } = await authClient().updateUser({ password });
-      if (authError) throw authError;
-      onPasswordUpdated?.();
-    });
-  };
-
-  const handleResend = () =>
-    run(async () => {
-      const { error: authError } = await authClient().resend({
-        type: 'signup',
-        email: email.trim(),
-        options: { emailRedirectTo: window.location.origin },
-      });
-      if (authError) throw authError;
-      setInfo('Email sent again. It can take a minute to arrive.');
-    });
-
-  const isLogin = view === 'login';
-  const isSignUp = view === 'signup';
+  const flow = useAuthFlow({ recoveryMode, onPasswordUpdated });
+  const { view, email, password, loading, error, info } = flow;
 
   return (
     <div className="auth-page-wrapper">
@@ -190,157 +31,55 @@ const Auth = ({ recoveryMode = false, onPasswordUpdated }: AuthProps) => {
           <p className="auth-tagline">Log your lifts. Watch yourself get stronger.</p>
         </div>
 
-        {(isLogin || isSignUp) && (
-          <>
-            <div className="auth-tabs" role="tablist" aria-label="Log in or sign up">
-              <button
-                type="button"
-                role="tab"
-                aria-selected={isLogin}
-                className={`auth-tab ${isLogin ? 'active' : ''}`}
-                onClick={() => goTo('login')}
-                disabled={loading}
-              >
-                Log In
-              </button>
-              <button
-                type="button"
-                role="tab"
-                aria-selected={isSignUp}
-                className={`auth-tab ${isSignUp ? 'active' : ''}`}
-                onClick={() => goTo('signup')}
-                disabled={loading}
-              >
-                Sign Up
-              </button>
-            </div>
-
-            <h2 className="auth-form-title">{isLogin ? 'Welcome back' : 'Create your account'}</h2>
-
-            <button type="button" className="google-button" onClick={handleGoogle} disabled={loading}>
-              <FaGoogle aria-hidden="true" /> Continue with Google
-            </button>
-            <div className="auth-divider"><span>or use email</span></div>
-
-            <form onSubmit={isLogin ? handleLogin : handleSignUp}>
-              {error && <p className="auth-error" role="alert">{error}</p>}
-              {info && <p className="auth-feedback-message" role="status">{info}</p>}
-
-              <div className="form-group">
-                <label htmlFor="email">Email</label>
-                <input
-                  id="email"
-                  type="email"
-                  inputMode="email"
-                  autoComplete="email"
-                  autoCapitalize="none"
-                  spellCheck={false}
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="you@example.com"
-                  required
-                />
-              </div>
-
-              <PasswordField
-                id="password"
-                label="Password"
-                value={password}
-                onChange={setPassword}
-                autoComplete={isLogin ? 'current-password' : 'new-password'}
-                hint={isSignUp ? `At least ${MIN_PASSWORD_LENGTH} characters.` : undefined}
-              >
-                {isLogin && (
-                  <button type="button" className="link-button" onClick={() => goTo('forgot')}>
-                    Forgot password?
-                  </button>
-                )}
-              </PasswordField>
-
-              <button type="submit" className="auth-submit-button" disabled={loading}>
-                {loading ? 'Please wait...' : isLogin ? 'Log In' : 'Create Account'}
-              </button>
-
-              {isLogin && /confirm your email/i.test(error) && (
-                <button type="button" className="link-button auth-center-link" onClick={handleResend} disabled={loading}>
-                  Resend confirmation email
-                </button>
-              )}
-            </form>
-          </>
+        {(view === 'login' || view === 'signup') && (
+          <LogInSignUpForm
+            mode={view}
+            email={email}
+            onEmailChange={flow.setEmail}
+            password={password}
+            onPasswordChange={flow.setPassword}
+            loading={loading}
+            error={error}
+            info={info}
+            onSubmit={view === 'login' ? flow.logIn : flow.signUp}
+            onSwitchMode={flow.goTo}
+            onForgotPassword={() => flow.goTo('forgot')}
+            onGoogle={flow.continueWithGoogle}
+            onResendConfirmation={flow.resendConfirmation}
+          />
         )}
 
         {view === 'forgot' && (
-          <form onSubmit={handleForgot}>
-            <h2 className="auth-form-title">Reset your password</h2>
-            <p className="auth-subtext">Enter your email and we will send you a link to choose a new password.</p>
-            {error && <p className="auth-error" role="alert">{error}</p>}
-            <div className="form-group">
-              <label htmlFor="email">Email</label>
-              <input
-                id="email"
-                type="email"
-                inputMode="email"
-                autoComplete="email"
-                autoCapitalize="none"
-                spellCheck={false}
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@example.com"
-                required
-              />
-            </div>
-            <button type="submit" className="auth-submit-button" disabled={loading}>
-              {loading ? 'Please wait...' : 'Send reset link'}
-            </button>
-            <button type="button" className="link-button auth-center-link" onClick={() => goTo('login')}>
-              Back to log in
-            </button>
-          </form>
+          <ForgotPasswordForm
+            email={email}
+            onEmailChange={flow.setEmail}
+            loading={loading}
+            error={error}
+            onSubmit={flow.sendResetLink}
+            onBack={() => flow.goTo('login')}
+          />
         )}
 
         {view === 'sent' && (
-          <div className="auth-sent">
-            <div className="auth-sent-icon" aria-hidden="true"><FaEnvelopeOpenText /></div>
-            <h2 className="auth-form-title">Check your email</h2>
-            <p className="auth-subtext">
-              {sentKind === 'confirm'
-                ? 'We sent a confirmation link to '
-                : 'If an account exists for '}
-              <strong>{email.trim()}</strong>
-              {sentKind === 'confirm'
-                ? '. Click it to activate your account, then log in.'
-                : ', a reset link is on its way.'}
-            </p>
-            {error && <p className="auth-error" role="alert">{error}</p>}
-            {info && <p className="auth-feedback-message" role="status">{info}</p>}
-            {sentKind === 'confirm' && (
-              <button type="button" className="link-button auth-center-link" onClick={handleResend} disabled={loading}>
-                Did not get it? Resend
-              </button>
-            )}
-            <button type="button" className="auth-submit-button" onClick={() => goTo('login')}>
-              Back to log in
-            </button>
-          </div>
+          <CheckEmailNotice
+            kind={flow.sentKind}
+            email={email}
+            loading={loading}
+            error={error}
+            info={info}
+            onResend={flow.resendConfirmation}
+            onBack={() => flow.goTo('login')}
+          />
         )}
 
         {view === 'recovery' && (
-          <form onSubmit={handleRecovery}>
-            <h2 className="auth-form-title">Choose a new password</h2>
-            {error && <p className="auth-error" role="alert">{error}</p>}
-            <PasswordField
-              id="new-password"
-              label="New password"
-              value={password}
-              onChange={setPassword}
-              autoComplete="new-password"
-              hint={`At least ${MIN_PASSWORD_LENGTH} characters.`}
-            />
-            <button type="submit" className="auth-submit-button" disabled={loading}>
-              {loading ? 'Please wait...' : 'Update password'}
-            </button>
-          </form>
+          <NewPasswordForm
+            password={password}
+            onPasswordChange={flow.setPassword}
+            loading={loading}
+            error={error}
+            onSubmit={flow.chooseNewPassword}
+          />
         )}
       </div>
     </div>

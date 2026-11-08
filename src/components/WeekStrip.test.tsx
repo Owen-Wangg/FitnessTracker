@@ -17,21 +17,21 @@ const press = (id: string, date: string, weight: number, sets = 1): Workout => (
   sets: Array.from({ length: sets }, () => ({ weight, reps: 5 })),
 });
 
-const groupCount = (label: string) => {
+const groupCell = (label: string) => {
   const list = screen.getByRole('list', { name: /sets by muscle group/i });
-  return within(list).getByText(label).previousSibling?.textContent;
+  return within(list).getByText(label).closest('li') as HTMLElement;
 };
 
 test('shows sets per muscle group for this week only', () => {
   render(<WeekStrip workouts={[press('a', '2025-06-02', 185, 4), press('b', '2025-06-09', 195, 3)]} />);
-  expect(groupCount('Chest')).toBe('3'); // last week's four sets are not counted
-  expect(groupCount('Legs')).toBe('0');
+  expect(groupCell('Chest')).toHaveTextContent('3 sets'); // last week's four sets are not counted
+  expect(groupCell('Legs')).toHaveTextContent('0 sets');
 });
 
 test('counts the personal records set this week', () => {
   render(<WeekStrip workouts={[press('a', '2025-06-02', 185), press('b', '2025-06-09', 195)]} />);
   expect(screen.getByText('1 PR')).toBeInTheDocument();
-  expect(screen.getByText('1 day')).toBeInTheDocument();
+  expect(screen.getByText('1 day trained')).toBeInTheDocument();
 });
 
 test('no PR badge when nothing beat an earlier session', () => {
@@ -39,30 +39,38 @@ test('no PR badge when nothing beat an earlier session', () => {
   expect(screen.queryByText(/\bPRs?\b/)).not.toBeInTheDocument();
 });
 
-test('shows days since each muscle group was last trained', () => {
+test('says in words how long ago each muscle group was trained', () => {
   const legs: Workout = { id: 'l', date: '2025-06-02', name: 'Leg Press Machine', exerciseId: 'Leg_Press', sets: [{ weight: 300, reps: 8 }] };
   render(<WeekStrip workouts={[press('a', '2025-06-10', 195), legs]} />);
-  const list = screen.getByRole('list', { name: /sets by muscle group/i });
-  const age = (label: string) => within(list).getByText(label).nextSibling?.textContent;
-  expect(age('Chest')).toBe('1d');
-  expect(age('Legs')).toBe('9d'); // a week or more reads as stale
-  expect(age('Back')).toBe('–');
-  expect(within(list).getByText('Legs').closest('li')).toHaveClass('stale');
-  expect(within(list).getByText('Chest').closest('li')).not.toHaveClass('stale');
+  expect(groupCell('Chest')).toHaveTextContent('Trained yesterday');
+  expect(groupCell('Legs')).toHaveTextContent('Trained 9d ago');
+  expect(groupCell('Back')).toHaveTextContent('Not trained yet');
+  expect(groupCell('Legs')).toHaveClass('stale'); // a week or more reads as stale
+  expect(groupCell('Chest')).not.toHaveClass('stale');
 });
 
-test('says "today" for a group trained today', () => {
+test('says "Trained today" for a group trained today', () => {
   render(<WeekStrip workouts={[press('a', '2025-06-11', 195)]} />);
-  const list = screen.getByRole('list', { name: /sets by muscle group/i });
-  expect(within(list).getByText('Chest').nextSibling).toHaveTextContent('today');
+  expect(groupCell('Chest')).toHaveTextContent('Trained today');
 });
 
-test('a week with no training still shows the breakdown, with zero sets and days since', () => {
+test('uses the singular for one set', () => {
+  render(<WeekStrip workouts={[press('a', '2025-06-10', 195, 1)]} />);
+  expect(groupCell('Chest')).toHaveTextContent('1 set');
+  expect(groupCell('Chest')).not.toHaveTextContent('1 sets');
+});
+
+test('a week with no training still shows the breakdown, with zero sets and how long ago', () => {
   render(<WeekStrip workouts={[press('a', '2025-06-02', 185)]} />);
-  expect(groupCount('Chest')).toBe('0');
-  const list = screen.getByRole('list', { name: /sets by muscle group/i });
-  expect(within(list).getByText('Chest').nextSibling).toHaveTextContent('9d');
-  expect(screen.queryByText(/\bPRs?\b/)).not.toBeInTheDocument();
+  expect(groupCell('Chest')).toHaveTextContent('0 sets');
+  expect(groupCell('Chest')).toHaveTextContent('Trained 9d ago');
+  expect(screen.queryByText(/PRs?/)).not.toBeInTheDocument();
+});
+
+test('words the volume and the change from last week plainly', () => {
+  render(<WeekStrip workouts={[press('a', '2025-06-02', 100), press('b', '2025-06-10', 150)]} />);
+  expect(screen.getByText(/lbs lifted this week/)).toBeInTheDocument();
+  expect(screen.getByText(/50% more than last week/)).toBeInTheDocument();
 });
 
 test('shows no breakdown before anything has been logged', () => {

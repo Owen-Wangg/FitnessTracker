@@ -25,10 +25,13 @@
 .week-delta.down { color: var(--danger); }
 
 .week-groups-title { margin: var(--space-4) 0 var(--space-2); font-size: 0.75rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); }
-.week-groups { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: var(--space-2); }
-.week-group { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: var(--space-2) 0; background: var(--surface-2); border-radius: var(--radius-sm); }
-.week-group-count { font-family: var(--font-display); font-size: 1.25rem; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
-.week-group-label { font-size: 0.6875rem; color: var(--text-muted); }
-.week-group.empty .week-group-count { color: var(--text-muted); font-weight: 600; opacity: 0.6; }
-.week-group-age { font-size: 0.6875rem; font-variant-numeric: tabular-nums; color: var(--text-muted); }
+/* Three across, two rows: six narrow columns made the names run into each other on phones. */
+.week-groups { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-2); }
+.week-group { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-width: 0; padding: var(--space-2) var(--space-3); background: var(--surface-2); border-radius: var(--radius-sm); }
+.week-group-label { font-size: 0.8125rem; font-weight: 600; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.week-group-sets { display: flex; align-items: baseline; gap: 4px; }
+.week-group-count { font-family: var(--font-display); font-size: 1.5rem; font-weight: 700; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.week-group-unit { font-size: 0.75rem; color: var(--text-muted); }
+.week-group.empty .week-group-count { color: var(--text-muted); opacity: 0.6; }
+.week-group-age { max-width: 100%; font-size: 0.6875rem; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .week-group.stale .week-group-age { color: var(--danger); }

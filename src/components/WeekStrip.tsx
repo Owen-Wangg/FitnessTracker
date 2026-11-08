@@ -17,8 +17,9 @@ const startOfWeek = (date: Date): Date => {
   return d;
 };
 
-// "today", "1d", "9d" or a dash for a group never trained.
-const sinceText = (age: number | null): string => (age === null ? '–' : age <= 0 ? 'today' : `${age}d`);
+// How long ago a muscle group was trained, in words: "Trained today", "Trained 9d ago", "Not trained yet".
+const trainedText = (age: number | null): string =>
+  age === null ? 'Not trained yet' : age <= 0 ? 'Trained today' : age === 1 ? 'Trained yesterday' : `Trained ${age}d ago`;
 
 const addDays = (date: Date, n: number): Date => new Date(date.getFullYear(), date.getMonth(), date.getDate() + n);
 
@@ -65,7 +66,7 @@ const WeekStrip = ({ workouts = [] }: { workouts?: Workout[] }) => {
           )}
           {trainedCount > 0 && (
             <span className="week-count">
-              <FaFire aria-hidden="true" /> {trainedCount} {trainedCount === 1 ? 'day' : 'days'}
+              <FaFire aria-hidden="true" /> {trainedCount} {trainedCount === 1 ? 'day' : 'days'} trained
             </span>
           )}
         </div>
@@ -85,28 +86,32 @@ const WeekStrip = ({ workouts = [] }: { workouts?: Workout[] }) => {
 
       <div className="week-volume">
         <span className="week-volume-value">{toDisplay(volume, unit).toLocaleString()}</span>
-        <span className="week-volume-unit">{unit} this week</span>
+        <span className="week-volume-unit">{unit} lifted this week</span>
       </div>
       {delta !== null && (
         <p className={`week-delta ${delta >= 0 ? 'up' : 'down'}`}>
-          {delta >= 0 ? '▲' : '▼'} {Math.abs(delta).toFixed(0)}% vs last week
+          {delta >= 0 ? '▲' : '▼'} {Math.abs(delta).toFixed(0)}% {delta >= 0 ? 'more' : 'less'} than last week
         </p>
       )}
 
       {workouts.length > 0 && (
         <>
-          <h4 className="week-groups-title">Muscle groups: sets this week, days since trained</h4>
+          <h4 className="week-groups-title">Muscle groups</h4>
           <ul className="week-groups" aria-label="Sets by muscle group">
             {GROUPS.map((group) => {
+              const sets = groupSets[group];
               const age = groupAge[group];
               return (
                 <li
                   key={group}
-                  className={`week-group ${groupSets[group] === 0 ? 'empty' : ''} ${age === null || age >= 7 ? 'stale' : ''}`}
+                  className={`week-group ${sets === 0 ? 'empty' : ''} ${age === null || age >= 7 ? 'stale' : ''}`}
                 >
-                  <span className="week-group-count">{groupSets[group]}</span>
                   <span className="week-group-label">{group}</span>
-                  <span className="week-group-age">{sinceText(age)}</span>
+                  <span className="week-group-sets">
+                    <span className="week-group-count">{sets}</span>{' '}
+                    <span className="week-group-unit">{sets === 1 ? 'set' : 'sets'}</span>
+                  </span>
+                  <span className="week-group-age">{trainedText(age)}</span>
                 </li>
               );
             })}

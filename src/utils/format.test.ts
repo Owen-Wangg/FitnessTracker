@@ -1,4 +1,4 @@
-import { dateWithYear, formatNumber, longDate, plural, shortDate } from './format';
+import { compactNumber, dateWithYear, formatNumber, longDate, monthYear, plural, shortDate } from './format';
 
 describe('formatNumber', () => {
   test('groups thousands and keeps at most one decimal', () => {
@@ -26,5 +26,22 @@ describe('dates', () => {
 
   test('ignore a time suffix', () => {
     expect(shortDate('2025-12-31T23:59:00')).toBe('Dec 31');
+  });
+});
+
+describe('compactNumber', () => {
+  test('keeps small numbers exact and shortens big ones', () => {
+    expect(compactNumber(0)).toBe('0');
+    expect(compactNumber(8450)).toBe('8,450');
+    expect(compactNumber(9999.4)).toBe('9,999');
+    expect(compactNumber(10000)).toBe('10K');
+    expect(compactNumber(12500)).toBe('12.5K');
+    expect(compactNumber(1_284_300)).toBe('1.3M');
+  });
+});
+
+describe('monthYear', () => {
+  test('names the month and year', () => {
+    expect(monthYear('2025-03-14')).toBe('Mar 2025');
   });
 });

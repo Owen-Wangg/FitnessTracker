@@ -19,3 +19,12 @@ export const dateWithYear = (date: string): string => dateText(date, { month: 's
 // "Sun, Jun 1, 2025"
 export const longDate = (date: string): string =>
   dateText(date, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+
+// "1.3M", "12.5K", but plain "8,450" below ten thousand, where the exact figure is still short.
+export const compactNumber = (n: number): string =>
+  Math.abs(n) < 10_000
+    ? n.toLocaleString(undefined, { maximumFractionDigits: 0 })
+    : n.toLocaleString('en-US', { notation: 'compact', maximumFractionDigits: 1 });
+
+// "Mar 2025"
+export const monthYear = (date: string): string => dateText(date, { month: 'short', year: 'numeric' });

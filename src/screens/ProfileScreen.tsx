@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import BodyWeightCard from '../components/BodyWeightCard';
 import ThemeSelector from '../components/ThemeSelector';
 import ConsistencyCard from '../components/ConsistencyCard';
@@ -7,6 +7,8 @@ import PersonalRecordsCard from '../components/PersonalRecordsCard';
 import UnitSelector from '../components/UnitSelector';
 import { useUnit } from '../components/UnitProvider';
 import { toDisplay } from '../utils/units';
+import { compactNumber, monthYear } from '../utils/format';
+import { lifetimeStats } from '../utils/lifetime';
 import { displayNameFor, avatarUrlFor, type UserLike } from '../utils/userProfile';
 import type { BodyWeight, BodyWeightDraft, ThemePreference, Workout } from '../types';
 import '../assets/styles/ProfileScreen.css';
@@ -14,7 +16,6 @@ import '../assets/styles/ProfileScreen.css';
 interface ProfileScreenProps {
   user?: UserLike | null;
   handleSignOut?: () => void | Promise<void>;
-  lifetimeStats?: { totalWeightLifted: number };
   workouts?: Workout[]; // everything logged, for the records and trends
   bodyWeights?: BodyWeight[]; // oldest first
   onLogBodyWeight: (entry: BodyWeightDraft) => Promise<boolean>;
@@ -26,7 +27,6 @@ interface ProfileScreenProps {
 const ProfileScreen = ({
   user = null,
   handleSignOut,
-  lifetimeStats = { totalWeightLifted: 0 },
   workouts = [],
   bodyWeights = [],
   onLogBodyWeight,
@@ -37,7 +37,7 @@ const ProfileScreen = ({
   const { unit, setUnit } = useUnit();
   const displayName = displayNameFor(user);
   const avatarUrl = avatarUrlFor(user);
-  const latestBodyWeight = bodyWeights[bodyWeights.length - 1];
+  const totals = useMemo(() => lifetimeStats(workouts), [workouts]);
 
   return (
     <div className="profile-screen">
@@ -57,19 +57,27 @@ const ProfileScreen = ({
         </div>
 
         <div className="profile-stats">
-          <h3>Stats</h3>
-          <div className="stat-item">
-            <span className="stat-label">Body weight</span>
-            <span className="stat-value">
-              {latestBodyWeight ? `${toDisplay(latestBodyWeight.weight, unit)} ${unit}` : 'Not logged'}
-            </span>
-          </div>
-          <div className="stat-item">
-            <span className="stat-label">Total weight lifted</span>
-            <span className="stat-value">
-              {toDisplay(lifetimeStats?.totalWeightLifted || 0, unit).toLocaleString()} {unit}
-            </span>
-          </div>
+          <h3>Your training</h3>
+          <dl className="stat-tiles">
+            <div className="stat-tile">
+              <dd className="stat-tile-value">{totals.daysTrained.toLocaleString()}</dd>
+              <dt className="stat-tile-label">Days trained</dt>
+            </div>
+            <div className="stat-tile">
+              <dd className="stat-tile-value">{totals.sets.toLocaleString()}</dd>
+              <dt className="stat-tile-label">Sets logged</dt>
+            </div>
+            <div className="stat-tile">
+              <dd className="stat-tile-value" title={`${toDisplay(totals.volume, unit).toLocaleString()} ${unit}`}>
+                {compactNumber(toDisplay(totals.volume, unit))}
+              </dd>
+              <dt className="stat-tile-label">{unit} lifted</dt>
+            </div>
+            <div className="stat-tile">
+              <dd className="stat-tile-value">{totals.firstDate ? monthYear(totals.firstDate) : '–'}</dd>
+              <dt className="stat-tile-label">Training since</dt>
+            </div>
+          </dl>
         </div>
 
         {handleSignOut && (

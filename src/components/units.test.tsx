@@ -1,5 +1,5 @@
 import type { ReactElement } from 'react';
-import { render, screen, within } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { UnitProvider } from './UnitProvider';
 import WorkoutFormModal from './WorkoutFormModal';
@@ -91,12 +91,16 @@ test('body weight is logged in pounds even when typed in kg', async () => {
 });
 
 describe('profile', () => {
+  const lifts: Workout[] = [
+    { id: 'l1', date: '2025-06-01', name: 'Leg Press Machine', exerciseId: 'Leg_Press', sets: [{ weight: 100, reps: 100 }] },
+  ]; // 10,000 lbs
+
   const profile = () =>
     render(
       <UnitProvider>
         <ProfileScreen
           bodyWeights={[{ id: 'b1', date: '2025-06-01', weight: 176 }]}
-          lifetimeStats={{ totalWeightLifted: 10000 }}
+          workouts={lifts}
           onLogBodyWeight={vi.fn()}
           onDeleteBodyWeight={vi.fn()}
         />
@@ -106,16 +110,16 @@ describe('profile', () => {
   test('defaults to pounds', () => {
     profile();
     expect(screen.getByRole('radio', { name: /pounds/i })).toBeChecked();
-    expect(within(screen.getByText('Stats').parentElement as HTMLElement).getByText('176 lbs')).toBeInTheDocument();
+    expect(screen.getByText('lbs lifted').previousSibling).toHaveTextContent('10K');
+    expect(screen.getByText('Current').nextSibling).toHaveTextContent('176 lbs');
   });
 
   test('switching to kilograms updates the stats and is remembered', () => {
     profile();
     userEvent.click(screen.getByRole('radio', { name: /kilograms/i }));
     expect(screen.getByRole('radio', { name: /kilograms/i })).toBeChecked();
-    const stats = within(screen.getByText('Stats').parentElement as HTMLElement);
-    expect(stats.getByText('79.8 kg')).toBeInTheDocument();
-    expect(stats.getByText('4,535.9 kg')).toBeInTheDocument();
+    expect(screen.getByText('kg lifted').previousSibling).toHaveTextContent('4,536'); // 4,535.9 kg
+    expect(screen.getByText('Current').nextSibling).toHaveTextContent('79.8 kg');
     expect(window.localStorage.getItem(UNIT_KEY)).toBe('kg');
   });
 });

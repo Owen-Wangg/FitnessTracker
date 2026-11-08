@@ -20,9 +20,10 @@
 .profile-stats { padding: var(--space-5) 0 0; }
 .profile-stats h3 { margin-bottom: var(--space-3); font-size: 0.8125rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); }
 
-.stat-item { display: flex; justify-content: space-between; gap: var(--space-3); padding: var(--space-3) 0; border-bottom: 1px solid var(--border); }
-.stat-label { color: var(--text-muted); }
-.stat-value { font-weight: 600; font-variant-numeric: tabular-nums; }
+.stat-tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-3); margin: 0; }
+.stat-tile { display: flex; flex-direction: column-reverse; gap: 2px; padding: var(--space-3); background: var(--surface-2); border-radius: var(--radius-sm); }
+.stat-tile-value { margin: 0; font-family: var(--font-display); font-size: 1.75rem; font-weight: 700; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.stat-tile-label { font-size: 0.75rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); }
 
 .profile-actions { margin-top: var(--space-5); }
 .sign-out-btn { width: 100%; background: var(--danger-soft); color: var(--danger); }

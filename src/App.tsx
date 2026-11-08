@@ -6,7 +6,7 @@ import { useWorkouts } from './hooks/useWorkouts';
 import { useBodyWeights } from './hooks/useBodyWeights';
 import { useTheme } from './hooks/useTheme';
 import { useToday } from './hooks/useToday';
-import { totalVolume, applyBodyWeight } from './utils/workoutMetrics';
+import { applyBodyWeight } from './utils/workoutMetrics';
 import type { Workout, WorkoutDraft } from './types';
 import HomeScreen from './screens/HomeScreen';
 import WorkoutFormModal from './components/WorkoutFormModal';
@@ -30,11 +30,6 @@ function App() {
   const loadingWorkouts = status === 'loading';
   // null = closed; { workout: null } = adding; { workout } = editing that entry
   const [form, setForm] = useState<{ workout: Workout | null } | null>(null);
-
-  const lifetimeStats = useMemo(
-    () => ({ totalWeightLifted: totalVolume(workouts) }),
-    [workouts]
-  );
 
   const today = useToday();
   const todaysWorkouts = useMemo(() => workouts.filter((w) => w.date === today), [workouts, today]);
@@ -100,7 +95,6 @@ function App() {
               <ProfileScreen
                 user={user}
                 handleSignOut={handleSignOut}
-                lifetimeStats={lifetimeStats}
                 workouts={workouts}
                 bodyWeights={bodyWeights}
                 onLogBodyWeight={logBodyWeight}

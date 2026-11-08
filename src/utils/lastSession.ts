@@ -25,17 +25,29 @@ export const lastSession = (
   return sets.length > 0 ? { date, sets } : null;
 };
 
-// "135 x 8, 135 x 7". Bodyweight sets read "BW x 10" or "BW+25 x 5". Pass a function to show weights
-// in another unit; it receives pounds and returns the text.
+// Sets as short phrases in gym shorthand, repeated identical sets combined: "3 × 8 @ 135 lbs".
+// Bodyweight sets read "3 × 10 @ BW" or "1 × 5 @ BW + 25 lbs". `formatWeight` turns pounds into text with
+// its unit, which lets the caller choose lbs or kg.
 export const describeSets = (
   sets: WorkoutSet[],
   bodyweight: boolean,
-  formatWeight: (lbs: number) => string = String
-): string =>
-  sets
-    .map((s) => {
-      const added = Number(s.weight) || 0;
-      const load = bodyweight ? (added > 0 ? `BW+${formatWeight(added)}` : 'BW') : formatWeight(added);
-      return `${load} × ${s.reps}`;
-    })
-    .join(', ');
+  formatWeight: (lbs: number) => string = (lbs) => `${lbs} lbs`
+): string[] => {
+  const groups: { count: number; reps: number; weight: number }[] = [];
+  sets.forEach((s) => {
+    const weight = Number(s.weight) || 0;
+    const reps = Number(s.reps) || 0;
+    const previous = groups[groups.length - 1];
+    if (previous && previous.weight === weight && previous.reps === reps) previous.count += 1;
+    else groups.push({ count: 1, reps, weight });
+  });
+
+  return groups.map(({ count, reps, weight }) => {
+    const load = bodyweight ? (weight > 0 ? `BW + ${formatWeight(weight)}` : 'BW') : formatWeight(weight);
+    return `${count} × ${reps} @ ${load}`;
+  });
+};
+
+// "today", "yesterday" or "9 days ago".
+export const daysAgoText = (days: number): string =>
+  days <= 0 ? 'today' : days === 1 ? 'yesterday' : `${days} days ago`;

@@ -56,7 +56,8 @@ describe('workout form in kilograms', () => {
 
   test('last time is shown in kg too', () => {
     inKg(<WorkoutFormModal initial={{ ...legPress, id: 'w2', date: '2025-06-08' }} history={[legPress]} onClose={vi.fn()} onSubmit={vi.fn()} />);
-    expect(screen.getByText('61.2 × 8, 102.1 × 5')).toBeInTheDocument();
+    expect(screen.getByText('1 × 8 @ 61.2 kg')).toBeInTheDocument();
+    expect(screen.getByText('1 × 5 @ 102.1 kg')).toBeInTheDocument();
   });
 });
 

@@ -35,8 +35,33 @@ describe('last time', () => {
     setup({ history });
     expect(screen.queryByText(/last time/i)).not.toBeInTheDocument();
     pickExercise('Leg Press Machine');
-    expect(screen.getByText(/last time · jun 1/i)).toBeInTheDocument();
-    expect(screen.getByText('225 × 5, 245 × 3')).toBeInTheDocument();
+    expect(screen.getByText('Last time')).toBeInTheDocument();
+    expect(screen.getByText(/days ago · Jun 1/)).toBeInTheDocument();
+    expect(screen.getByText('1 × 5 @ 225 lbs')).toBeInTheDocument();
+    expect(screen.getByText('1 × 3 @ 245 lbs')).toBeInTheDocument();
+  });
+
+  test('"Use these sets" fills the form, and only when asked', () => {
+    setup({ history });
+    pickExercise('Leg Press Machine');
+    expect(screen.getByLabelText(/set 1 weight/i)).toHaveValue(null); // nothing is pre-filled
+
+    userEvent.click(screen.getByRole('button', { name: /use these sets/i }));
+    expect(screen.getByLabelText(/set 1 weight/i)).toHaveValue(225);
+    expect(screen.getByLabelText(/set 1 reps/i)).toHaveValue(5);
+    expect(screen.getByLabelText(/set 2 weight/i)).toHaveValue(245);
+    expect(screen.getByLabelText(/set 2 reps/i)).toHaveValue(3);
+    // once the form matches there is nothing left to apply
+    expect(screen.queryByRole('button', { name: /use these sets/i })).not.toBeInTheDocument();
+  });
+
+  test('the button comes back if you change a set afterwards', () => {
+    setup({ history });
+    pickExercise('Leg Press Machine');
+    userEvent.click(screen.getByRole('button', { name: /use these sets/i }));
+    userEvent.clear(screen.getByLabelText(/set 1 weight/i));
+    userEvent.type(screen.getByLabelText(/set 1 weight/i), '230');
+    expect(screen.getByRole('button', { name: /use these sets/i })).toBeInTheDocument();
   });
 
   test('says nothing for an exercise with no history', () => {

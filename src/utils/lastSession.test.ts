@@ -1,4 +1,4 @@
-import { describeSets, lastSession } from './lastSession';
+import { daysAgoText, describeSets, lastSession } from './lastSession';
 import type { Workout, WorkoutSet } from '../types';
 
 const entry = (id: string, date: string, sets: WorkoutSet[], extra: Partial<Workout> = {}): Workout => ({
@@ -45,15 +45,35 @@ describe('lastSession', () => {
 });
 
 describe('describeSets', () => {
-  test('lists weight x reps', () => {
-    expect(describeSets([{ weight: 135, reps: 8 }, { weight: 140, reps: 6 }], false)).toBe('135 × 8, 140 × 6');
+  test('writes each set in gym shorthand, with units', () => {
+    expect(describeSets([{ weight: 135, reps: 8 }, { weight: 140, reps: 6 }], false)).toEqual(['1 × 8 @ 135 lbs', '1 × 6 @ 140 lbs']);
+  });
+
+  test('combines repeated identical sets in a row, but not separated ones', () => {
+    const sets = [{ weight: 135, reps: 8 }, { weight: 135, reps: 8 }, { weight: 135, reps: 8 }, { weight: 145, reps: 6 }, { weight: 135, reps: 8 }];
+    expect(describeSets(sets, false)).toEqual(['3 × 8 @ 135 lbs', '1 × 6 @ 145 lbs', '1 × 8 @ 135 lbs']);
   });
 
   test('bodyweight sets show BW, with any added weight', () => {
-    expect(describeSets([{ weight: 0, reps: 10 }, { weight: 25, reps: 5 }], true)).toBe('BW × 10, BW+25 × 5');
+    expect(describeSets([{ weight: 0, reps: 10 }, { weight: 0, reps: 10 }, { weight: 25, reps: 5 }], true)).toEqual([
+      '2 × 10 @ BW',
+      '1 × 5 @ BW + 25 lbs',
+    ]);
   });
 
   test('uses the given formatter for weights', () => {
-    expect(describeSets([{ weight: 100, reps: 5 }], false, (lbs) => `${lbs / 2}kg`)).toBe('50kg × 5');
+    expect(describeSets([{ weight: 100, reps: 5 }], false, (lbs) => `${lbs / 2} kg`)).toEqual(['1 × 5 @ 50 kg']);
+  });
+
+  test('is empty with no sets', () => {
+    expect(describeSets([], false)).toEqual([]);
+  });
+});
+
+describe('daysAgoText', () => {
+  test('reads naturally', () => {
+    expect(daysAgoText(0)).toBe('today');
+    expect(daysAgoText(1)).toBe('yesterday');
+    expect(daysAgoText(9)).toBe('9 days ago');
   });
 });

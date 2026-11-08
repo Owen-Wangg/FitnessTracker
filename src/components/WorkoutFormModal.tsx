@@ -1,14 +1,14 @@
 import React, { useMemo, useState } from 'react';
 import { FaPlus, FaTimes, FaChevronRight } from 'react-icons/fa';
-import { formatLocalDate, parseLocalDate } from '../utils/workoutMetrics';
+import { daysBetween, formatLocalDate, parseLocalDate } from '../utils/workoutMetrics';
 import { findExercise } from '../utils/exerciseLibrary';
-import { describeSets, lastSession } from '../utils/lastSession';
+import { daysAgoText, describeSets, lastSession } from '../utils/lastSession';
 import { validateWorkoutForm } from '../utils/workoutForm';
 import { fromDisplay, toDisplay, toInputValue, type Unit } from '../utils/units';
 import ExercisePicker, { type PickedExercise } from './ExercisePicker';
 import ExerciseThumb from './ExerciseThumb';
 import { useUnit } from './UnitProvider';
-import type { SetInput, Workout, WorkoutDraft } from '../types';
+import type { SetInput, Workout, WorkoutDraft, WorkoutSet } from '../types';
 import '../assets/styles/WorkoutFormModal.css';
 
 const emptySet = (): SetInput => ({ weight: '', reps: '' });
@@ -17,7 +17,7 @@ const shortDate = (date: string) => parseLocalDate(date).toLocaleDateString('en-
 
 // Form rows hold the raw input strings. set_type is carried along (not shown) so editing keeps tags.
 // Weights are shown in the chosen unit.
-const rowsFrom = (workout: Workout | null | undefined, unit: Unit): SetInput[] =>
+const rowsFrom = (workout: { sets: WorkoutSet[] } | null | undefined, unit: Unit): SetInput[] =>
   workout && workout.sets.length > 0
     ? workout.sets.map((s): SetInput => {
         const weight = toInputValue(Number(s.weight), unit);
@@ -56,6 +56,18 @@ const WorkoutFormModal = ({ initial = null, history = [], onClose, onSubmit }: W
   const libraryEntry = exercise ? findExercise(exercise.id, exercise.name) : null;
   const bodyweight = libraryEntry?.loadType === 'bodyweight';
   const lastTime = useMemo(() => (exercise ? lastSession(history, exercise, date) : null), [history, exercise, date]);
+
+  // Fills the form with last time's sets. Only on request: nothing is pre-filled automatically.
+  const useLastTime = () => {
+    if (!lastTime) return;
+    setSets(rowsFrom(lastTime, unit));
+    setError('');
+  };
+  // Hide the button once the form already holds exactly those sets.
+  const matchesLastTime =
+    lastTime !== null &&
+    sets.length === lastTime.sets.length &&
+    sets.every((s, i) => s.weight === toInputValue(Number(lastTime.sets[i].weight), unit) && s.reps === String(lastTime.sets[i].reps));
 
   const updateSet = (index: number, field: 'weight' | 'reps', value: string) =>
     setSets((prev) => prev.map((s, i) => (i === index ? { ...s, [field]: value } : s)));
@@ -143,10 +155,24 @@ const WorkoutFormModal = ({ initial = null, history = [], onClose, onSubmit }: W
           </div>
 
           {lastTime && (
-            <p className="last-time">
-              <span className="last-time-label">Last time · {shortDate(lastTime.date)}</span>
-              {describeSets(lastTime.sets, bodyweight, (lbs) => String(toDisplay(lbs, unit)))}
-            </p>
+            <div className="last-time">
+              <div className="last-time-head">
+                <span className="last-time-label">Last time</span>
+                <span className="last-time-when">
+                  {daysAgoText(daysBetween(lastTime.date, formatLocalDate(new Date())))} · {shortDate(lastTime.date)}
+                </span>
+              </div>
+              <ul className="last-time-sets">
+                {describeSets(lastTime.sets, bodyweight, (lbs) => `${toDisplay(lbs, unit)} ${unit}`).map((text, i) => (
+                  <li key={i}>{text}</li>
+                ))}
+              </ul>
+              {!matchesLastTime && (
+                <button type="button" className="last-time-use" onClick={useLastTime}>
+                  Use these sets
+                </button>
+              )}
+            </div>
           )}
 
           <div className="sets-editor">

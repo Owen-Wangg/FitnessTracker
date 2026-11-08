@@ -55,6 +55,25 @@ describe('last time', () => {
     expect(screen.queryByRole('button', { name: /use these sets/i })).not.toBeInTheDocument();
   });
 
+  test('copies the numbers but not set tags like "failure", which describe that earlier session', async () => {
+    const tagged: Workout[] = [
+      {
+        id: 'old',
+        date: '2025-06-01',
+        name: 'Leg Press Machine',
+        exerciseId: 'Leg_Press',
+        sets: [{ weight: 225, reps: 5 }, { weight: 245, reps: 3, set_type: 'failure' }],
+      },
+    ];
+    const { onSubmit } = setup({ history: tagged });
+    pickExercise('Leg Press Machine');
+    userEvent.click(screen.getByRole('button', { name: /use these sets/i }));
+    userEvent.click(screen.getByRole('button', { name: 'Save' }));
+
+    expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({ sets: [{ weight: 225, reps: 5 }, { weight: 245, reps: 3 }] }));
+    await screen.findByRole('button', { name: 'Save' });
+  });
+
   test('the button comes back if you change a set afterwards', () => {
     setup({ history });
     pickExercise('Leg Press Machine');
@@ -199,5 +218,23 @@ describe('editing', () => {
     userEvent.click(screen.getByRole('button', { name: 'Save changes' }));
     expect(screen.getByRole('alert')).toHaveTextContent(/set 2/);
     expect(onSubmit).not.toHaveBeenCalled();
+  });
+});
+
+describe('editing keeps set tags', () => {
+  test('a drop set stays a drop set when the entry is saved again', async () => {
+    const workout: Workout = {
+      id: 'w9',
+      date: '2025-06-01',
+      name: 'Leg Press Machine',
+      exerciseId: 'Leg_Press',
+      sets: [{ id: 's1', set_number: 1, weight: 225, reps: 5 }, { id: 's2', set_number: 2, weight: 185, reps: 8, set_type: 'drop' }],
+    };
+    const { onSubmit } = setup({ initial: workout });
+    userEvent.click(screen.getByRole('button', { name: /save changes/i }));
+    expect(onSubmit).toHaveBeenCalledWith(
+      expect.objectContaining({ sets: [{ weight: 225, reps: 5 }, { weight: 185, reps: 8, set_type: 'drop' }] })
+    );
+    await screen.findByRole('button', { name: /save changes/i });
   });
 });

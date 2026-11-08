@@ -15,15 +15,16 @@ import '../assets/styles/WorkoutFormModal.css';
 const emptySet = (): SetInput => ({ weight: '', reps: '' });
 
 // Form rows hold the raw input strings. set_type is carried along (not shown) so editing keeps tags.
-// Weights are shown in the chosen unit.
-const rowsFrom = (workout: { sets: WorkoutSet[] } | null | undefined, unit: Unit): SetInput[] =>
+// Weights are shown in the chosen unit. Set tags (drop, failure...) are kept when editing an entry, but
+// not when borrowing sets from an earlier session (keepTags = false): they describe that session.
+const rowsFrom = (workout: { sets: WorkoutSet[] } | null | undefined, unit: Unit, keepTags = true): SetInput[] =>
   workout && workout.sets.length > 0
     ? workout.sets.map((s): SetInput => {
         const weight = toInputValue(Number(s.weight), unit);
         return {
           weight,
           reps: String(s.reps),
-          ...(s.set_type && s.set_type !== 'normal' ? { set_type: s.set_type } : {}),
+          ...(keepTags && s.set_type && s.set_type !== 'normal' ? { set_type: s.set_type } : {}),
           ...(unit === 'kg' ? { source: { shown: weight, lbs: Number(s.weight) } } : {}),
         };
       })
@@ -59,7 +60,7 @@ const WorkoutFormModal = ({ initial = null, history = [], onClose, onSubmit }: W
   // Fills the form with last time's sets. Only on request: nothing is pre-filled automatically.
   const useLastTime = () => {
     if (!lastTime) return;
-    setSets(rowsFrom(lastTime, unit));
+    setSets(rowsFrom(lastTime, unit, false));
     setError('');
   };
   // Hide the button once the form already holds exactly those sets.

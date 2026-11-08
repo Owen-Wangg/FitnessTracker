@@ -1,6 +1,9 @@
 import React from 'react';
 import BodyWeightCard from '../components/BodyWeightCard';
 import ThemeSelector from '../components/ThemeSelector';
+import UnitSelector from '../components/UnitSelector';
+import { useUnit } from '../components/UnitProvider';
+import { toDisplay } from '../utils/units';
 import { displayNameFor, avatarUrlFor, type UserLike } from '../utils/userProfile';
 import type { BodyWeight, BodyWeightDraft, ThemePreference } from '../types';
 import '../assets/styles/ProfileScreen.css';
@@ -26,6 +29,7 @@ const ProfileScreen = ({
   themePreference = 'system',
   onThemeChange,
 }: ProfileScreenProps) => {
+  const { unit, setUnit } = useUnit();
   const displayName = displayNameFor(user);
   const avatarUrl = avatarUrlFor(user);
   const latestBodyWeight = bodyWeights[bodyWeights.length - 1];
@@ -52,13 +56,13 @@ const ProfileScreen = ({
           <div className="stat-item">
             <span className="stat-label">Body weight</span>
             <span className="stat-value">
-              {latestBodyWeight ? `${latestBodyWeight.weight} lbs` : 'Not logged'}
+              {latestBodyWeight ? `${toDisplay(latestBodyWeight.weight, unit)} ${unit}` : 'Not logged'}
             </span>
           </div>
           <div className="stat-item">
             <span className="stat-label">Total weight lifted</span>
             <span className="stat-value">
-              {(lifetimeStats?.totalWeightLifted || 0).toLocaleString()} lbs
+              {toDisplay(lifetimeStats?.totalWeightLifted || 0, unit).toLocaleString()} {unit}
             </span>
           </div>
         </div>
@@ -78,6 +82,11 @@ const ProfileScreen = ({
           <ThemeSelector value={themePreference} onChange={onThemeChange} />
         </div>
       )}
+
+      <div className="appearance-card card">
+        <h3 className="appearance-title">Weight unit</h3>
+        <UnitSelector value={unit} onChange={setUnit} />
+      </div>
 
       <BodyWeightCard
         entries={bodyWeights}

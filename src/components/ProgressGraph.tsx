@@ -1,6 +1,8 @@
 import React, { useMemo, useState } from 'react';
 import { parseLocalDate } from '../utils/workoutMetrics';
 import { isBodyweight } from '../utils/exerciseLibrary';
+import { toDisplay } from '../utils/units';
+import { useUnit } from './UnitProvider';
 import { buildSeries, valueFor, personalRecordFlags } from '../utils/progress';
 import TrendChart, { type TrendPoint } from './TrendChart';
 import type { Metric, Workout } from '../types';
@@ -36,7 +38,10 @@ const ProgressGraph = ({ workouts, exerciseKey, exerciseLabel }: ProgressGraphPr
   const [picked, setPicked] = useState<Metric | null>(null);
   const available = isBodyweight(exerciseKey, exerciseKey) ? BODYWEIGHT_METRICS : EXTERNAL_METRICS;
   const metric = picked && available.includes(picked) ? picked : available[0];
-  const unit = metric === 'reps' ? 'reps' : 'lbs';
+  const { unit: weightUnit } = useUnit();
+  const unit = metric === 'reps' ? 'reps' : weightUnit;
+  // Charted values are pounds, except reps; show them in the chosen unit.
+  const shown = (value: number) => (metric === 'reps' ? value : toDisplay(value, weightUnit));
 
   const days = useMemo(
     () => (workouts && exerciseKey ? buildSeries(workouts, exerciseKey) : []),
@@ -53,7 +58,7 @@ const ProgressGraph = ({ workouts, exerciseKey, exerciseLabel }: ProgressGraphPr
     return <p className="graph-message">No data for "{exerciseLabel}".</p>;
   }
 
-  const values = days.map((d) => valueFor(d, metric));
+  const values = days.map((d) => shown(valueFor(d, metric)));
   const isPR = personalRecordFlags(values);
 
   const first = values[0];
@@ -72,7 +77,7 @@ const ProgressGraph = ({ workouts, exerciseKey, exerciseLabel }: ProgressGraphPr
 
   const describe = ({ day, value, highlight }: ProgressPoint) => {
     const lines = [`${METRICS[metric].label}: ${formatNumber(value)} ${unit}`];
-    if (metric !== 'volume' && metric !== 'reps') lines.push(`Best set: ${formatNumber(day.top.weight)} lbs x ${day.top.reps}`);
+    if (metric !== 'volume' && metric !== 'reps') lines.push(`Best set: ${formatNumber(toDisplay(day.top.weight, weightUnit))} ${weightUnit} x ${day.top.reps}`);
     if (highlight) lines.push('New personal record!');
     return { title: longDate(day.date), lines };
   };

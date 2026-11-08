@@ -8,6 +8,8 @@
   border-radius: var(--radius-sm);
 }
 
+.theme-selector.unit-selector { grid-template-columns: repeat(2, 1fr); }
+
 .theme-option {
   display: inline-flex;
   align-items: center;

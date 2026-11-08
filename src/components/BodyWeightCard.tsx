@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { FaTrash } from 'react-icons/fa';
 import { formatLocalDate, parseLocalDate } from '../utils/workoutMetrics';
+import { fromDisplay, toDisplay } from '../utils/units';
+import { useUnit } from './UnitProvider';
 import TrendChart, { type TrendPoint } from './TrendChart';
 import type { BodyWeight, BodyWeightDraft } from '../types';
 import '../assets/styles/BodyWeightCard.css';
@@ -18,7 +20,10 @@ interface BodyWeightCardProps {
   onDelete: (id: string) => void;
 }
 
-const BodyWeightCard = ({ entries = [], onLog, onDelete }: BodyWeightCardProps) => {
+const BodyWeightCard = ({ entries: loggedEntries = [], onLog, onDelete }: BodyWeightCardProps) => {
+  const { unit } = useUnit();
+  // Entries are stored in pounds; everything below shows and takes the chosen unit.
+  const entries = useMemo(() => loggedEntries.map((e) => ({ ...e, weight: toDisplay(e.weight, unit) })), [loggedEntries, unit]);
   const [date, setDate] = useState(() => formatLocalDate(new Date()));
   const [weight, setWeight] = useState('');
   const [saving, setSaving] = useState(false);
@@ -32,7 +37,7 @@ const BodyWeightCard = ({ entries = [], onLog, onDelete }: BodyWeightCardProps) 
     const value = parseFloat(weight);
     if (!date || isNaN(value) || value <= 0) return;
     setSaving(true);
-    const ok = await onLog({ date, weight: value });
+    const ok = await onLog({ date, weight: fromDisplay(value, unit) });
     setSaving(false);
     if (ok) setWeight('');
   };
@@ -46,7 +51,7 @@ const BodyWeightCard = ({ entries = [], onLog, onDelete }: BodyWeightCardProps) 
       day: 'numeric',
       year: 'numeric',
     }),
-    lines: [`${fmt(entry.weight)} lbs`],
+    lines: [`${fmt(entry.weight)} ${unit}`],
   });
 
   const recent = [...entries].reverse().slice(0, 7);
@@ -59,12 +64,12 @@ const BodyWeightCard = ({ entries = [], onLog, onDelete }: BodyWeightCardProps) 
         <div className="bw-stats">
           <div className="bw-stat">
             <span className="bw-stat-label">Current</span>
-            <span className="bw-stat-value">{fmt(latest.weight)} lbs</span>
+            <span className="bw-stat-value">{fmt(latest.weight)} {unit}</span>
           </div>
           <div className="bw-stat">
             <span className="bw-stat-label">Change</span>
             <span className="bw-stat-value">
-              {entries.length > 1 ? `${change > 0 ? '+' : ''}${fmt(change)} lbs` : '--'}
+              {entries.length > 1 ? `${change > 0 ? '+' : ''}${fmt(change)} ${unit}` : '--'}
             </span>
           </div>
           <div className="bw-stat">
@@ -82,13 +87,13 @@ const BodyWeightCard = ({ entries = [], onLog, onDelete }: BodyWeightCardProps) 
           <input id="bw-date" type="date" value={date} onChange={(e) => setDate(e.target.value)} required />
         </div>
         <div className="form-group">
-          <label htmlFor="bw-weight">Weight (lbs)</label>
+          <label htmlFor="bw-weight">Weight ({unit})</label>
           <input
             id="bw-weight"
             type="number"
             inputMode="decimal"
             min="1"
-            max="1499"
+            max={unit === 'kg' ? '680' : '1499'}
             step="0.1"
             value={weight}
             onChange={(e) => setWeight(e.target.value)}
@@ -112,7 +117,7 @@ const BodyWeightCard = ({ entries = [], onLog, onDelete }: BodyWeightCardProps) 
           {recent.map((e) => (
             <li key={e.id}>
               <span className="bw-list-date">{shortDate(e.date)}</span>
-              <span className="bw-list-weight">{fmt(e.weight)} lbs</span>
+              <span className="bw-list-weight">{fmt(e.weight)} {unit}</span>
               <button
                 type="button"
                 className="bw-delete"

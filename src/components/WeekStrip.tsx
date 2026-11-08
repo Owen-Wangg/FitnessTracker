@@ -1,6 +1,8 @@
 import React, { useMemo } from 'react';
 import { FaFire } from 'react-icons/fa';
 import { formatLocalDate, totalVolume } from '../utils/workoutMetrics';
+import { toDisplay } from '../utils/units';
+import { useUnit } from './UnitProvider';
 import type { Workout } from '../types';
 import '../assets/styles/WeekStrip.css';
 
@@ -17,6 +19,7 @@ const addDays = (date: Date, n: number): Date => new Date(date.getFullYear(), da
 
 // This week at a glance: which days you trained, and volume versus last week.
 const WeekStrip = ({ workouts = [] }: { workouts?: Workout[] }) => {
+  const { unit } = useUnit();
   const { days, trainedCount, volume, lastWeekVolume } = useMemo(() => {
     const monday = startOfWeek(new Date());
     const dayKeys = Array.from({ length: 7 }, (_, i) => formatLocalDate(addDays(monday, i)));
@@ -65,8 +68,8 @@ const WeekStrip = ({ workouts = [] }: { workouts?: Workout[] }) => {
       </ol>
 
       <div className="week-volume">
-        <span className="week-volume-value">{volume.toLocaleString()}</span>
-        <span className="week-volume-unit">lbs this week</span>
+        <span className="week-volume-value">{toDisplay(volume, unit).toLocaleString()}</span>
+        <span className="week-volume-unit">{unit} this week</span>
       </div>
       {delta !== null && (
         <p className={`week-delta ${delta >= 0 ? 'up' : 'down'}`}>

@@ -1,10 +1,13 @@
 import React from 'react';
 import { totalVolume, topSet } from '../utils/workoutMetrics';
+import { toDisplay } from '../utils/units';
+import { useUnit } from './UnitProvider';
 import type { Workout } from '../types';
 import '../assets/styles/SummaryCard.css';
 
 // Hero card for today: big volume number plus quick stats.
 const SummaryCard = ({ workouts = [] }: { workouts?: Workout[] }) => {
+  const { unit } = useUnit();
   const exerciseCount = workouts.length;
   const setCount = workouts.reduce(
     (sum, w) => sum + (w.sets || []).filter((s) => s.set_type !== 'warmup').length,
@@ -19,8 +22,8 @@ const SummaryCard = ({ workouts = [] }: { workouts?: Workout[] }) => {
     <div className="summary-card-display card">
       <h3 className="summary-title eyebrow">Today's Summary</h3>
       <p className="summary-value">
-        {totalVolume(workouts).toLocaleString()}
-        <span className="summary-unit">lbs</span>
+        {toDisplay(totalVolume(workouts), unit).toLocaleString()}
+        <span className="summary-unit">{unit}</span>
       </p>
       <p className="summary-subtitle">Total weight lifted</p>
 
@@ -34,7 +37,7 @@ const SummaryCard = ({ workouts = [] }: { workouts?: Workout[] }) => {
           <span className="summary-stat-label">Sets</span>
         </div>
         <div>
-          <span className="summary-stat-value">{heaviest ? heaviest.weight.toLocaleString() : '--'}</span>
+          <span className="summary-stat-value">{heaviest ? toDisplay(heaviest.weight, unit).toLocaleString() : '--'}</span>
           <span className="summary-stat-label">Top weight</span>
         </div>
       </div>

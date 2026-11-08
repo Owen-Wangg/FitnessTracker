@@ -9,6 +9,7 @@ import './assets/styles/global.css';
 import App from './App';
 import ConfigError from './components/ConfigError';
 import { ToastProvider } from './components/ToastProvider';
+import { UnitProvider } from './components/UnitProvider';
 import { isSupabaseConfigured } from './utils/supabaseClient';
 
 const container = document.getElementById('root');
@@ -17,9 +18,11 @@ const root = ReactDOM.createRoot(container);
 root.render(
   <React.StrictMode>
     <ToastProvider>
-      <BrowserRouter>
-        {isSupabaseConfigured ? <App /> : <ConfigError />}
-      </BrowserRouter>
+      <UnitProvider>
+        <BrowserRouter>
+          {isSupabaseConfigured ? <App /> : <ConfigError />}
+        </BrowserRouter>
+      </UnitProvider>
     </ToastProvider>
   </React.StrictMode>
 );

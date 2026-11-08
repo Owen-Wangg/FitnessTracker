@@ -73,6 +73,9 @@ export interface SetInput {
   weight: string;
   reps: string;
   set_type?: SetType;
+  // When editing in kilograms: the weight as first shown and its exact pounds. Left unedited,
+  // the pounds are kept so converting back and forth cannot nudge saved weights.
+  source?: { shown: string; lbs: number };
 }
 
 // What the add/edit form hands back to be saved.

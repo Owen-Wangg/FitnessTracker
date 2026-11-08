@@ -4,8 +4,10 @@ import { formatLocalDate, parseLocalDate } from '../utils/workoutMetrics';
 import { findExercise } from '../utils/exerciseLibrary';
 import { describeSets, lastSession } from '../utils/lastSession';
 import { validateWorkoutForm } from '../utils/workoutForm';
+import { fromDisplay, toDisplay, toInputValue, type Unit } from '../utils/units';
 import ExercisePicker, { type PickedExercise } from './ExercisePicker';
 import ExerciseThumb from './ExerciseThumb';
+import { useUnit } from './UnitProvider';
 import type { SetInput, Workout, WorkoutDraft } from '../types';
 import '../assets/styles/WorkoutFormModal.css';
 
@@ -14,13 +16,18 @@ const emptySet = (): SetInput => ({ weight: '', reps: '' });
 const shortDate = (date: string) => parseLocalDate(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 
 // Form rows hold the raw input strings. set_type is carried along (not shown) so editing keeps tags.
-const rowsFrom = (workout: Workout | null | undefined): SetInput[] =>
+// Weights are shown in the chosen unit.
+const rowsFrom = (workout: Workout | null | undefined, unit: Unit): SetInput[] =>
   workout && workout.sets.length > 0
-    ? workout.sets.map((s): SetInput => ({
-        weight: String(s.weight),
-        reps: String(s.reps),
-        ...(s.set_type && s.set_type !== 'normal' ? { set_type: s.set_type } : {}),
-      }))
+    ? workout.sets.map((s): SetInput => {
+        const weight = toInputValue(Number(s.weight), unit);
+        return {
+          weight,
+          reps: String(s.reps),
+          ...(s.set_type && s.set_type !== 'normal' ? { set_type: s.set_type } : {}),
+          ...(unit === 'kg' ? { source: { shown: weight, lbs: Number(s.weight) } } : {}),
+        };
+      })
     : [emptySet()];
 
 // Add or edit one exercise. Mount it to open it and unmount it to close it.
@@ -41,13 +48,14 @@ const WorkoutFormModal = ({ initial = null, history = [], onClose, onSubmit }: W
     initial ? { id: initial.exerciseId ?? null, name: initial.name } : null
   ); // id is null for custom exercises
   const [showPicker, setShowPicker] = useState(false);
-  const [sets, setSets] = useState<SetInput[]>(() => rowsFrom(initial));
+  const { unit } = useUnit();
+  const [sets, setSets] = useState<SetInput[]>(() => rowsFrom(initial, unit));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
   const libraryEntry = exercise ? findExercise(exercise.id, exercise.name) : null;
   const bodyweight = libraryEntry?.loadType === 'bodyweight';
-  const last = useMemo(() => (exercise ? lastSession(history, exercise, date) : null), [history, exercise, date]);
+  const lastTime = useMemo(() => (exercise ? lastSession(history, exercise, date) : null), [history, exercise, date]);
 
   const updateSet = (index: number, field: 'weight' | 'reps', value: string) =>
     setSets((prev) => prev.map((s, i) => (i === index ? { ...s, [field]: value } : s)));
@@ -56,7 +64,7 @@ const WorkoutFormModal = ({ initial = null, history = [], onClose, onSubmit }: W
   const addSet = () =>
     setSets((prev) => {
       const last = prev[prev.length - 1];
-      return [...prev, { weight: last.weight, reps: last.reps }];
+      return [...prev, { weight: last.weight, reps: last.reps, ...(last.source ? { source: last.source } : {}) }];
     });
 
   const removeSet = (index: number) => setSets((prev) => prev.filter((_, i) => i !== index));
@@ -71,12 +79,19 @@ const WorkoutFormModal = ({ initial = null, history = [], onClose, onSubmit }: W
     if (!exercise) return; // unreachable: validateWorkoutForm rejects a missing exercise
     setError('');
 
+    // Typed weights are in the chosen unit; store pounds. A weight left as first shown keeps its exact pounds.
+    const poundSets = result.sets.map((s, i) => {
+      const source = sets[i].source;
+      const untouched = source && sets[i].weight === source.shown;
+      return { ...s, weight: untouched ? source.lbs : fromDisplay(s.weight, unit) };
+    });
+
     setSaving(true);
     await onSubmit({
       name: exercise.name,
       exerciseId: exercise.id,
       date,
-      sets: result.sets,
+      sets: poundSets,
     });
     setSaving(false);
   };
@@ -127,17 +142,17 @@ const WorkoutFormModal = ({ initial = null, history = [], onClose, onSubmit }: W
             </button>
           </div>
 
-          {last && (
+          {lastTime && (
             <p className="last-time">
-              <span className="last-time-label">Last time · {shortDate(last.date)}</span>
-              {describeSets(last.sets, bodyweight)}
+              <span className="last-time-label">Last time · {shortDate(lastTime.date)}</span>
+              {describeSets(lastTime.sets, bodyweight, (lbs) => String(toDisplay(lbs, unit)))}
             </p>
           )}
 
           <div className="sets-editor">
             <div className="sets-row sets-row-header" aria-hidden="true">
               <span>Set</span>
-              <span>{bodyweight ? 'Added (lbs)' : 'Weight (lbs)'}</span>
+              <span>{bodyweight ? `Added (${unit})` : `Weight (${unit})`}</span>
               <span>Reps</span>
               <span />
             </div>
@@ -147,12 +162,12 @@ const WorkoutFormModal = ({ initial = null, history = [], onClose, onSubmit }: W
                 <input
                   type="number"
                   inputMode="decimal"
-                  aria-label={bodyweight ? `Set ${i + 1} added weight in pounds` : `Set ${i + 1} weight in pounds`}
+                  aria-label={`Set ${i + 1} ${bodyweight ? 'added weight' : 'weight'} in ${unit === 'kg' ? 'kilograms' : 'pounds'}`}
                   value={s.weight}
                   onChange={(e) => updateSet(i, 'weight', e.target.value)}
                   placeholder={bodyweight ? 'BW' : undefined}
                   min="0"
-                  step="0.5"
+                  step={unit === 'kg' ? '0.25' : '0.5'}
                   required={!bodyweight}
                 />
                 <input

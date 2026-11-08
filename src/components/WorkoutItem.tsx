@@ -2,7 +2,9 @@ import React from 'react';
 import { FaPen, FaTrash } from 'react-icons/fa';
 import { workoutVolume } from '../utils/workoutMetrics';
 import { findExercise } from '../utils/exerciseLibrary';
+import { toDisplay } from '../utils/units';
 import type { Workout } from '../types';
+import { useUnit } from './UnitProvider';
 import ExerciseThumb from './ExerciseThumb';
 import '../assets/styles/WorkoutItem.css';
 
@@ -13,6 +15,7 @@ interface WorkoutItemProps {
 }
 
 const WorkoutItem = ({ workout, onDelete, onEdit }: WorkoutItemProps) => {
+  const { unit } = useUnit();
   const sets = workout.sets || [];
   const exercise = findExercise(workout.exerciseId, workout.name);
   const bodyweight = exercise?.loadType === 'bodyweight';
@@ -27,13 +30,15 @@ const WorkoutItem = ({ workout, onDelete, onEdit }: WorkoutItemProps) => {
           {sets.map((s) => (
             <li key={s.id || s.set_number}>
               <span className="set-list-weight">
-                {bodyweight ? (Number(s.weight) > 0 ? `BW + ${s.weight} lbs` : 'Bodyweight') : `${s.weight} lbs`}
+                {bodyweight
+                  ? Number(s.weight) > 0 ? `BW + ${toDisplay(Number(s.weight), unit)} ${unit}` : 'Bodyweight'
+                  : `${toDisplay(Number(s.weight), unit)} ${unit}`}
               </span>
               <span className="set-list-reps">&times; {s.reps}</span>
             </li>
           ))}
         </ol>
-        <p className="workout-volume">{workoutVolume(workout).toLocaleString()} lbs total</p>
+        <p className="workout-volume">{toDisplay(workoutVolume(workout), unit).toLocaleString()} {unit} total</p>
       </div>
 
       {(onEdit || onDelete) && (

@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { FaFire, FaTrophy } from 'react-icons/fa';
-import { addDays, formatLocalDate, mondayOf, totalVolume } from '../utils/workoutMetrics';
+import { addDays, mondayOf, totalVolume } from '../utils/workoutMetrics';
+import { useToday } from '../hooks/useToday';
 import { toDisplay } from '../utils/units';
 import { countPersonalRecords, daysSinceByGroup, setsByGroup } from '../utils/weekSummary';
 import { GROUPS } from '../types';
@@ -19,14 +20,14 @@ const trainedText = (age: number | null): string =>
 // and personal records.
 const WeekStrip = ({ workouts = [] }: { workouts?: Workout[] }) => {
   const { unit } = useUnit();
+  const todayKey = useToday();
   const { days, trainedCount, volume, lastWeekVolume, groupSets, groupAge, records } = useMemo(() => {
-    const monday = mondayOf(formatLocalDate(new Date()));
+    const monday = mondayOf(todayKey);
     const dayKeys = Array.from({ length: 7 }, (_, i) => addDays(monday, i));
     const lastKeys = new Set(Array.from({ length: 7 }, (_, i) => addDays(monday, i - 7)));
 
     const thisWeek = workouts.filter((w) => dayKeys.includes(w.date));
     const trained = new Set(thisWeek.map((w) => w.date));
-    const todayKey = formatLocalDate(new Date());
 
     return {
       days: dayKeys.map((key, i) => ({
@@ -42,7 +43,7 @@ const WeekStrip = ({ workouts = [] }: { workouts?: Workout[] }) => {
       groupAge: daysSinceByGroup(workouts, todayKey),
       records: countPersonalRecords(workouts, trained),
     };
-  }, [workouts]);
+  }, [workouts, todayKey]);
 
   const delta = lastWeekVolume > 0 ? ((volume - lastWeekVolume) / lastWeekVolume) * 100 : null;
 

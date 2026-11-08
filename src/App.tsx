@@ -5,7 +5,8 @@ import { useAuth } from './hooks/useAuth';
 import { useWorkouts } from './hooks/useWorkouts';
 import { useBodyWeights } from './hooks/useBodyWeights';
 import { useTheme } from './hooks/useTheme';
-import { totalVolume, formatLocalDate, applyBodyWeight } from './utils/workoutMetrics';
+import { useToday } from './hooks/useToday';
+import { totalVolume, applyBodyWeight } from './utils/workoutMetrics';
 import type { Workout, WorkoutDraft } from './types';
 import HomeScreen from './screens/HomeScreen';
 import WorkoutFormModal from './components/WorkoutFormModal';
@@ -35,10 +36,8 @@ function App() {
     [workouts]
   );
 
-  const todaysWorkouts = useMemo(() => {
-    const today = formatLocalDate(new Date());
-    return workouts.filter((w) => w.date === today);
-  }, [workouts]);
+  const today = useToday();
+  const todaysWorkouts = useMemo(() => workouts.filter((w) => w.date === today), [workouts, today]);
 
   const handleSubmitForm = async (workoutData: WorkoutDraft): Promise<boolean> => {
     if (!form) return false;

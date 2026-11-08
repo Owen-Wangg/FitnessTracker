@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { FaFire } from 'react-icons/fa';
 import { WEEKLY_GOALS, consistency, readGoal, saveGoal } from '../utils/consistency';
-import { formatLocalDate } from '../utils/workoutMetrics';
+import { useToday } from '../hooks/useToday';
 import { plural } from '../utils/format';
 import type { Workout } from '../types';
 import '../assets/styles/ConsistencyCard.css';
@@ -10,7 +10,8 @@ import '../assets/styles/ThemeSelector.css';
 // Weekly streak and average. A streak is weeks in a row with at least your goal of training days.
 const ConsistencyCard = ({ workouts = [] }: { workouts?: Workout[] }) => {
   const [goal, setGoal] = useState(() => readGoal(window.localStorage));
-  const stats = useMemo(() => consistency(workouts, goal, formatLocalDate(new Date())), [workouts, goal]);
+  const today = useToday();
+  const stats = useMemo(() => consistency(workouts, goal, today), [workouts, goal, today]);
 
   const chooseGoal = (next: number) => {
     saveGoal(window.localStorage, next);

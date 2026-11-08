@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { FaBalanceScale } from 'react-icons/fa';
 import { DEFAULT_SPLIT_RANGE, SPLIT_RANGES, muscleSplit, type SplitRange } from '../utils/muscleSplit';
-import { formatLocalDate } from '../utils/workoutMetrics';
+import { useToday } from '../hooks/useToday';
 import type { Workout } from '../types';
 import '../assets/styles/MuscleSplitCard.css';
 import '../assets/styles/ThemeSelector.css';
@@ -9,7 +9,8 @@ import '../assets/styles/ThemeSelector.css';
 // Where your training goes: each muscle group's share of your sets, over a period you choose.
 const MuscleSplitCard = ({ workouts = [] }: { workouts?: Workout[] }) => {
   const [range, setRange] = useState<SplitRange>(DEFAULT_SPLIT_RANGE);
-  const { total, shares } = useMemo(() => muscleSplit(workouts, range, formatLocalDate(new Date())), [workouts, range]);
+  const today = useToday();
+  const { total, shares } = useMemo(() => muscleSplit(workouts, range, today), [workouts, range, today]);
 
   const biggest = Math.max(...shares.map((s) => s.sets), 1);
   const untouched = shares.filter((s) => s.sets === 0).map((s) => s.group);

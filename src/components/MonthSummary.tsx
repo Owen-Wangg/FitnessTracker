@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { FaTrophy } from 'react-icons/fa';
-import { formatLocalDate, parseLocalDate } from '../utils/workoutMetrics';
+import { parseLocalDate } from '../utils/workoutMetrics';
+import { useToday } from '../hooks/useToday';
 import { monthStats } from '../utils/monthSummary';
 import { toDisplay } from '../utils/units';
 import { useUnit } from './UnitProvider';
@@ -10,10 +11,8 @@ import '../assets/styles/MonthSummary.css';
 // This month so far: days trained, sets, volume versus the same point last month, and PRs.
 const MonthSummary = ({ workouts = [] }: { workouts?: Workout[] }) => {
   const { unit } = useUnit();
-  const { today, stats } = useMemo(() => {
-    const todayKey = formatLocalDate(new Date());
-    return { today: todayKey, stats: monthStats(workouts, todayKey) };
-  }, [workouts]);
+  const today = useToday();
+  const stats = useMemo(() => monthStats(workouts, today), [workouts, today]);
 
   const monthName = parseLocalDate(today).toLocaleDateString('en-US', { month: 'long' });
   const delta = stats.lastMonthVolume > 0 ? ((stats.volume - stats.lastMonthVolume) / stats.lastMonthVolume) * 100 : null;

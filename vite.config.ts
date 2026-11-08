@@ -7,7 +7,7 @@ export default defineConfig({
   // hosting environment variables keep working.
   envPrefix: ['VITE_', 'REACT_APP_'],
   server: { port: 3000 },
-  // Same output folder Create React App used, so the Vercel project settings stay valid.
+  // The output folder is `build` (not Vite's default `dist`) so the existing Vercel project settings stay valid.
   build: { outDir: 'build' },
   test: {
     environment: 'jsdom',

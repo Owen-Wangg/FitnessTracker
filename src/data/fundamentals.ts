@@ -9,10 +9,15 @@ export const FUNDAMENTALS: Exercise[] = [
   { id: 'Incline_Dumbbell_Press', name: 'Incline Dumbbell Press', group: 'Chest' },
   { id: 'Butterfly', name: 'Chest Fly Machine', group: 'Chest' },
   { id: 'Leverage_Chest_Press', name: 'Flat Chest Press Machine', group: 'Chest' },
+  { id: 'Push_Up', name: 'Push-Up', group: 'Chest', loadType: 'bodyweight' },
+  { id: 'Dips', name: 'Dips', group: 'Chest', loadType: 'bodyweight' },
 
   // Back
   { id: 'Wide-Grip_Lat_Pulldown', name: 'Lat Pulldown Machine', group: 'Back' },
   { id: 'Dumbbell_Incline_Row', name: 'Chest Supported Row', group: 'Back' },
+  { id: 'Single_Arm_Chest_Supported_Row', name: 'Single Arm Chest Supported Row', group: 'Back' },
+  { id: 'Pull_Up', name: 'Pull-Up', group: 'Back', loadType: 'bodyweight' },
+  { id: 'Back_Extension', name: 'Back Extension', group: 'Back', loadType: 'bodyweight' },
 
   // Shoulders
   { id: 'Dumbbell_Shoulder_Press', name: 'Dumbbell Shoulder Press', group: 'Shoulders' },
@@ -33,5 +38,5 @@ export const FUNDAMENTALS: Exercise[] = [
 
   // Core
   { id: 'Cable_Crunch', name: 'Cable Ab Crunch', group: 'Core' },
-  { id: 'Hanging_Leg_Raise', name: 'Leg Raise', group: 'Core' },
+  { id: 'Hanging_Leg_Raise', name: 'Leg Raise', group: 'Core', loadType: 'bodyweight' },
 ];

@@ -6,11 +6,16 @@ export type SetType = 'normal' | 'warmup' | 'drop' | 'failure';
 export const GROUPS = ['Chest', 'Back', 'Shoulders', 'Arms', 'Legs', 'Core'] as const;
 export type Group = (typeof GROUPS)[number];
 
+// How an exercise is loaded. 'external' (the default): `weight` is the weight lifted.
+// 'bodyweight': `weight` is optional extra weight (belt, vest) on top of the lifter's body weight.
+export type LoadType = 'external' | 'bodyweight';
+
 // A built-in exercise from the curated library.
 export interface Exercise {
   id: string;
   name: string;
   group: Group;
+  loadType?: LoadType; // omitted means 'external'
 }
 
 // What the UI keeps for one set. Saved sets have id and set_number; sets being edited may not yet.

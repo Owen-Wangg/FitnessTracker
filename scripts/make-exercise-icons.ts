@@ -147,6 +147,32 @@ const DRAW: Record<string, () => string> = {
     line(112, 100, 96, 122, { w: 6, c: ACCENT }) + line(112, 100, 128, 122, { w: 6, c: ACCENT }) +
     pad(86, 158, 138, 158, 14) + arrow(164, 66, 164, 124) + base(14, 178),
 
+  // Bodyweight: the blue block is the lifter's body, the grey one is where the rep starts.
+  Push_Up: () =>
+    base(20, 176) + line(36, 138, 136, 108, { w: 18, c: PAD }) + line(36, 138, 136, 108, { w: 12, c: ACCENT }) +
+    line(136, 108, 136, 172, { w: 6 }) + line(30, 138, 30, 172, { w: 6 }) + arrow(166, 150, 166, 100),
+
+  Pull_Up: () =>
+    line(36, 24, 36, 172, { w: 6 }) + line(156, 24, 156, 172, { w: 6 }) + line(36, 24, 156, 24, { w: 8 }) +
+    base(24, 168) + rect(82, 74, 28, 70, ghost, 8) + rect(82, 52, 28, 70, ACCENT, 8) +
+    line(86, 52, 80, 26, { w: 5 }) + line(106, 52, 112, 26, { w: 5 }) + arrow(132, 130, 132, 62),
+
+  Dips: () =>
+    line(40, 72, 40, 172, { w: 6 }) + line(152, 72, 152, 172, { w: 6 }) + pad(34, 72, 158, 72, 10) + base(24, 168) +
+    rect(84, 112, 24, 46, ghost, 8) + rect(84, 46, 24, 46, ACCENT, 8) + line(88, 78, 74, 68, { w: 5 }) + line(104, 78, 118, 68, { w: 5 }) +
+    arrow(132, 120, 132, 90),
+
+  Back_Extension: () =>
+    line(50, 172, 80, 108, { w: 6 }) + line(130, 172, 116, 134, { w: 6 }) + base(34, 150) +
+    pad(60, 112, 100, 94, 18) + pad(108, 134, 128, 144, 12) +
+    line(84, 94, 28, 118, { w: 16, c: PAD }) + line(84, 94, 28, 118, { w: 10, c: ghost }) +
+    line(84, 94, 150, 70, { w: 16, c: PAD }) + line(84, 94, 150, 70, { w: 10, c: ACCENT }) + arrow(168, 120, 168, 78),
+
+  Single_Arm_Chest_Supported_Row: () =>
+    pad(56, 146, 104, 146, 14) + post(80, 154) + base(48, 112) + pad(98, 84, 106, 130, 18) + line(106, 130, 106, 146, { w: 6 }) +
+    dumbbell(138, 150, 0, ghost) + dumbbell(138, 106, 0) + line(138, 106, 112, 100, { w: 5, c: ACCENT }) +
+    arrow(172, 142, 172, 96),
+
   Hanging_Leg_Raise: () =>
     pad(46, 138, 46, 58, 22) + pad(60, 96, 104, 96, 12) + line(104, 96, 104, 172, { w: 6 }) + post(46, 148) + base(30, 124) +
     rect(62, 112, 14, 56, ghost, 7) + rect(62, 112, 62, 14, ACCENT, 7) +

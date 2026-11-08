@@ -257,3 +257,44 @@ describe('starting date', () => {
     expect(screen.getByLabelText('Date')).toHaveValue('2025-06-01');
   });
 });
+
+describe('keyboard and focus', () => {
+  test('moves focus into the form, and Escape closes it', () => {
+    const { onClose } = setup();
+    expect(screen.getByRole('dialog', { name: /add exercise/i })).toContainElement(document.activeElement as HTMLElement);
+    userEvent.keyboard('{Escape}');
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  test('Escape in the exercise picker closes only the picker, not the form', () => {
+    const { onClose } = setup();
+    userEvent.click(screen.getByRole('button', { name: /choose an exercise/i }));
+    const picker = screen.getByRole('dialog', { name: /choose an exercise/i });
+    expect(screen.getByLabelText(/search exercises/i)).toHaveFocus();
+
+    userEvent.keyboard('{Escape}');
+    expect(picker).not.toBeInTheDocument();
+    expect(onClose).not.toHaveBeenCalled();
+    expect(screen.getByRole('dialog', { name: /add exercise/i })).toBeInTheDocument();
+
+    userEvent.keyboard('{Escape}'); // now the form itself
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  test('closing the picker returns focus to the button that opened it', () => {
+    setup();
+    const choose = screen.getByRole('button', { name: /choose an exercise/i });
+    userEvent.click(choose);
+    userEvent.keyboard('{Escape}');
+    expect(choose).toHaveFocus();
+  });
+
+  test('the search box starts empty each time the picker opens', () => {
+    setup();
+    userEvent.click(screen.getByRole('button', { name: /choose an exercise/i }));
+    userEvent.type(screen.getByLabelText(/search exercises/i), 'press');
+    userEvent.keyboard('{Escape}');
+    userEvent.click(screen.getByRole('button', { name: /choose an exercise/i }));
+    expect(screen.getByLabelText(/search exercises/i)).toHaveValue('');
+  });
+});

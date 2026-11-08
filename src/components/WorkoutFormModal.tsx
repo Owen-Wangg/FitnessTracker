@@ -9,6 +9,7 @@ import { fromDisplay, toDisplay, toInputValue, type Unit } from '../utils/units'
 import ExercisePicker, { type PickedExercise } from './ExercisePicker';
 import ExerciseThumb from './ExerciseThumb';
 import { useUnit } from './UnitProvider';
+import { useDialog } from '../hooks/useDialog';
 import type { SetInput, Workout, WorkoutDraft, WorkoutSet } from '../types';
 import '../assets/styles/WorkoutFormModal.css';
 
@@ -51,6 +52,7 @@ const WorkoutFormModal = ({ initial = null, initialDate, history = [], onClose, 
   ); // id is null for custom exercises
   const [showPicker, setShowPicker] = useState(false);
   const { unit } = useUnit();
+  const dialog = useDialog(onClose);
   const [sets, setSets] = useState<SetInput[]>(() => rowsFrom(initial, unit));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -113,10 +115,13 @@ const WorkoutFormModal = ({ initial = null, initialDate, history = [], onClose, 
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div
+        ref={dialog.ref}
         className="modal-content"
         role="dialog"
         aria-modal="true"
         aria-label={editing ? 'Edit exercise' : 'Add exercise'}
+        tabIndex={-1}
+        onKeyDown={dialog.onKeyDown}
         onClick={(e) => e.stopPropagation()}
       >
         <h2>{editing ? 'Edit Exercise' : 'Add Exercise'}</h2>

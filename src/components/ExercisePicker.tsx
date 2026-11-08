@@ -4,6 +4,7 @@ import { FaTimes, FaSearch, FaPlus } from 'react-icons/fa';
 import { GROUPS, searchExercises } from '../utils/exerciseLibrary';
 import type { Exercise } from '../types';
 import ExerciseThumb from './ExerciseThumb';
+import { useDialog } from '../hooks/useDialog';
 import '../assets/styles/ExerciseLibrary.css';
 
 // What the picker hands back: a library exercise, or a custom one (id null).
@@ -18,10 +19,14 @@ interface ExercisePickerProps {
   onSelect: (picked: PickedExercise) => void;
 }
 
-const ExercisePicker = ({ show, onClose, onSelect }: ExercisePickerProps) => {
-  const [query, setQuery] = useState('');
+// The sheet only exists while it is open, so the search box starts empty each time and the dialog
+// behaviour (focus, Escape, Tab) is set up fresh.
+const ExercisePicker = ({ show, onClose, onSelect }: ExercisePickerProps) =>
+  show ? <PickerSheet onClose={onClose} onSelect={onSelect} /> : null;
 
-  if (!show) return null;
+const PickerSheet = ({ onClose, onSelect }: Omit<ExercisePickerProps, 'show'>) => {
+  const [query, setQuery] = useState('');
+  const dialog = useDialog(onClose);
 
   const trimmedQuery = query.trim();
   const results = searchExercises(trimmedQuery);
@@ -43,10 +48,13 @@ const ExercisePicker = ({ show, onClose, onSelect }: ExercisePickerProps) => {
   return createPortal(
     <div className="library-overlay" onClick={onClose}>
       <div
+        ref={dialog.ref}
         className="library-sheet"
         role="dialog"
         aria-modal="true"
         aria-label="Choose an exercise"
+        tabIndex={-1}
+        onKeyDown={dialog.onKeyDown}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="library-header">
@@ -66,6 +74,7 @@ const ExercisePicker = ({ show, onClose, onSelect }: ExercisePickerProps) => {
               placeholder="Search"
               aria-label="Search exercises"
               autoComplete="off"
+              data-autofocus
             />
           </div>
         </div>

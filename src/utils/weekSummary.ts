@@ -2,6 +2,7 @@
 import { GROUPS, type Group, type Workout } from '../types';
 import { buildSeries, personalRecordFlags } from './progress';
 import { exerciseKey, findExercise } from './exerciseLibrary';
+import { daysBetween } from './workoutMetrics';
 
 export type GroupSets = Record<Group, number>;
 
@@ -33,4 +34,19 @@ export const countPersonalRecords = (workouts: Workout[], dates: Set<string>): n
     });
   });
   return records;
+};
+
+// Days since each muscle group was last trained, as of `today` ('YYYY-MM-DD'). Null for a group that
+// has never been trained. Workouts dated after `today` are ignored.
+export const daysSinceByGroup = (workouts: Workout[], today: string): Record<Group, number | null> => {
+  const latest: Partial<Record<Group, string>> = {};
+  workouts.forEach((w) => {
+    const group = findExercise(w.exerciseId, w.name)?.group;
+    if (!group || w.date > today) return;
+    if (!latest[group] || w.date > (latest[group] as string)) latest[group] = w.date;
+  });
+  return Object.fromEntries(GROUPS.map((g) => [g, latest[g] ? daysBetween(latest[g] as string, today) : null])) as Record<
+    Group,
+    number | null
+  >;
 };

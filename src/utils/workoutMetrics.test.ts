@@ -10,6 +10,7 @@ import {
   applyBodyWeight,
   formatLocalDate,
   parseLocalDate,
+  daysBetween,
 } from './workoutMetrics';
 import type { WorkoutSet } from '../types';
 
@@ -151,6 +152,21 @@ describe('bodyweight exercises', () => {
   test('bestReps is the most reps in one counted set', () => {
     expect(bestReps(workout([{ weight: 0, reps: 8 }, { weight: 0, reps: 12 }, { weight: 0, reps: 30, set_type: 'warmup' }]))).toBe(12);
     expect(bestReps(workout([]))).toBe(0);
+  });
+});
+
+describe('daysBetween', () => {
+  test('counts whole calendar days, forward and backward', () => {
+    expect(daysBetween('2025-06-01', '2025-06-01')).toBe(0);
+    expect(daysBetween('2025-06-01', '2025-06-10')).toBe(9);
+    expect(daysBetween('2025-06-10', '2025-06-01')).toBe(-9);
+  });
+
+  test('is not thrown off by month ends, leap days or daylight saving', () => {
+    expect(daysBetween('2025-01-31', '2025-03-01')).toBe(29);
+    expect(daysBetween('2024-02-28', '2024-03-01')).toBe(2);
+    expect(daysBetween('2025-03-08', '2025-03-10')).toBe(2);
+    expect(daysBetween('2025-11-01', '2025-11-03')).toBe(2);
   });
 });
 

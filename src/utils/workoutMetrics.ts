@@ -84,6 +84,15 @@ export const formatLocalDate = (date: Date): string => {
   return `${y}-${m}-${d}`;
 };
 
+// Whole days from one 'YYYY-MM-DD' date to another (negative if `to` is earlier).
+export const daysBetween = (from: string, to: string): number => {
+  const utc = (date: string) => {
+    const [y, m, d] = String(date).split('T')[0].split('-').map(Number);
+    return Date.UTC(y, m - 1, d);
+  };
+  return Math.round((utc(to) - utc(from)) / (24 * 60 * 60 * 1000));
+};
+
 // Parse 'YYYY-MM-DD' as a local calendar date.
 export const parseLocalDate = (dateString: string): Date => {
   const [y, m, d] = String(dateString).split('T')[0].split('-').map(Number);

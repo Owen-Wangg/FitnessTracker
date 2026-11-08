@@ -1,4 +1,4 @@
-import { topSet, bestEstimated1RM, bestReps, workoutVolume } from './workoutMetrics';
+import { topSet, bestEstimated1RM, bestReps, daysBetween, workoutVolume } from './workoutMetrics';
 import { exerciseKey } from './exerciseLibrary';
 import type { Metric, Workout } from '../types';
 
@@ -47,15 +47,9 @@ export const RANGES: { key: RangeKey; label: string; days: number }[] = [
   { key: 'all', label: 'All', days: Infinity },
 ];
 
-const DAY_MS = 24 * 60 * 60 * 1000;
-const dayNumber = (date: string): number => {
-  const [y, m, d] = date.split('-').map(Number);
-  return Date.UTC(y, m - 1, d) / DAY_MS;
-};
-
 // Days between the first and last point of a series (oldest first).
 const spanDays = (days: { date: string }[]): number =>
-  days.length < 2 ? 0 : dayNumber(days[days.length - 1].date) - dayNumber(days[0].date);
+  days.length < 2 ? 0 : daysBetween(days[0].date, days[days.length - 1].date);
 
 // Ranges worth offering: those shorter than the history. Empty when the history is short, because
 // the choice would change nothing.
@@ -68,8 +62,8 @@ export const availableRanges = (days: { date: string }[]): RangeKey[] => {
 export const inRange = <T extends { date: string }>(days: T[], range: RangeKey): T[] => {
   const { days: window } = RANGES.find((r) => r.key === range) ?? RANGES[RANGES.length - 1];
   if (days.length === 0 || window === Infinity) return days;
-  const cutoff = dayNumber(days[days.length - 1].date) - window;
-  return days.filter((d) => dayNumber(d.date) >= cutoff);
+  const latest = days[days.length - 1].date;
+  return days.filter((d) => daysBetween(d.date, latest) <= window);
 };
 
 // Least-squares line through the points (evenly spaced by position), as one fitted value per point.

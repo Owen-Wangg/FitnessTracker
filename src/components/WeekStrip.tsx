@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { FaFire, FaTrophy } from 'react-icons/fa';
 import { formatLocalDate, totalVolume } from '../utils/workoutMetrics';
 import { toDisplay } from '../utils/units';
-import { countPersonalRecords, setsByGroup } from '../utils/weekSummary';
+import { countPersonalRecords, daysSinceByGroup, setsByGroup } from '../utils/weekSummary';
 import { GROUPS } from '../types';
 import { useUnit } from './UnitProvider';
 import type { Workout } from '../types';
@@ -17,13 +17,16 @@ const startOfWeek = (date: Date): Date => {
   return d;
 };
 
+// "today", "1d", "9d" or a dash for a group never trained.
+const sinceText = (age: number | null): string => (age === null ? '–' : age <= 0 ? 'today' : `${age}d`);
+
 const addDays = (date: Date, n: number): Date => new Date(date.getFullYear(), date.getMonth(), date.getDate() + n);
 
 // This week at a glance: which days you trained, volume versus last week, sets per muscle group
 // and personal records.
 const WeekStrip = ({ workouts = [] }: { workouts?: Workout[] }) => {
   const { unit } = useUnit();
-  const { days, trainedCount, volume, lastWeekVolume, groupSets, records } = useMemo(() => {
+  const { days, trainedCount, volume, lastWeekVolume, groupSets, groupAge, records } = useMemo(() => {
     const monday = startOfWeek(new Date());
     const dayKeys = Array.from({ length: 7 }, (_, i) => formatLocalDate(addDays(monday, i)));
     const lastKeys = new Set(Array.from({ length: 7 }, (_, i) => formatLocalDate(addDays(monday, i - 7))));
@@ -43,6 +46,7 @@ const WeekStrip = ({ workouts = [] }: { workouts?: Workout[] }) => {
       volume: totalVolume(thisWeek),
       lastWeekVolume: totalVolume(workouts.filter((w) => lastKeys.has(w.date))),
       groupSets: setsByGroup(thisWeek),
+      groupAge: daysSinceByGroup(workouts, todayKey),
       records: countPersonalRecords(workouts, trained),
     };
   }, [workouts]);
@@ -89,16 +93,23 @@ const WeekStrip = ({ workouts = [] }: { workouts?: Workout[] }) => {
         </p>
       )}
 
-      {trainedCount > 0 && (
+      {workouts.length > 0 && (
         <>
-          <h4 className="week-groups-title">Sets by muscle group</h4>
+          <h4 className="week-groups-title">Muscle groups: sets this week, days since trained</h4>
           <ul className="week-groups" aria-label="Sets by muscle group">
-            {GROUPS.map((group) => (
-              <li key={group} className={`week-group ${groupSets[group] === 0 ? 'empty' : ''}`}>
-                <span className="week-group-count">{groupSets[group]}</span>
-                <span className="week-group-label">{group}</span>
-              </li>
-            ))}
+            {GROUPS.map((group) => {
+              const age = groupAge[group];
+              return (
+                <li
+                  key={group}
+                  className={`week-group ${groupSets[group] === 0 ? 'empty' : ''} ${age === null || age >= 7 ? 'stale' : ''}`}
+                >
+                  <span className="week-group-count">{groupSets[group]}</span>
+                  <span className="week-group-label">{group}</span>
+                  <span className="week-group-age">{sinceText(age)}</span>
+                </li>
+              );
+            })}
           </ul>
         </>
       )}

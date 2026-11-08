@@ -1,4 +1,4 @@
-import { countPersonalRecords, setsByGroup } from './weekSummary';
+import { countPersonalRecords, daysSinceByGroup, setsByGroup } from './weekSummary';
 import type { Workout, WorkoutSet } from '../types';
 
 const entry = (date: string, exerciseId: string | null, name: string, sets: WorkoutSet[]): Workout => ({
@@ -63,5 +63,29 @@ describe('countPersonalRecords', () => {
   test('bodyweight exercises can set a record with more reps', () => {
     expect(countPersonalRecords([pullUp('2025-06-02', 8), pullUp('2025-06-09', 10)], week)).toBe(1);
     expect(countPersonalRecords([pullUp('2025-06-02', 10), pullUp('2025-06-09', 8)], week)).toBe(0);
+  });
+});
+
+describe('daysSinceByGroup', () => {
+  const legs = (date: string) => entry(date, 'Leg_Press', 'Leg Press Machine', [{ weight: 300, reps: 8 }]);
+
+  test('counts days since the latest session for each group, null for never', () => {
+    const ages = daysSinceByGroup([press('2025-06-01', 185), press('2025-06-08', 190), legs('2025-06-03')], '2025-06-10');
+    expect(ages.Chest).toBe(2);
+    expect(ages.Legs).toBe(7);
+    expect(ages.Back).toBeNull();
+  });
+
+  test('is 0 for a group trained today', () => {
+    expect(daysSinceByGroup([press('2025-06-10', 185)], '2025-06-10').Chest).toBe(0);
+  });
+
+  test('ignores workouts dated after today and custom exercises', () => {
+    const ages = daysSinceByGroup(
+      [press('2025-06-20', 185), entry('2025-06-09', null, 'Sled Push', [{ weight: 90, reps: 4 }])],
+      '2025-06-10'
+    );
+    expect(ages.Chest).toBeNull();
+    expect(Object.values(ages).every((a) => a === null)).toBe(true);
   });
 });

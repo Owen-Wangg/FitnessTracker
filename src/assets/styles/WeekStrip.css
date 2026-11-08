@@ -1,4 +1,5 @@
 .week-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--space-4); }
+.week-badges { display: flex; align-items: center; gap: var(--space-3); }
 .week-count { display: inline-flex; align-items: center; gap: 6px; color: var(--pr-text); font-size: 0.875rem; font-weight: 600; }
 
 .week-days { list-style: none; margin: 0 0 var(--space-4); padding: 0; display: grid; grid-template-columns: repeat(7, 1fr); gap: var(--space-2); }
@@ -22,3 +23,10 @@
 .week-delta { margin-top: var(--space-1); font-size: 0.8125rem; font-weight: 600; }
 .week-delta.up { color: var(--success); }
 .week-delta.down { color: var(--danger); }
+
+.week-groups-title { margin: var(--space-4) 0 var(--space-2); font-size: 0.75rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); }
+.week-groups { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: var(--space-2); }
+.week-group { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: var(--space-2) 0; background: var(--surface-2); border-radius: var(--radius-sm); }
+.week-group-count { font-family: var(--font-display); font-size: 1.25rem; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
+.week-group-label { font-size: 0.6875rem; color: var(--text-muted); }
+.week-group.empty .week-group-count { color: var(--text-muted); font-weight: 600; opacity: 0.6; }

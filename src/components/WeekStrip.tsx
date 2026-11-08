@@ -1,7 +1,9 @@
 import React, { useMemo } from 'react';
-import { FaFire } from 'react-icons/fa';
+import { FaFire, FaTrophy } from 'react-icons/fa';
 import { formatLocalDate, totalVolume } from '../utils/workoutMetrics';
 import { toDisplay } from '../utils/units';
+import { countPersonalRecords, setsByGroup } from '../utils/weekSummary';
+import { GROUPS } from '../types';
 import { useUnit } from './UnitProvider';
 import type { Workout } from '../types';
 import '../assets/styles/WeekStrip.css';
@@ -17,10 +19,11 @@ const startOfWeek = (date: Date): Date => {
 
 const addDays = (date: Date, n: number): Date => new Date(date.getFullYear(), date.getMonth(), date.getDate() + n);
 
-// This week at a glance: which days you trained, and volume versus last week.
+// This week at a glance: which days you trained, volume versus last week, sets per muscle group
+// and personal records.
 const WeekStrip = ({ workouts = [] }: { workouts?: Workout[] }) => {
   const { unit } = useUnit();
-  const { days, trainedCount, volume, lastWeekVolume } = useMemo(() => {
+  const { days, trainedCount, volume, lastWeekVolume, groupSets, records } = useMemo(() => {
     const monday = startOfWeek(new Date());
     const dayKeys = Array.from({ length: 7 }, (_, i) => formatLocalDate(addDays(monday, i)));
     const lastKeys = new Set(Array.from({ length: 7 }, (_, i) => formatLocalDate(addDays(monday, i - 7))));
@@ -39,6 +42,8 @@ const WeekStrip = ({ workouts = [] }: { workouts?: Workout[] }) => {
       trainedCount: trained.size,
       volume: totalVolume(thisWeek),
       lastWeekVolume: totalVolume(workouts.filter((w) => lastKeys.has(w.date))),
+      groupSets: setsByGroup(thisWeek),
+      records: countPersonalRecords(workouts, trained),
     };
   }, [workouts]);
 
@@ -48,11 +53,18 @@ const WeekStrip = ({ workouts = [] }: { workouts?: Workout[] }) => {
     <div className="week-strip card">
       <div className="week-head">
         <h3 className="eyebrow">This week</h3>
-        {trainedCount > 0 && (
-          <span className="week-count">
-            <FaFire aria-hidden="true" /> {trainedCount} {trainedCount === 1 ? 'day' : 'days'}
-          </span>
-        )}
+        <div className="week-badges">
+          {records > 0 && (
+            <span className="week-count week-records">
+              <FaTrophy aria-hidden="true" /> {records} {records === 1 ? 'PR' : 'PRs'}
+            </span>
+          )}
+          {trainedCount > 0 && (
+            <span className="week-count">
+              <FaFire aria-hidden="true" /> {trainedCount} {trainedCount === 1 ? 'day' : 'days'}
+            </span>
+          )}
+        </div>
       </div>
 
       <ol className="week-days" aria-label="Days trained this week">
@@ -75,6 +87,20 @@ const WeekStrip = ({ workouts = [] }: { workouts?: Workout[] }) => {
         <p className={`week-delta ${delta >= 0 ? 'up' : 'down'}`}>
           {delta >= 0 ? '▲' : '▼'} {Math.abs(delta).toFixed(0)}% vs last week
         </p>
+      )}
+
+      {trainedCount > 0 && (
+        <>
+          <h4 className="week-groups-title">Sets by muscle group</h4>
+          <ul className="week-groups" aria-label="Sets by muscle group">
+            {GROUPS.map((group) => (
+              <li key={group} className={`week-group ${groupSets[group] === 0 ? 'empty' : ''}`}>
+                <span className="week-group-count">{groupSets[group]}</span>
+                <span className="week-group-label">{group}</span>
+              </li>
+            ))}
+          </ul>
+        </>
       )}
     </div>
   );

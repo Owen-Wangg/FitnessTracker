@@ -18,11 +18,11 @@ const byId = new Map<string, Exercise>(FUNDAMENTALS.map((e) => [e.id, e]));
 const byName = new Map<string, Exercise>(FUNDAMENTALS.map((e) => [e.name.toLowerCase(), e]));
 
 // Library entry for a logged workout: by id, else by exact (case-insensitive) name for older entries.
-// Returns null for custom exercises.
+// Returns null for an older entry that is not in the list.
 export const findExercise = (exerciseId?: string | null, name?: string | null): Exercise | null =>
   (exerciseId && byId.get(exerciseId)) || (name && byName.get(name.trim().toLowerCase())) || null;
 
-// True for library exercises done against body weight (pull-ups, push-ups...). Custom ones are external.
+// True for library exercises done against body weight (pull-ups, push-ups...). Anything not in the list is treated as external.
 export const isBodyweight = (exerciseId?: string | null, name?: string | null): boolean =>
   findExercise(exerciseId, name)?.loadType === 'bodyweight';
 

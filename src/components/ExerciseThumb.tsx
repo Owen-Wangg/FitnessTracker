@@ -4,9 +4,9 @@ import { exerciseImageUrl } from '../utils/exerciseLibrary';
 import type { Exercise } from '../types';
 import '../assets/styles/ExerciseThumb.css';
 
-// Exercise illustration, with a dumbbell placeholder for custom exercises or failed loads.
+// Exercise illustration, with a dumbbell placeholder for older entries not in the list, or failed loads.
 interface ExerciseThumbProps {
-  exercise?: Exercise | null; // null for custom exercises
+  exercise?: Exercise | null; // null for an older entry not in the list
   size?: number;
 }
 

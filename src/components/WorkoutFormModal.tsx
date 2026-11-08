@@ -49,7 +49,7 @@ const WorkoutFormModal = ({ initial = null, initialDate, history = [], onClose, 
   const [date, setDate] = useState(() => initial?.date ?? initialDate ?? formatLocalDate(new Date()));
   const [exercise, setExercise] = useState<PickedExercise | null>(() =>
     initial ? { id: initial.exerciseId ?? null, name: initial.name } : null
-  ); // id is null for custom exercises
+  ); // id is null for an older entry logged by name
   const [showPicker, setShowPicker] = useState(false);
   const { unit } = useUnit();
   const dialog = useDialog(onClose);
@@ -145,7 +145,7 @@ const WorkoutFormModal = ({ initial = null, initialDate, history = [], onClose, 
                   <ExerciseThumb exercise={libraryEntry} size={48} />
                   <span className="exercise-select-text">
                     <span className="exercise-select-name">{exercise.name}</span>
-                    {!libraryEntry && <span className="exercise-select-meta">Custom exercise</span>}
+                    {!libraryEntry && <span className="exercise-select-meta">Not in the exercise list</span>}
                     {bodyweight && <span className="exercise-select-meta">Bodyweight: added weight is optional</span>}
                   </span>
                   <span className="exercise-select-action">Change</span>

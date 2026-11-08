@@ -9,7 +9,7 @@ export const normalizeWorkout = (row: WorkoutRow, sets?: SetRow[] | null): Worko
   id: row.id,
   date: row.date,
   name: row.name,
-  exerciseId: row.exercise_id || null, // library id; null for custom or older entries
+  exerciseId: row.exercise_id || null, // library id; null for older entries logged by name
   sets: [...(sets || [])]
     .sort((a, b) => a.set_number - b.set_number)
     .map((s) => ({ ...s, weight: Number(s.weight) })),

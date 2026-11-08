@@ -6,7 +6,7 @@ import { daysBetween } from './workoutMetrics';
 
 export type GroupSets = Record<Group, number>;
 
-// Working sets (warm-ups left out) per muscle group. Custom exercises have no group, so they are skipped.
+// Working sets (warm-ups left out) per muscle group. Older entries not in the exercise list have no group, so they are skipped.
 export const setsByGroup = (workouts: Workout[]): GroupSets => {
   const counts = Object.fromEntries(GROUPS.map((g) => [g, 0])) as GroupSets;
   workouts.forEach((w) => {

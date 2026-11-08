@@ -28,7 +28,7 @@ interface ProgressPoint extends TrendPoint {
 
 interface ProgressGraphProps {
   workouts?: Workout[] | null;
-  exerciseKey?: string | null; // library id, or the lowercased name of a custom exercise
+  exerciseKey?: string | null; // library id, or the lowercased name of an older entry not in the list
   exerciseLabel?: string;
 }
 

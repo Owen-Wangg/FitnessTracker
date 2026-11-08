@@ -130,16 +130,13 @@ describe('adding', () => {
     await screen.findByRole('button', { name: 'Save' }); // let the async save settle
   });
 
-  test('a custom exercise can be added from the search box', async () => {
-    const { onSubmit } = setup();
+  test('only offers exercises from the list: no way to add a custom one', () => {
+    setup();
     userEvent.click(screen.getByRole('button', { name: /choose an exercise/i }));
     userEvent.type(screen.getByLabelText(/search exercises/i), 'Sled Push');
-    userEvent.click(screen.getByRole('button', { name: /use .*sled push.* as a custom exercise/i }));
-    userEvent.type(screen.getByLabelText(/set 1 weight/i), '90');
-    userEvent.type(screen.getByLabelText(/set 1 reps/i), '4');
-    userEvent.click(screen.getByRole('button', { name: 'Save' }));
-    expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({ name: 'Sled Push', exerciseId: null }));
-    await screen.findByRole('button', { name: 'Save' });
+    expect(screen.getByText('No exercise matches your search.')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /custom exercise/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /sled push/i })).not.toBeInTheDocument();
   });
 
   test('Cancel calls onClose', () => {
@@ -207,10 +204,10 @@ describe('editing', () => {
     await screen.findByRole('button', { name: 'Save changes' });
   });
 
-  test('an older entry with a custom name opens as a custom exercise', () => {
+  test('an older entry logged by name still opens, and says it is not in the list', () => {
     setup({ initial: { ...workout, name: 'Sled Push', exerciseId: null } });
     expect(screen.getByText('Sled Push')).toBeInTheDocument();
-    expect(screen.getByText('Custom exercise')).toBeInTheDocument();
+    expect(screen.getByText('Not in the exercise list')).toBeInTheDocument();
   });
 
   test('stays open and shows the error text when a set becomes invalid', () => {

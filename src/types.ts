@@ -35,7 +35,7 @@ export interface Workout {
   id: string;
   date: string; // 'YYYY-MM-DD'
   name: string;
-  exerciseId?: string | null; // library id; null for custom or older entries
+  exerciseId?: string | null; // library id; null for older entries logged by name
   sets: WorkoutSet[];
   bodyWeight?: number; // body weight (lbs) on this date, filled in memory by applyBodyWeight; never saved
 }

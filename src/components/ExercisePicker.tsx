@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
-import { FaTimes, FaSearch, FaPlus } from 'react-icons/fa';
+import { FaTimes, FaSearch } from 'react-icons/fa';
 import { GROUPS, searchExercises } from '../utils/exerciseLibrary';
 import type { Exercise } from '../types';
 import ExerciseThumb from './ExerciseThumb';
 import { useDialog } from '../hooks/useDialog';
 import '../assets/styles/ExerciseLibrary.css';
 
-// What the picker hands back: a library exercise, or a custom one (id null).
+// What the picker hands back: a library exercise. The id is null only for an older entry that was logged by
+// name before the list was fixed, which the form can still open and edit.
 export interface PickedExercise {
   id: string | null;
   name: string;
@@ -30,7 +31,6 @@ const PickerSheet = ({ onClose, onSelect }: Omit<ExercisePickerProps, 'show'>) =
 
   const trimmedQuery = query.trim();
   const results = searchExercises(trimmedQuery);
-  const exactMatch = results.some((e) => e.name.toLowerCase() === trimmedQuery.toLowerCase());
 
   const renderRow = (exercise: Exercise) => (
     <li key={exercise.id}>
@@ -94,17 +94,10 @@ const PickerSheet = ({ onClose, onSelect }: Omit<ExercisePickerProps, 'show'>) =
           )}
 
           {trimmedQuery && results.length === 0 && (
-            <p className="library-empty">No match in the basics.</p>
+            <p className="library-empty">No exercise matches your search.</p>
           )}
         </div>
 
-        {trimmedQuery && !exactMatch && (
-          <div className="library-footer">
-            <button type="button" className="custom-btn" onClick={() => onSelect({ id: null, name: trimmedQuery })}>
-              <FaPlus /> Use &ldquo;{trimmedQuery}&rdquo; as a custom exercise
-            </button>
-          </div>
-        )}
       </div>
     </div>,
     document.body

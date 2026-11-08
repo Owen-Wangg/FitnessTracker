@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { FaPlus, FaTimes, FaChevronRight } from 'react-icons/fa';
-import { formatLocalDate } from '../utils/workoutMetrics';
+import { formatLocalDate, parseLocalDate } from '../utils/workoutMetrics';
 import { findExercise } from '../utils/exerciseLibrary';
+import { describeSets, lastSession } from '../utils/lastSession';
 import { validateWorkoutForm } from '../utils/workoutForm';
 import ExercisePicker, { type PickedExercise } from './ExercisePicker';
 import ExerciseThumb from './ExerciseThumb';
@@ -9,6 +10,8 @@ import type { SetInput, Workout, WorkoutDraft } from '../types';
 import '../assets/styles/WorkoutFormModal.css';
 
 const emptySet = (): SetInput => ({ weight: '', reps: '' });
+
+const shortDate = (date: string) => parseLocalDate(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 
 // Form rows hold the raw input strings. set_type is carried along (not shown) so editing keeps tags.
 const rowsFrom = (workout: Workout | null | undefined): SetInput[] =>
@@ -23,13 +26,15 @@ const rowsFrom = (workout: Workout | null | undefined): SetInput[] =>
 // Add or edit one exercise. Mount it to open it and unmount it to close it.
 //   initial:  the workout being edited, or null/undefined to add a new one
 //   onSubmit: resolves true when saved, which closes the form (the caller does that)
+//   history:  all logged workouts, used to show what you did last time for the chosen exercise
 interface WorkoutFormModalProps {
   initial?: Workout | null;
+  history?: Workout[];
   onClose: () => void;
   onSubmit: (draft: WorkoutDraft) => Promise<boolean>;
 }
 
-const WorkoutFormModal = ({ initial = null, onClose, onSubmit }: WorkoutFormModalProps) => {
+const WorkoutFormModal = ({ initial = null, history = [], onClose, onSubmit }: WorkoutFormModalProps) => {
   const editing = Boolean(initial);
   const [date, setDate] = useState(() => initial?.date ?? formatLocalDate(new Date()));
   const [exercise, setExercise] = useState<PickedExercise | null>(() =>
@@ -42,6 +47,7 @@ const WorkoutFormModal = ({ initial = null, onClose, onSubmit }: WorkoutFormModa
 
   const libraryEntry = exercise ? findExercise(exercise.id, exercise.name) : null;
   const bodyweight = libraryEntry?.loadType === 'bodyweight';
+  const last = useMemo(() => (exercise ? lastSession(history, exercise, date) : null), [history, exercise, date]);
 
   const updateSet = (index: number, field: 'weight' | 'reps', value: string) =>
     setSets((prev) => prev.map((s, i) => (i === index ? { ...s, [field]: value } : s)));
@@ -120,6 +126,13 @@ const WorkoutFormModal = ({ initial = null, onClose, onSubmit }: WorkoutFormModa
               )}
             </button>
           </div>
+
+          {last && (
+            <p className="last-time">
+              <span className="last-time-label">Last time · {shortDate(last.date)}</span>
+              {describeSets(last.sets, bodyweight)}
+            </p>
+          )}
 
           <div className="sets-editor">
             <div className="sets-row sets-row-header" aria-hidden="true">

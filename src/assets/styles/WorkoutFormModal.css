@@ -53,6 +53,20 @@
 .exercise-select-meta { font-size: 0.8125rem; font-weight: 400; color: var(--text-muted); }
 .exercise-select-action { color: var(--accent-text); font-size: 0.875rem; }
 
+/* What you did last time for this exercise */
+.last-time {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0 0 var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  background: var(--surface-2);
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
+}
+.last-time-label { font-size: 0.75rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); }
+
 /* Per-set rows */
 .sets-editor { display: flex; flex-direction: column; gap: var(--space-2); }
 .sets-row {

@@ -20,6 +20,32 @@ const pickExercise = (name: string) => {
   userEvent.click(within(dialog).getByRole('button', { name: new RegExp(`^${name}$`, 'i') }));
 };
 
+describe('last time', () => {
+  const history: Workout[] = [
+    {
+      id: 'old',
+      date: '2025-06-01',
+      name: 'Leg Press Machine',
+      exerciseId: 'Leg_Press',
+      sets: [{ weight: 225, reps: 5 }, { weight: 245, reps: 3 }],
+    },
+  ];
+
+  test('shows the previous session once the exercise is picked', () => {
+    setup({ history });
+    expect(screen.queryByText(/last time/i)).not.toBeInTheDocument();
+    pickExercise('Leg Press Machine');
+    expect(screen.getByText(/last time · jun 1/i)).toBeInTheDocument();
+    expect(screen.getByText('225 × 5, 245 × 3')).toBeInTheDocument();
+  });
+
+  test('says nothing for an exercise with no history', () => {
+    setup({ history });
+    pickExercise('Lat Pulldown Machine');
+    expect(screen.queryByText(/last time/i)).not.toBeInTheDocument();
+  });
+});
+
 describe('adding', () => {
   test('shows an inline error and does not save without an exercise', () => {
     const { onSubmit } = setup();

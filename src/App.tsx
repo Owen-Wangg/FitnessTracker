@@ -119,6 +119,7 @@ function App() {
         <WorkoutFormModal
           key={form.workout?.id ?? 'new'}
           initial={form.workout}
+          history={workouts}
           onClose={() => setForm(null)}
           onSubmit={handleSubmitForm}
         />

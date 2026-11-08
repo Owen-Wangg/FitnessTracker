@@ -61,3 +61,6 @@ Deleting a workout or weight entry shows an Undo toast; the delete is only sent 
 Exercise thumbnails are simple equipment illustrations (no people) drawn by `scripts/make-exercise-icons.ts`
 into `public/exercises/` and served by the app itself; after adding an exercise to
 `src/data/fundamentals.ts`, add a drawing for it in that script and run `npm run icons`.
+
+The app icon (favicon, home-screen icons) is a dumbbell drawn by `scripts/make-app-icons.ts` into `public/`;
+change the drawing there and run `npm run app-icons` to regenerate all the sizes.

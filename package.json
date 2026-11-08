@@ -21,7 +21,8 @@
     "test": "vitest",
     "lint": "tsc --noEmit && eslint .",
     "typecheck": "tsc --noEmit",
-    "icons": "node scripts/make-exercise-icons.ts"
+    "icons": "node scripts/make-exercise-icons.ts",
+    "app-icons": "node scripts/make-app-icons.ts"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",

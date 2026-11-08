@@ -94,6 +94,26 @@ describe('time range', () => {
   });
 });
 
+describe('relative strength', () => {
+  const withBodyWeight = [
+    { ...session('2025-06-01', 150, 1), bodyWeight: 200 },
+    { ...session('2025-06-08', 200, 1), bodyWeight: 160 },
+  ];
+
+  test('is offered once body weight is known, as a multiple of body weight', () => {
+    render(<ProgressGraph workouts={withBodyWeight} exerciseKey={BENCH} exerciseLabel="Flat Chest Press Machine" />);
+    userEvent.click(screen.getByRole('button', { name: 'Relative' }));
+    expect(screen.getByRole('heading', { name: /multiple of your body weight/i })).toBeInTheDocument();
+    expect(screen.getByText('Latest').nextSibling).toHaveTextContent('1.25 × BW');
+    expect(screen.getByText('Change').nextSibling).toHaveTextContent('+0.50 × BW');
+  });
+
+  test('is not offered without a logged body weight', () => {
+    render(<ProgressGraph workouts={history} exerciseKey={BENCH} exerciseLabel="Flat Chest Press Machine" />);
+    expect(screen.queryByRole('button', { name: 'Relative' })).not.toBeInTheDocument();
+  });
+});
+
 test('a single session still draws a point', () => {
   const { container } = render(
     <ProgressGraph workouts={[session('2025-06-01', 185)]} exerciseKey={BENCH} exerciseLabel="Flat Chest Press Machine" />

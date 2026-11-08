@@ -129,9 +129,16 @@ describe('bodyweight exercises', () => {
     expect(w.sets[0].load).toBe(25);
   });
 
-  test('applyBodyWeight leaves external and custom exercises untouched', () => {
+  test('applyBodyWeight tags every workout with the body weight on its date, without touching external sets', () => {
+    const bench = workout([{ weight: 135, reps: 8 }]); // dated 2025-06-01
+    const [tagged] = applyBodyWeight([bench], bodyWeights);
+    expect(tagged.bodyWeight).toBe(175);
+    expect(tagged.sets).toBe(bench.sets);
+  });
+
+  test('applyBodyWeight returns a workout unchanged when no body weight is logged and none is needed', () => {
     const bench = workout([{ weight: 135, reps: 8 }]);
-    expect(applyBodyWeight([bench], bodyWeights)[0]).toBe(bench);
+    expect(applyBodyWeight([bench], [])[0]).toBe(bench);
   });
 
   test('metrics use load in place of weight', () => {

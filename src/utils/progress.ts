@@ -8,6 +8,7 @@ export interface DayPoint {
   e1rm: number;
   volume: number;
   reps: number; // most reps in one set
+  relative: number; // best estimated 1RM as a multiple of body weight; 0 when no body weight is known
 }
 
 export type ScoredDay = DayPoint & { top: { weight: number; reps: number } };
@@ -20,12 +21,14 @@ export const buildSeries = (workouts: Workout[] | null | undefined, key: string)
     .filter((w) => w && w.date && w.name && exerciseKey(w) === key)
     .forEach((w) => {
       const date = w.date.split('T')[0];
-      const day = (byDate[date] = byDate[date] || { date, top: null, e1rm: 0, volume: 0, reps: 0 });
+      const day = (byDate[date] = byDate[date] || { date, top: null, e1rm: 0, volume: 0, reps: 0, relative: 0 });
       const top = topSet(w);
       if (top && (!day.top || top.weight > day.top.weight || (top.weight === day.top.weight && top.reps > day.top.reps))) {
         day.top = top;
       }
-      day.e1rm = Math.max(day.e1rm, bestEstimated1RM(w));
+      const e1rm = bestEstimated1RM(w);
+      day.e1rm = Math.max(day.e1rm, e1rm);
+      if (w.bodyWeight && w.bodyWeight > 0) day.relative = Math.max(day.relative, e1rm / w.bodyWeight);
       day.reps = Math.max(day.reps, bestReps(w));
       day.volume += workoutVolume(w);
     });

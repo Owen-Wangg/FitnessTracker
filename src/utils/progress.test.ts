@@ -42,6 +42,16 @@ describe('buildSeries', () => {
     expect(series.map((d) => d.reps)).toEqual([10, 11]);
   });
 
+  test('relative strength is the best estimated 1RM divided by body weight that day', () => {
+    const logged = [
+      entry('2025-06-01', 'Flat Chest Press Machine', [{ weight: 150, reps: 1 }], { bodyWeight: 200 }),
+      entry('2025-06-08', 'Flat Chest Press Machine', [{ weight: 200, reps: 1 }], { bodyWeight: 160 }),
+      entry('2025-06-15', 'Flat Chest Press Machine', [{ weight: 200, reps: 1 }]), // no body weight known
+    ];
+    const series = buildSeries(logged, 'Leverage_Chest_Press');
+    expect(series.map((d) => d.relative)).toEqual([0.75, 1.25, 0]);
+  });
+
   test('skips days with only warm-up sets', () => {
     const warm = [entry('2025-06-01', 'Leg Press Machine', [{ weight: 95, reps: 10, set_type: 'warmup' }])];
     expect(buildSeries(warm, 'Leg_Press')).toEqual([]);
@@ -49,12 +59,13 @@ describe('buildSeries', () => {
 });
 
 describe('valueFor', () => {
-  const day = { date: '2025-06-01', top: { weight: 200, reps: 3 }, e1rm: 220, volume: 600, reps: 5 };
+  const day = { date: '2025-06-01', top: { weight: 200, reps: 3 }, e1rm: 220, volume: 600, reps: 5, relative: 1.25 };
   test('selects the chosen metric', () => {
     expect(valueFor(day, 'top')).toBe(200);
     expect(valueFor(day, 'e1rm')).toBe(220);
     expect(valueFor(day, 'volume')).toBe(600);
     expect(valueFor(day, 'reps')).toBe(5);
+    expect(valueFor(day, 'relative')).toBe(1.25);
   });
 });
 

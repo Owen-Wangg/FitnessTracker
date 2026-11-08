@@ -14,12 +14,14 @@ const METRICS: Record<Metric, { label: string; title: string }> = {
   e1rm: { label: 'Est. 1RM', title: 'Estimated one-rep max (Epley) per day' },
   volume: { label: 'Volume', title: 'Total weight x reps per day' },
   reps: { label: 'Reps', title: 'Most reps in a single set per day' },
+  relative: { label: 'Relative', title: 'Estimated 1RM as a multiple of your body weight' },
 };
 
 // Bodyweight exercises lead with reps; the weight metrics there include body weight.
 const EXTERNAL_METRICS: Metric[] = ['top', 'e1rm', 'volume'];
 const BODYWEIGHT_METRICS: Metric[] = ['reps', 'top', 'e1rm', 'volume'];
 const formatNumber = (n: number) => n.toLocaleString(undefined, { maximumFractionDigits: 1 });
+const formatRatio = (n: number) => n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const shortDate = (date: string) => parseLocalDate(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 const longDate = (date: string) =>
   parseLocalDate(date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
@@ -35,18 +37,23 @@ interface ProgressGraphProps {
 }
 
 const ProgressGraph = ({ workouts, exerciseKey, exerciseLabel }: ProgressGraphProps) => {
-  const [picked, setPicked] = useState<Metric | null>(null);
-  const available = isBodyweight(exerciseKey, exerciseKey) ? BODYWEIGHT_METRICS : EXTERNAL_METRICS;
-  const metric = picked && available.includes(picked) ? picked : available[0];
-  const { unit: weightUnit } = useUnit();
-  const unit = metric === 'reps' ? 'reps' : weightUnit;
-  // Charted values are pounds, except reps; show them in the chosen unit.
-  const shown = (value: number) => (metric === 'reps' ? value : toDisplay(value, weightUnit));
-
   const days = useMemo(
     () => (workouts && exerciseKey ? buildSeries(workouts, exerciseKey) : []),
     [workouts, exerciseKey]
   );
+
+  const [picked, setPicked] = useState<Metric | null>(null);
+  // 'Relative' needs a logged body weight; bodyweight exercises already include it in their load.
+  const bodyweightLift = isBodyweight(exerciseKey, exerciseKey);
+  const available = bodyweightLift
+    ? BODYWEIGHT_METRICS
+    : days.some((d) => d.relative > 0) ? [...EXTERNAL_METRICS, 'relative' as Metric] : EXTERNAL_METRICS;
+  const metric = picked && available.includes(picked) ? picked : available[0];
+  const { unit: weightUnit } = useUnit();
+  const unit = metric === 'reps' ? 'reps' : metric === 'relative' ? '× BW' : weightUnit;
+  const format = metric === 'relative' ? formatRatio : formatNumber;
+  // Charted values are pounds, except reps and ratios; show pounds in the chosen unit.
+  const shown = (value: number) => (metric === 'reps' || metric === 'relative' ? value : toDisplay(value, weightUnit));
 
   // The range choice only appears once the history is longer than the shortest range.
   const [pickedRange, setPickedRange] = useState<RangeKey | null>(null);
@@ -87,8 +94,8 @@ const ProgressGraph = ({ workouts, exerciseKey, exerciseLabel }: ProgressGraphPr
   }));
 
   const describe = ({ day, value, highlight }: ProgressPoint) => {
-    const lines = [`${METRICS[metric].label}: ${formatNumber(value)} ${unit}`];
-    if (metric !== 'volume' && metric !== 'reps') lines.push(`Best set: ${formatNumber(toDisplay(day.top.weight, weightUnit))} ${weightUnit} x ${day.top.reps}`);
+    const lines = [`${METRICS[metric].label}: ${format(value)} ${unit}`];
+    if (metric === 'top' || metric === 'e1rm' || metric === 'relative') lines.push(`Best set: ${formatNumber(toDisplay(day.top.weight, weightUnit))} ${weightUnit} x ${day.top.reps}`);
     if (highlight) lines.push('New personal record!');
     return { title: longDate(day.date), lines };
   };
@@ -115,16 +122,16 @@ const ProgressGraph = ({ workouts, exerciseKey, exerciseLabel }: ProgressGraphPr
       <div className="graph-stats">
         <div className="graph-stat">
           <span className="graph-stat-label">Latest</span>
-          <span className="graph-stat-value">{formatNumber(latest)} {unit}</span>
+          <span className="graph-stat-value">{format(latest)} {unit}</span>
         </div>
         <div className="graph-stat">
           <span className="graph-stat-label">Best</span>
-          <span className="graph-stat-value">{formatNumber(best)} {unit}</span>
+          <span className="graph-stat-value">{format(best)} {unit}</span>
         </div>
         <div className="graph-stat">
           <span className="graph-stat-label">Change</span>
           <span className={`graph-stat-value ${change > 0 ? 'up' : change < 0 ? 'down' : ''}`}>
-            {change > 0 ? '+' : ''}{formatNumber(change)} {unit}
+            {change > 0 ? '+' : ''}{format(change)} {unit}
             {values.length > 1 && first > 0 && ` (${change > 0 ? '+' : ''}${changePct.toFixed(0)}%)`}
           </span>
         </div>
@@ -133,7 +140,7 @@ const ProgressGraph = ({ workouts, exerciseKey, exerciseLabel }: ProgressGraphPr
       <TrendChart
         data={data}
         describe={describe}
-        formatValue={formatNumber}
+        formatValue={format}
         trend
         ariaLabel={`${METRICS[metric].label} for ${exerciseLabel} over time`}
       />

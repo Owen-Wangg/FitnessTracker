@@ -37,6 +37,7 @@ export interface Workout {
   name: string;
   exerciseId?: string | null; // library id; null for custom or older entries
   sets: WorkoutSet[];
+  bodyWeight?: number; // body weight (lbs) on this date, filled in memory by applyBodyWeight; never saved
 }
 
 // Rows as Supabase returns them.
@@ -99,4 +100,4 @@ export interface BodyWeightDraft {
 
 export type ThemePreference = 'system' | 'light' | 'dark';
 export type ResolvedTheme = 'light' | 'dark';
-export type Metric = 'top' | 'e1rm' | 'volume' | 'reps';
+export type Metric = 'top' | 'e1rm' | 'volume' | 'reps' | 'relative';

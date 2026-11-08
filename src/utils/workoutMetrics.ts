@@ -26,13 +26,20 @@ export const bodyWeightOn = (date: string, bodyWeights: BodyWeight[] | null | un
   return before ? before.weight : null;
 };
 
-// Gives each set of a bodyweight exercise a `load` of body weight + added weight. With no body weight
-// logged yet the load is just the added weight. Other workouts are returned unchanged.
+// Attaches body weight to workouts, in memory only:
+//  - every workout gets `bodyWeight` (the body weight on its date) once any body weight is logged
+//  - each set of a bodyweight exercise gets a `load` of body weight + added weight; with no body
+//    weight logged yet the load is just the added weight
+// Workouts that need neither are returned unchanged.
 export const applyBodyWeight = (workouts: Workout[], bodyWeights: BodyWeight[] | null | undefined): Workout[] =>
   workouts.map((w) => {
-    if (!isBodyweight(w.exerciseId, w.name)) return w;
-    const bodyWeight = bodyWeightOn(w.date, bodyWeights) ?? 0;
-    return { ...w, sets: w.sets.map((s) => ({ ...s, load: bodyWeight + (Number(s.weight) || 0) })) };
+    const bodyWeight = bodyWeightOn(w.date, bodyWeights);
+    if (!isBodyweight(w.exerciseId, w.name)) return bodyWeight === null ? w : { ...w, bodyWeight };
+    return {
+      ...w,
+      ...(bodyWeight === null ? {} : { bodyWeight }),
+      sets: w.sets.map((s) => ({ ...s, load: (bodyWeight ?? 0) + (Number(s.weight) || 0) })),
+    };
   });
 
 // Epley estimated one-rep max. A single rep is its own 1RM.

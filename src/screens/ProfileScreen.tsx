@@ -2,6 +2,7 @@ import React from 'react';
 import BodyWeightCard from '../components/BodyWeightCard';
 import ThemeSelector from '../components/ThemeSelector';
 import ConsistencyCard from '../components/ConsistencyCard';
+import MuscleSplitCard from '../components/MuscleSplitCard';
 import PersonalRecordsCard from '../components/PersonalRecordsCard';
 import UnitSelector from '../components/UnitSelector';
 import { useUnit } from '../components/UnitProvider';
@@ -83,6 +84,8 @@ const ProfileScreen = ({
       <ConsistencyCard workouts={workouts} />
 
       <PersonalRecordsCard workouts={workouts} />
+
+      <MuscleSplitCard workouts={workouts} />
 
       {onThemeChange && (
         <div className="appearance-card card">

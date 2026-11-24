@@ -16,6 +16,7 @@ export const FUNDAMENTALS: Exercise[] = [
   { id: 'Wide-Grip_Lat_Pulldown', name: 'Lat Pulldown Machine', group: 'Back' },
   { id: 'Dumbbell_Incline_Row', name: 'Chest Supported Row', group: 'Back' },
   { id: 'Single_Arm_Chest_Supported_Row', name: 'Single Arm Chest Supported Row', group: 'Back' },
+  { id: 'T-Bar_Row', name: 'T-Bar Row', group: 'Back' },
   { id: 'Pull_Up', name: 'Pull-Up', group: 'Back', loadType: 'bodyweight' },
   { id: 'Back_Extension', name: 'Back Extension', group: 'Back', loadType: 'bodyweight' },
 
@@ -31,6 +32,7 @@ export const FUNDAMENTALS: Exercise[] = [
   { id: 'Triceps_Overhead_Extension_with_Rope', name: 'Overhead Cable Tricep Extension', group: 'Arms' },
 
   // Legs
+  { id: 'Barbell_Squat', name: 'Barbell Squat', group: 'Legs' },
   { id: 'Leg_Press', name: 'Leg Press Machine', group: 'Legs' },
   { id: 'Leg_Extensions', name: 'Leg Extension Machine', group: 'Legs' },
   { id: 'Seated_Leg_Curl', name: 'Hamstring Curl Machine', group: 'Legs' },

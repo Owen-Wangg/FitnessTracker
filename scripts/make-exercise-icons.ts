@@ -173,6 +173,24 @@ const DRAW: Record<string, () => string> = {
     dumbbell(138, 150, 0, ghost) + dumbbell(138, 106, 0) + line(138, 106, 112, 100, { w: 5, c: ACCENT }) +
     arrow(172, 142, 172, 96),
 
+  // Squat rack: the bar starts on the hooks (blue), dips to the grey ghost, and drives back up.
+  Barbell_Squat: () =>
+    line(44, 30, 44, 172, { w: 6 }) + line(148, 30, 148, 172, { w: 6 }) +
+    line(44, 74, 56, 74, { w: 5 }) + line(148, 74, 136, 74, { w: 5 }) + base(24, 168) +
+    line(20, 116, 172, 116, { w: 5, c: ghost }) + rect(16, 98, 12, 36, ghost) + rect(164, 98, 12, 36, ghost) +
+    line(16, 62, 176, 62, { w: 6 }) + rect(14, 44, 12, 36, ACCENT) + rect(166, 44, 12, 36, ACCENT) +
+    arrow(96, 136, 96, 84),
+
+  // Landmine: bar pivots at the floor, plates and V-handle on the lifted end.
+  'T-Bar_Row': () =>
+    base(14, 178) + rect(18, 156, 26, 16, PAD, 4) + circle(31, 162, 5, '#fff') +
+    line(31, 162, 150, 146, { w: 6, c: ghost }) +
+    `<g transform="rotate(-8 124 149)">${rect(118, 131, 12, 36, ghost)}</g>` +
+    line(31, 162, 140, 94, { w: 6 }) +
+    `<g transform="rotate(-32 118 108)">${rect(112, 88, 12, 40, ACCENT)}</g>` +
+    line(140, 94, 130, 112, { w: 5, c: ACCENT }) + line(140, 94, 152, 110, { w: 5, c: ACCENT }) +
+    arrow(174, 150, 174, 100),
+
   Hanging_Leg_Raise: () =>
     pad(46, 138, 46, 58, 22) + pad(60, 96, 104, 96, 12) + line(104, 96, 104, 172, { w: 6 }) + post(46, 148) + base(30, 124) +
     rect(62, 112, 14, 56, ghost, 7) + rect(62, 112, 62, 14, ACCENT, 7) +
